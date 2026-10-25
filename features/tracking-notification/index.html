@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OWL CHA | ติดตาม Order และแจ้งเตือน</title>
+    <link rel="stylesheet" href="../../shared/styles.css" />
+    <script src="menu.js" defer></script>
+  </head>
+  <body>
+    <main class="page-shell app-shell" data-spec="SPEC-ORDER-STATUS-001 SPEC-NOTIFICATION-001">
+      <nav class="demo-nav" aria-label="นำทางต้นแบบทั้ง 6 กลุ่ม">
+        <a class="brand" href="../menu/index.html">OWL CHA</a>
+        <a href="../menu/index.html">01 เมนู</a>
+        <a href="../account/index.html">02 บัญชี</a>
+        <a href="../ordering-payment/index.html">03 สั่งซื้อ/ชำระ</a>
+        <a href="../tracking-notification/index.html" aria-current="page">04 ติดตาม/แจ้งเตือน</a>
+        <a href="../staff-orders/index.html">05 พนักงาน</a>
+        <a href="../admin-menu-reports/index.html">06 จัดการ/รายงาน</a>
+      </nav>
+
+      <header class="hero page-header">
+        <div>
+          <p class="eyebrow">UC-05 + UC-06 · SPEC-ORDER-STATUS-001 / SPEC-NOTIFICATION-001</p>
+          <h1>ติดตาม Order ของคุณ</h1>
+          <p class="hero-copy">ตรวจสอบสถานะล่าสุดและรายละเอียดคำสั่งซื้อ</p>
+        </div>
+        <span class="demo-badge">ต้นแบบ · แสดงเฉพาะ Order ตัวอย่างของลูกค้า</span>
+      </header>
+
+      <section class="toolbar panel">
+        <div>
+          <p class="eyebrow">YOUR ORDERS</p>
+          <h2>รายการคำสั่งซื้อ</h2>
+        </div>
+        <div class="toolbar-actions">
+          <label class="demo-select" for="tracking-scenario">
+            <span>สถานการณ์จำลอง</span>
+            <select id="tracking-scenario">
+              <option value="normal">โหลดข้อมูลสำเร็จ</option>
+              <option value="error">โหลดสถานะไม่สำเร็จ</option>
+              <option value="empty">ไม่มี Order</option>
+            </select>
+          </label>
+          <button id="refresh-orders" class="button button-quiet" type="button">↻ โหลดข้อมูล</button>
+        </div>
+      </section>
+
+      <div id="tracking-error" class="state-card error-state" role="alert" hidden>
+        <h3>ไม่สามารถโหลดสถานะได้</h3>
+        <p>ยังไม่ได้รับข้อมูลสถานะล่าสุด จึงไม่แสดงสถานะเดิม</p>
+        <button id="retry-tracking" class="button button-primary" type="button">ลองใหม่</button>
+      </div>
+      <div id="tracking-empty" class="state-card" role="status" hidden>
+        <span class="state-icon" aria-hidden="true">☕</span>
+        <h3>ยังไม่มีรายการ Order</h3>
+        <p>เมื่อมีคำสั่งซื้อ รายการจะปรากฏที่นี่</p>
+      </div>
+
+      <section id="tracking-content" class="tracking-layout" aria-label="รายละเอียด Order">
+        <div id="order-list" class="order-list" aria-label="เลือกรายการ Order" aria-live="polite"></div>
+        <article id="order-detail" class="panel order-detail" aria-live="polite"></article>
+      </section>
+
+      <section class="panel notification-panel" aria-labelledby="notification-heading">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">UC-06 · EVENT-BASED</p>
+            <h2 id="notification-heading">ประวัติแจ้งเตือน LINE</h2>
+            <p class="section-note">การส่งจริงเกิดจากเหตุการณ์ Order เป็น “พร้อมรับสินค้า”; ปุ่มด้านล่างใช้จำลองผลเท่านั้น</p>
+          </div>
+          <span class="demo-badge">ไม่เชื่อม LINE จริง</span>
+        </div>
+        <div class="notification-controls">
+          <label class="field">
+            <span>สถานะการเชื่อมต่อบัญชี</span>
+            <select id="line-connection">
+              <option value="connected">เชื่อมต่อแล้ว (จำลอง)</option>
+              <option value="not-connected">ยังไม่เชื่อมต่อ</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>ผลจาก LINE Notification Service</span>
+            <select id="line-result">
+              <option value="success">ส่งสำเร็จ</option>
+              <option value="failure">ส่งไม่สำเร็จ</option>
+            </select>
+          </label>
+          <button id="simulate-notification" class="button button-line" type="button">จำลองเหตุการณ์ “พร้อมรับสินค้า”</button>
+        </div>
+        <div id="notification-message" class="form-message" role="status" aria-live="polite" hidden></div>
+        <div id="notification-log" class="notification-log" aria-live="polite"></div>
+      </section>
+
+      <footer class="trace-footer">อ้างอิง FR-19 ถึง FR-23 · AC-STATUS-01 ถึง AC-STATUS-09 · AC-NOTIFICATION-01 ถึง AC-NOTIFICATION-04</footer>
+    </main>
+  </body>
+</html>

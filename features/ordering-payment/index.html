@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OWL CHA | สั่งเครื่องดื่มและชำระเงิน</title>
+    <link rel="stylesheet" href="../../shared/styles.css" />
+    <script src="menu.js" defer></script>
+  </head>
+  <body>
+    <main class="page-shell app-shell" data-spec="SPEC-ORDER-001 SPEC-PAYMENT-001">
+      <nav class="demo-nav" aria-label="นำทางต้นแบบทั้ง 6 กลุ่ม">
+        <a class="brand" href="../menu/index.html">OWL CHA</a>
+        <a href="../menu/index.html">01 เมนู</a>
+        <a href="../account/index.html">02 บัญชี</a>
+        <a href="../ordering-payment/index.html" aria-current="page">03 สั่งซื้อ/ชำระ</a>
+        <a href="../tracking-notification/index.html">04 ติดตาม/แจ้งเตือน</a>
+        <a href="../staff-orders/index.html">05 พนักงาน</a>
+        <a href="../admin-menu-reports/index.html">06 จัดการ/รายงาน</a>
+      </nav>
+
+      <header class="hero page-header">
+        <div>
+          <p class="eyebrow">UC-03 + UC-04 · SPEC-ORDER-001 / SPEC-PAYMENT-001</p>
+          <h1>สั่งเครื่องดื่มแก้วโปรด</h1>
+          <p class="hero-copy">เลือกเมนู ปรับตัวเลือก ตรวจสอบรายการ แล้วชำระผ่าน QR</p>
+        </div>
+        <span class="demo-badge">ต้นแบบ · ไม่มีการชำระเงินจริง</span>
+      </header>
+
+      <div class="workflow-steps" aria-label="ขั้นตอน">
+        <span class="workflow-step is-current" data-step="menu"><b>01</b> เลือกเมนู</span>
+        <span class="workflow-step" data-step="review"><b>02</b> ตรวจสอบ Order</span>
+        <span class="workflow-step" data-step="payment"><b>03</b> ชำระเงิน</span>
+      </div>
+
+      <section id="menu-stage" class="order-layout">
+        <div>
+          <div class="section-heading">
+            <div><p class="eyebrow">OUR MENU</p><h2>เลือกเครื่องดื่ม</h2></div>
+            <span class="section-note">ราคาส่วนลดแสดงในรายการที่ร่วมโปรโมชั่น</span>
+          </div>
+          <div id="order-menu" class="order-menu-grid" aria-live="polite"></div>
+        </div>
+        <aside class="panel cart-panel" aria-labelledby="cart-heading">
+          <div class="section-heading">
+            <div><p class="eyebrow">YOUR ORDER</p><h2 id="cart-heading">รายการของคุณ</h2></div>
+            <span id="cart-count" class="count-pill">0</span>
+          </div>
+          <div id="cart-items" class="cart-items" aria-live="polite"></div>
+          <div class="cart-total"><span>ยอดรวม</span><strong id="cart-total">฿0</strong></div>
+          <button id="review-order" class="button button-primary button-wide" type="button" disabled>ตรวจสอบ Order</button>
+          <p id="order-message" class="form-message" role="status" aria-live="polite" hidden></p>
+        </aside>
+      </section>
+
+      <section id="review-stage" class="panel stage-panel" hidden>
+        <div class="section-heading">
+          <div><p class="eyebrow">STEP 02</p><h2>ตรวจสอบ Order</h2></div>
+          <button id="back-to-menu" class="button button-quiet" type="button">＋ สั่งเครื่องดื่มเพิ่ม</button>
+        </div>
+        <div id="review-items" class="review-items"></div>
+        <div class="review-total"><span>ยอดชำระทั้งหมด</span><strong id="review-total">฿0</strong></div>
+        <p id="review-message" class="form-message error" role="alert" hidden></p>
+        <button id="confirm-order" class="button button-primary" type="button">ยืนยัน Order และไปชำระเงิน</button>
+      </section>
+
+      <section id="payment-stage" class="panel payment-panel" aria-labelledby="payment-heading" hidden>
+        <div class="section-heading">
+          <div><p class="eyebrow">STEP 03 · QR PAYMENT</p><h2 id="payment-heading">ชำระเงิน</h2></div>
+          <span class="demo-badge">QR จำลอง · สแกนชำระไม่ได้</span>
+        </div>
+        <div id="payment-content" class="payment-content">
+          <div class="qr-card">
+            <div id="qr-pattern" class="qr-pattern" role="img" aria-label="ภาพ QR จำลองที่ไม่สามารถใช้ชำระเงินได้"></div>
+            <p class="qr-caption">ตัวอย่าง QR สำหรับแสดงหน้าจอเท่านั้น</p>
+          </div>
+          <div class="payment-details">
+            <p class="section-note">Order ID <strong id="payment-order-id">—</strong></p>
+            <p class="section-note">Reference <code id="payment-reference">—</code></p>
+            <p class="payment-amount" id="payment-amount">฿0</p>
+            <div class="timer-row"><span>QR หมดอายุใน</span><strong id="payment-timer">05:00</strong></div>
+            <p id="payment-message" class="form-message" role="status" aria-live="polite" hidden></p>
+            <div class="demo-controls">
+              <label class="field">
+                <span>ผลการชำระเงินจำลอง</span>
+                <select id="payment-result">
+                  <option value="success">สำเร็จ</option>
+                  <option value="failure">ไม่สำเร็จ</option>
+                  <option value="pending">ยังไม่ตอบกลับ</option>
+                </select>
+              </label>
+              <button id="submit-payment" class="button button-primary button-wide" type="button">จำลองผลจาก Payment Gateway</button>
+            </div>
+          </div>
+        </div>
+        <div id="payment-success" class="payment-result success-result" role="status" hidden>
+          <span class="success-mark" aria-hidden="true">✓</span>
+          <div><p class="eyebrow">PAYMENT SUCCESSFUL</p><h3>ชำระเงินสำเร็จ</h3><p id="paid-order-summary"></p></div>
+        </div>
+        <button id="start-new-order" class="button button-dark" type="button" hidden>เริ่มรายการใหม่</button>
+      </section>
+
+      <dialog id="item-dialog" class="item-dialog" aria-labelledby="item-dialog-heading">
+        <form id="item-form" method="dialog">
+          <div class="section-heading">
+            <div><p class="eyebrow">CUSTOMIZE YOUR DRINK</p><h2 id="item-dialog-heading">ปรับแต่งเครื่องดื่ม</h2></div>
+            <button id="close-item-dialog" class="button button-quiet" type="button" aria-label="ปิดหน้าต่าง">×</button>
+          </div>
+          <p id="dialog-item-name" class="dialog-item-name"></p>
+          <label class="field"><span>จำนวน</span><input id="item-quantity" type="number" min="1" step="1" value="1" required /></label>
+          <fieldset class="choice-group">
+            <legend>ระดับความหวาน <b aria-hidden="true">*</b></legend>
+            <label><input type="radio" name="sweetness" value="หวานปกติ 75%" required /> หวานปกติ 75%</label>
+            <label><input type="radio" name="sweetness" value="หวานน้อย 50%" /> หวานน้อย 50%</label>
+            <label><input type="radio" name="sweetness" value="เพิ่มหวาน 100%" /> เพิ่มหวาน 100%</label>
+            <label><input type="radio" name="sweetness" value="ไม่หวาน" /> ไม่หวาน</label>
+          </fieldset>
+          <fieldset class="choice-group">
+            <legend>Toppings <small>(เลือกได้มากกว่า 1 รายการ)</small></legend>
+            <div id="topping-options" class="topping-grid"></div>
+          </fieldset>
+          <label class="field"><span>น้ำแข็ง <small>(ไม่เลือก = ปริมาณปกติ)</small></span>
+            <select id="item-ice">
+              <option value="">ปริมาณปกติ</option>
+              <option value="น้ำแข็งน้อย (ปริมาณน้ำเท่าเดิม)">น้ำแข็งน้อย (ปริมาณน้ำเท่าเดิม)</option>
+              <option value="ไม่ใส่น้ำแข็ง">ไม่ใส่น้ำแข็ง</option>
+              <option value="แยกน้ำแข็ง">แยกน้ำแข็ง</option>
+            </select>
+          </label>
+          <div id="item-form-message" class="form-message" role="alert" hidden></div>
+          <button class="button button-primary button-wide" type="submit">เพิ่มลง Order</button>
+        </form>
+      </dialog>
+
+      <footer class="trace-footer">อ้างอิง FR-06 ถึง FR-18 · AC-ORDER-01 ถึง AC-ORDER-12 · AC-PAYMENT-01 ถึง AC-PAYMENT-11</footer>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OWL CHA | เมนูและโปรโมชั่น</title>
+    <link rel="stylesheet" href="../../shared/styles.css" />
+    <script src="menu.js" defer></script>
+  </head>
+  <body>
+    <main class="page-shell app-shell" data-spec="SPEC-MENU-001">
+      <nav class="demo-nav" aria-label="นำทางต้นแบบทั้ง 6 กลุ่ม">
+        <a class="brand" href="index.html" aria-current="page">OWL CHA</a>
+        <a href="../menu/index.html" aria-current="page">01 เมนู</a>
+        <a href="../account/index.html">02 บัญชี</a>
+        <a href="../ordering-payment/index.html">03 สั่งซื้อ/ชำระ</a>
+        <a href="../tracking-notification/index.html">04 ติดตาม/แจ้งเตือน</a>
+        <a href="../staff-orders/index.html">05 พนักงาน</a>
+        <a href="../admin-menu-reports/index.html">06 จัดการ/รายงาน</a>
+      </nav>
+
+      <header class="hero page-header">
+        <div>
+          <p class="eyebrow">UC-01 · SPEC-MENU-001</p>
+          <h1>เลือกแก้วโปรดของคุณ</h1>
+          <p class="hero-copy">เมนูเครื่องดื่มและโปรโมชั่นที่กำลังใช้งาน</p>
+        </div>
+        <span class="demo-badge">ต้นแบบ · ข้อมูลจำลอง</span>
+      </header>
+
+      <section class="toolbar panel" aria-label="ค้นหาเมนู">
+        <label class="search-field" for="menu-search">
+          <span aria-hidden="true">⌕</span>
+          <input id="menu-search" type="search" placeholder="ค้นหาชื่อเครื่องดื่ม..." autocomplete="off" />
+        </label>
+        <label class="demo-select" for="menu-scenario">
+          <span>สถานการณ์จำลอง</span>
+          <select id="menu-scenario">
+            <option value="normal">เมนูและโปรโมชั่นปกติ</option>
+            <option value="empty">ไม่มีรายการเครื่องดื่ม</option>
+            <option value="no-promotions">ไม่มีโปรโมชั่น</option>
+            <option value="error">โหลดข้อมูลไม่สำเร็จ</option>
+          </select>
+        </label>
+      </section>
+
+      <section id="promotion-section" class="promotion-section" aria-labelledby="promotion-heading">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">LIMITED OFFER</p>
+            <h2 id="promotion-heading">โปรโมชั่นวันนี้</h2>
+          </div>
+          <span class="section-note">รายการที่ร่วมโปรโมชั่นแสดงก่อน</span>
+        </div>
+        <div id="promotion-list" class="promotion-list" aria-live="polite"></div>
+      </section>
+
+      <section class="menu-section" aria-labelledby="menu-heading">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">MADE FOR YOUR DAY</p>
+            <h2 id="menu-heading">เครื่องดื่มทั้งหมด</h2>
+          </div>
+          <span id="result-count" class="section-note" aria-live="polite"></span>
+        </div>
+        <div id="menu-feedback" class="feedback" role="status" aria-live="polite" hidden></div>
+        <div id="menu-list" class="menu-list" aria-live="polite"></div>
+        <div id="load-error" class="state-card error-state" role="alert" hidden>
+          <span class="state-icon" aria-hidden="true">!</span>
+          <h3>ไม่สามารถโหลดข้อมูลได้</h3>
+          <p>ข้อมูลเมนูยังไม่พร้อม ลองโหลดอีกครั้ง</p>
+          <button id="retry-load" class="button button-primary" type="button">ลองใหม่</button>
+        </div>
+        <div id="empty-state" class="state-card" role="status" hidden>
+          <span class="state-icon" aria-hidden="true">☕</span>
+          <h3 id="empty-title">ขณะนี้ไม่มีรายการเครื่องดื่ม</h3>
+          <p id="empty-copy">โปรดลองตรวจสอบอีกครั้งภายหลัง</p>
+        </div>
+      </section>
+
+      <footer class="trace-footer">อ้างอิง FR-01, FR-02, FR-03, FR-05 · AC-MENU-01 ถึง AC-MENU-05</footer>
+    </main>
+  </body>
+</html>

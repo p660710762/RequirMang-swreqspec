@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OWL CHA | สมัครสมาชิกและเข้าสู่ระบบ</title>
+    <link rel="stylesheet" href="../../shared/styles.css" />
+    <script src="menu.js" defer></script>
+  </head>
+  <body>
+    <main class="page-shell app-shell" data-spec="SPEC-ACCOUNT-001">
+      <nav class="demo-nav" aria-label="นำทางต้นแบบทั้ง 6 กลุ่ม">
+        <a class="brand" href="../menu/index.html">OWL CHA</a>
+        <a href="../menu/index.html">01 เมนู</a>
+        <a href="../account/index.html" aria-current="page">02 บัญชี</a>
+        <a href="../ordering-payment/index.html">03 สั่งซื้อ/ชำระ</a>
+        <a href="../tracking-notification/index.html">04 ติดตาม/แจ้งเตือน</a>
+        <a href="../staff-orders/index.html">05 พนักงาน</a>
+        <a href="../admin-menu-reports/index.html">06 จัดการ/รายงาน</a>
+      </nav>
+
+      <header class="hero page-header">
+        <div>
+          <p class="eyebrow">UC-02 · SPEC-ACCOUNT-001</p>
+          <h1>ยินดีต้อนรับกลับ</h1>
+          <p class="hero-copy">เข้าสู่ระบบ หรือสร้างบัญชี OWL CHA ของคุณ</p>
+        </div>
+        <span class="demo-badge">ต้นแบบ · ไม่เชื่อมระบบบัญชีจริง</span>
+      </header>
+
+      <div class="account-layout">
+        <section class="panel account-panel" aria-labelledby="login-heading">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">WELCOME BACK</p>
+              <h2 id="login-heading">เข้าสู่ระบบ</h2>
+            </div>
+            <span class="step-number">01</span>
+          </div>
+          <form id="login-form" novalidate>
+            <label class="field">
+              <span>Email หรือเบอร์โทรศัพท์</span>
+              <input id="login-identifier" name="identifier" autocomplete="username" placeholder="กรอก Email หรือเบอร์โทรศัพท์" />
+            </label>
+            <label class="field">
+              <span>รหัสผ่าน</span>
+              <input id="login-password" name="password" type="password" autocomplete="current-password" placeholder="กรอกรหัสผ่าน" />
+            </label>
+            <p class="demo-hint">บัญชีตัวอย่าง: <code>demo@owlcha.test</code> · รหัสผ่าน <code>demo123</code></p>
+            <div id="login-message" class="form-message" role="status" aria-live="polite" hidden></div>
+            <button class="button button-primary button-wide" type="submit">เข้าสู่ระบบ</button>
+          </form>
+        </section>
+
+        <section class="panel account-panel register-panel" aria-labelledby="register-heading">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">NEW TO OWL CHA?</p>
+              <h2 id="register-heading">สมัครสมาชิก</h2>
+            </div>
+            <span class="step-number">02</span>
+          </div>
+          <p class="section-note">กรอก Email หรือเบอร์โทรศัพท์อย่างน้อยหนึ่งช่อง และตั้งรหัสผ่าน</p>
+          <form id="register-form" novalidate>
+            <label class="field">
+              <span>Email <small>(ไม่บังคับ หากกรอกเบอร์โทรศัพท์)</small></span>
+              <input id="register-email" name="email" type="email" autocomplete="email" placeholder="you@example.com" />
+            </label>
+            <label class="field">
+              <span>เบอร์โทรศัพท์ <small>(ไม่บังคับ หากกรอก Email)</small></span>
+              <input id="register-phone" name="phone" type="tel" autocomplete="tel" placeholder="08X-XXX-XXXX" />
+            </label>
+            <label class="field">
+              <span>รหัสผ่าน</span>
+              <input id="register-password" name="password" type="password" autocomplete="new-password" placeholder="กำหนดรหัสผ่าน" />
+            </label>
+            <div id="register-message" class="form-message" role="status" aria-live="polite" hidden></div>
+            <button class="button button-dark button-wide" type="submit">สร้างบัญชี</button>
+          </form>
+        </section>
+      </div>
+
+      <section id="line-panel" class="panel line-panel" aria-labelledby="line-heading" hidden>
+        <div>
+          <p class="eyebrow">OPTIONAL · FR-05 / FR-06</p>
+          <h2 id="line-heading">เชื่อมต่อ LINE เพื่อรับแจ้งเตือน Order</h2>
+          <p class="section-note">ขั้นตอนนี้เป็นทางเลือก และไม่กระทบการใช้งานหากเชื่อมต่อไม่สำเร็จ</p>
+        </div>
+        <div class="line-actions">
+          <button id="connect-line" class="button button-line" type="button">จำลองเชื่อมต่อ LINE</button>
+          <button id="fail-line" class="button button-quiet" type="button">จำลองเชื่อมต่อไม่สำเร็จ</button>
+          <button id="skip-line" class="button button-quiet" type="button">ข้ามไปก่อน</button>
+        </div>
+        <div id="line-message" class="form-message" role="status" aria-live="polite" hidden></div>
+      </section>
+
+      <section id="account-success" class="panel success-panel" role="status" hidden>
+        <span class="success-mark" aria-hidden="true">✓</span>
+        <div>
+          <p class="eyebrow">DEMO SESSION</p>
+          <h2 id="success-heading">เข้าสู่ระบบสำเร็จ</h2>
+          <p id="success-copy" class="section-note"></p>
+        </div>
+      </section>
+
+      <footer class="trace-footer">อ้างอิง FR-01 ถึง FR-06 · AC-ACCOUNT-01 ถึง AC-ACCOUNT-06 · ไม่จัดเก็บข้อมูลหรือรหัสผ่านจริง</footer>
+    </main>
+  </body>
+</html>
