@@ -9,7 +9,7 @@ test('test_T02_account_page_path_for_AC_ACCOUNT_06', () => {
   const accountPagePath = resolve(__dirname, '../features/account/index.html');
   const accountPage = readFileSync(accountPagePath, 'utf8');
   assert.ok(existsSync(accountPagePath));
-  assert.match(accountPage, /<script src="menu\.js" defer><\/script>/);
+  assert.match(accountPage, /<script src="account\.js" defer><\/script>/);
   assert.match(accountPage, /id="line-message"/);
 });
 
@@ -53,7 +53,7 @@ test('test_AC_ACCOUNT_06_line_connect_failure', () => {
   elements.set('login-identifier', makeElement({ value: 'demo@owlcha.test' }));
   elements.set('login-password', makeElement({ value: 'demo123' }));
 
-  const accountScript = readFileSync(resolve(__dirname, '../features/account/menu.js'), 'utf8');
+  const accountScript = readFileSync(resolve(__dirname, '../features/account/account.js'), 'utf8');
   runInNewContext(accountScript, {
     document: {
       getElementById(id) {

@@ -30,9 +30,9 @@ Prototype นี้จำลองเฉพาะพฤติกรรมที�
 | ส่วน | เทคโนโลยี/ตำแหน่ง | การใช้งานใน Prototype |
 |---|---|---|
 | หน้า account | HTML ใน `features/account/index.html` | แสดงฟอร์ม login/register และส่วนเลือกเชื่อมต่อหรือข้าม LINE ในหน้าเดียว |
-| พฤติกรรม account | Vanilla JavaScript ใน `features/account/menu.js` | จัดการ event, validation, mock accounts, duplicate check และข้อความผลลัพธ์ |
+| พฤติกรรม account | Vanilla JavaScript ใน `features/account/account.js` | จัดการ event, validation, mock accounts, duplicate check และข้อความผลลัพธ์ |
 | รูปแบบหน้า | CSS กลางใน `shared/styles.css` | ใช้ style ที่มีอยู่แล้วโดยไม่สร้าง framework หรือไฟล์ style ซ้ำใน feature |
-| ข้อมูลทดสอบ | Mock Data ใน `features/account/menu.js` | เก็บบัญชีตัวอย่างและบัญชีที่สมัครระหว่างการเปิดหน้านี้ใน memory เท่านั้น |
+| ข้อมูลทดสอบ | Mock Data ใน `features/account/account.js` | เก็บบัญชีตัวอย่างและบัญชีที่สมัครระหว่างการเปิดหน้านี้ใน memory เท่านั้น |
 | การตรวจสอบ | Node.js test ที่ `tests/` ตาม runner ที่ Repo มีอยู่ | ตรวจ source/markup และพฤติกรรม prototype เท่าที่ทำได้โดยไม่เพิ่ม backend |
 
 ไม่ใช้และไม่สร้างในงานนี้:
@@ -46,7 +46,7 @@ Prototype นี้จำลองเฉพาะพฤติกรรมที�
 ไฟล์ที่เกี่ยวข้องกับฟีเจอร์นี้มีเฉพาะ:
 
 - `features/account/index.html`
-- `features/account/menu.js`
+- `features/account/account.js`
 - `shared/styles.css` เฉพาะเมื่อจำเป็นต้องใช้ style ที่เกี่ยวข้องกับหน้า account
 - `tests/AC-ACCOUNT-*.test.cjs` หรือไฟล์ test ของ account ที่ทีมสร้างภายหลัง
 
@@ -54,7 +54,7 @@ Prototype นี้จำลองเฉพาะพฤติกรรมที�
 
 ## 3. การออกแบบ Mock Data และข้อจำกัด
 
-ใช้รายการบัญชีจำลองใน `features/account/menu.js` โดยมีข้อมูลตัวอย่างขั้นต่ำสำหรับ
+ใช้รายการบัญชีจำลองใน `features/account/account.js` โดยมีข้อมูลตัวอย่างขั้นต่ำสำหรับ
 ลอง login และเพิ่มบัญชีระหว่างการเปิดหน้า:
 
 - ตัวระบุบัญชี: `email` หรือ `phone`
@@ -83,12 +83,12 @@ Prototype นี้จำลองเฉพาะพฤติกรรมที�
 - ส่วน login อยู่ด้านบน/ด้านซ้ายตาม layout ปัจจุบัน พร้อมปุ่มเข้าสู่ระบบ
 - ส่วน register อยู่ด้านล่าง/ด้านขวาตาม layout ปัจจุบัน พร้อมปุ่มสร้างบัญชี
 - ใช้ `../../shared/styles.css`
-- โหลด `menu.js` ด้วย script เดิม
+- โหลด `account.js` ด้วย script ของหน้า Account
 - แสดงข้อความว่าเป็น Prototype และไม่เชื่อมระบบบัญชีจริง
 
 ### 4.2 Register Flow
 
-เมื่อ submit `#register-form` ใน `features/account/menu.js`:
+เมื่อ submit `#register-form` ใน `features/account/account.js`:
 
 1. อ่าน Email, เบอร์โทรศัพท์ และ password จาก form
 2. ตรวจว่ามี Email หรือเบอร์โทรศัพท์อย่างน้อยหนึ่งช่อง, password ไม่ว่าง และ Email
@@ -136,19 +136,19 @@ AC-ACCOUNT-03 ในขอบเขตที่เป็นการจำลอ
 
 | รายการ | ตำแหน่ง/วิธีจำลอง |
 |---|---|
-| FR-01 | `#register-form` และ validation ใน `features/account/menu.js` |
+| FR-01 | `#register-form` และ validation ใน `features/account/account.js` |
 | FR-02 | หน้าเดียวใน `features/account/index.html` มี login และ register |
-| FR-03 | การค้นหา Mock Data ด้วย Email หรือเบอร์โทรศัพท์ใน `menu.js` |
-| FR-04 | ข้อความ error ของ login และ duplicate register ใน `menu.js` |
+| FR-03 | การค้นหา Mock Data ด้วย Email หรือเบอร์โทรศัพท์ใน `account.js` |
+| FR-04 | ข้อความ error ของ login และ duplicate register ใน `account.js` |
 | FR-05 | ส่วน `#line-panel` และปุ่มเชื่อมต่อ/ข้ามแบบจำลอง |
 | FR-06 | เก็บ Mock LINE User ID `mock-line-user-001` ใน Browser Memory และผูกกับบัญชีที่ Login/Register สำเร็จ; ไม่ใช่การเชื่อมต่อจริง |
 | NFR-SEC-01 | จำกัดการแสดงสถานะข้อมูล account ไว้หลัง flow login/register ในหน้า prototype; ไม่อ้างว่าเป็น security จริง |
 | NFR-REL-01 | จำลอง LINE failure แล้วให้ flow account ใช้งานต่อได้ |
 | NFR-USE-01 | จัดวางขั้นตอน login, register และ LINE ให้เห็นชัดในหน้าเดียว |
 | Constraint: เข้าถึงหน้าสมัคร/login ได้ | เปิด `features/account/index.html` |
-| Constraint: identifier ไม่ซ้ำ | duplicate check ใน `menu.js` |
-| Constraint: Email หรือ phone อย่างน้อยหนึ่งช่อง | register validation ใน `menu.js` |
-| Constraint: password ไม่ว่าง | register/login validation ใน `menu.js` |
+| Constraint: identifier ไม่ซ้ำ | duplicate check ใน `account.js` |
+| Constraint: Email หรือ phone อย่างน้อยหนึ่งช่อง | register validation ใน `account.js` |
+| Constraint: password ไม่ว่าง | register/login validation ใน `account.js` |
 | Constraint: LINE เป็นทางเลือก | ปุ่ม skip และ failure ไม่ขัดขวาง flow หลัก |
 | Constraint: ไม่เก็บ Password ของบัญชี LINE | ไม่มี field หรือ Mock Data สำหรับ LINE password |
 | Constraint: เชื่อมโยง LINE User ID | ผูก Mock LINE User ID `mock-line-user-001` กับบัญชีที่ Login/Register สำเร็จใน Browser Memory |
@@ -174,7 +174,7 @@ AC-ACCOUNT-03 ในขอบเขตที่เป็นการจำลอ
 
 1. ตรวจ markup และข้อความ trace ใน `features/account/index.html` ให้ครอบคลุม FR/AC
 2. ตรวจหรือปรับ validation, duplicate check และ mock login ใน
-   `features/account/menu.js`
+   `features/account/account.js`
 3. ตรวจ Mock LINE Connection success/failure, การผูก Mock LINE User ID กับบัญชีที่สำเร็จ และไม่ให้ failure ขัดขวาง flow หลัก
 4. เขียน/ปรับเฉพาะ test ของ account ใน `tests/` ตาม AC ทั้ง 6 ข้อ
 5. รัน test ที่เกี่ยวข้องกับ account และตรวจว่า feature อื่นไม่ถูกแก้ไข

@@ -1,6 +1,7 @@
 const demoAccounts = [
   { email: 'demo@owlcha.test', phone: '', password: 'demo123' },
 ];
+const MOCK_LINE_USER_ID = 'mock-line-user-001';
 
 const loginForm = document.getElementById('login-form');
 const registerForm = document.getElementById('register-form');
@@ -77,11 +78,14 @@ registerForm.addEventListener('submit', (event) => {
   finishAccountFlow(account, 'สมัครสมาชิกสำเร็จ', 'สร้างบัญชีตัวอย่างแล้วและเข้าสู่ระบบได้ทันที (ข้อมูลอยู่ในหน่วยความจำของหน้านี้เท่านั้น)');
 });
 
+// รองรับ FR-05 และ FR-06: จำลองการเชื่อมต่อ LINE เฉพาะบัญชีที่ผ่าน login/register
 document.getElementById('connect-line').addEventListener('click', () => {
   if (!activeAccount) {
     setMessage(lineMessage, 'กรุณาเข้าสู่ระบบหรือสมัครสมาชิกก่อนเชื่อมต่อ LINE', 'error');
     return;
   }
+  activeAccount.lineUserId = MOCK_LINE_USER_ID;
+  linePanel.dataset.lineUserId = MOCK_LINE_USER_ID;
   setMessage(lineMessage, 'เชื่อมต่อสำเร็จและบันทึก LINE User ID จำลองแล้ว ไม่มีการเชื่อมต่อ LINE จริง', 'success');
 });
 

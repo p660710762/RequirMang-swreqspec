@@ -53,7 +53,7 @@ test('test_AC_ACCOUNT_04_line_connect_success', () => {
   elements.set('login-identifier', makeElement({ value: 'demo@owlcha.test' }));
   elements.set('login-password', makeElement({ value: 'demo123' }));
 
-  const accountScript = readFileSync(resolve(__dirname, '../features/account/menu.js'), 'utf8');
+  const accountScript = readFileSync(resolve(__dirname, '../features/account/account.js'), 'utf8');
   runInNewContext(accountScript, {
     document: {
       getElementById(id) {
@@ -99,7 +99,7 @@ test('test_AC_ACCOUNT_04_line_requires_login_or_register', () => {
   }
   elements.set('line-panel', makeElement({ hidden: true, dataset: { lineUserId: '' } }));
 
-  const accountScript = readFileSync(resolve(__dirname, '../features/account/menu.js'), 'utf8');
+  const accountScript = readFileSync(resolve(__dirname, '../features/account/account.js'), 'utf8');
   runInNewContext(accountScript, {
     document: {
       getElementById(id) {
@@ -121,7 +121,7 @@ test('test_AC_ACCOUNT_04_line_requires_login_or_register', () => {
 test('test_AC_ACCOUNT_04_no_line_password_input_or_storage', () => {
   // รองรับ NFR-SEC-01: Prototype ต้องไม่รับหรือเก็บ Password ของบัญชี LINE
   const accountPage = readFileSync(resolve(__dirname, '../features/account/index.html'), 'utf8');
-  const accountScript = readFileSync(resolve(__dirname, '../features/account/menu.js'), 'utf8');
+  const accountScript = readFileSync(resolve(__dirname, '../features/account/account.js'), 'utf8');
 
   assert.doesNotMatch(accountPage, /(?:line|LINE)[^<]*(?:password|รหัสผ่าน)/i);
   assert.doesNotMatch(accountPage, /id=["'][^"']*(?:line|LINE)[^"']*password/i);

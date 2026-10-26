@@ -22,7 +22,7 @@
 - ไฟล์ที่แตะ: `features/account/index.html`, `shared/styles.css`, `tests/AC-ACCOUNT-01.test.cjs`, `specs/002-Register/tasks.md`, `prompt-log.md`
 - แบบหน้าจอ: ไม่มี mockup หรือ UI ID ใน spec
 - ต้องทำหลัง: ไม่มี
-- เสร็จเมื่อ: ตรวจพบหน้าเดียวที่มี `#login-form`, `#register-form`, ส่วน `#line-panel`, script `menu.js` และ link `../../shared/styles.css` โดยไม่มีการอ้าง React/Vite
+- เสร็จเมื่อ: ตรวจพบหน้าเดียวที่มี `#login-form`, `#register-form`, ส่วน `#line-panel`, script `account.js` และ link `../../shared/styles.css` โดยไม่มีการอ้าง React/Vite
 - สถานะ: เสร็จ รอทีมตรวจ
 
 ### T-02 จัดชุดทดสอบ account และวิธีเปิด prototype
@@ -48,7 +48,7 @@
 ### T-03 ตรวจและปรับ Mock Register Flow
 - รองรับ: FR-01, FR-02, FR-04
 - ตรวจด้วย: AC-ACCOUNT-01
-- ไฟล์ที่แตะ: `features/account/menu.js`, `features/account/index.html`, `tests/AC-ACCOUNT-01.test.cjs`, `specs/002-Register/tasks.md`, `prompt-log.md`
+- ไฟล์ที่แตะ: `features/account/account.js`, `features/account/index.html`, `tests/AC-ACCOUNT-01.test.cjs`, `specs/002-Register/tasks.md`, `prompt-log.md`
 - แบบหน้าจอ: ไม่มี mockup หรือ UI ID ใน spec
 - ต้องทำหลัง: T-01
 - เสร็จเมื่อ: `test_AC_ACCOUNT_01_register_success` ผ่าน โดยการกรอก Email หรือเบอร์โทรศัพท์อย่างน้อยหนึ่งช่องกับ password ที่ไม่ว่างเพิ่มบัญชีใน memory และแสดงว่าสามารถเข้าสู่ระบบต่อได้ทันที
@@ -68,7 +68,7 @@
 ### T-04 ตรวจ Mock Login Flow ด้วยบัญชีตัวอย่างและบัญชีที่สมัคร
 - รองรับ: FR-02, FR-03, NFR-USE-01
 - ตรวจด้วย: AC-ACCOUNT-02
-- ไฟล์ที่แตะ: `features/account/menu.js`, `features/account/index.html`, `tests/AC-ACCOUNT-02.test.cjs`, `specs/002-Register/tasks.md`, `prompt-log.md`
+- ไฟล์ที่แตะ: `features/account/account.js`, `features/account/index.html`, `tests/AC-ACCOUNT-02.test.cjs`, `specs/002-Register/tasks.md`, `prompt-log.md`
 - แบบหน้าจอ: ไม่มี mockup หรือ UI ID ใน spec
 - ต้องทำหลัง: T-03
 - เสร็จเมื่อ: `test_AC_ACCOUNT_02_login_success` ผ่าน โดยใช้ Email หรือเบอร์โทรศัพท์กับ password ที่ตรงกับ Mock Data แล้วแสดงสถานะ login สำเร็จใน prototype
@@ -88,7 +88,7 @@
 ### T-05 ตรวจ validation และ duplicate message
 - รองรับ: FR-01, FR-02, FR-04
 - ตรวจด้วย: AC-ACCOUNT-03
-- ไฟล์ที่แตะ: `features/account/menu.js`, `features/account/index.html`, `tests/AC-ACCOUNT-03.test.cjs`, `specs/002-Register/tasks.md`, `prompt-log.md`
+- ไฟล์ที่แตะ: `features/account/account.js`, `features/account/index.html`, `tests/AC-ACCOUNT-03.test.cjs`, `specs/002-Register/tasks.md`, `prompt-log.md`
 - แบบหน้าจอ: ไม่มี mockup หรือ UI ID ใน spec
 - ต้องทำหลัง: T-04
 - เสร็จเมื่อ: `test_AC_ACCOUNT_03_login_invalid_input` ผ่าน โดย login ที่ว่าง/ไม่ตรงไม่เปิดสถานะสำเร็จและแสดง “กรุณากรอกข้อมูลให้ถูกต้อง”; register ที่ซ้ำแสดง “อีเมล/เบอร์โทรศัพท์นี้ถูกใช้งานแล้ว” และไม่เพิ่มบัญชี
@@ -108,7 +108,7 @@
 ### T-06 ตรวจปุ่มข้าม LINE และ failure fallback
 - รองรับ: FR-05, NFR-REL-01
 - ตรวจด้วย: AC-ACCOUNT-05, AC-ACCOUNT-06
-- ไฟล์ที่แตะ: `features/account/index.html`, `features/account/menu.js`, `tests/AC-ACCOUNT-05.test.cjs`, `tests/AC-ACCOUNT-06.test.cjs`, `specs/002-Register/tasks.md`, `prompt-log.md`
+- ไฟล์ที่แตะ: `features/account/index.html`, `features/account/account.js`, `tests/AC-ACCOUNT-05.test.cjs`, `tests/AC-ACCOUNT-06.test.cjs`, `specs/002-Register/tasks.md`, `prompt-log.md`
 - แบบหน้าจอ: ไม่มี mockup หรือ UI ID ใน spec
 - ต้องทำหลัง: T-04
 - เสร็จเมื่อ: `test_AC_ACCOUNT_05_skip_line_connection` และ `test_AC_ACCOUNT_06_line_connect_failure` ผ่าน โดยการข้ามหรือการจำลอง failure ไม่ขัดขวางการใช้ prototype ต่อ และไม่มี LINE password หรือการเชื่อมต่อบริการจริง
@@ -128,7 +128,7 @@
 ### T-07 Implement Mock LINE Connection สำเร็จ
 - รองรับ: FR-05, FR-06, NFR-REL-01
 - ตรวจด้วย: AC-ACCOUNT-04
-- ไฟล์ที่แตะ: `features/account/index.html`, `features/account/menu.js`, `tests/AC-ACCOUNT-04.test.cjs`, `specs/002-Register/tasks.md`, `prompt-log.md`
+- ไฟล์ที่แตะ: `features/account/index.html`, `features/account/account.js`, `tests/AC-ACCOUNT-04.test.cjs`, `specs/002-Register/tasks.md`, `prompt-log.md`
 - แบบหน้าจอ: ไม่มี mockup หรือ UI ID ใน spec
 - ต้องทำหลัง: T-06
 - เสร็จเมื่อ: `test_AC_ACCOUNT_04_line_connect_success` ผ่าน โดยผู้ใช้ที่ Login/Register สำเร็จเท่านั้นจึงกดเชื่อมต่อได้, Prototype แสดงสถานะสำเร็จใน UI และเก็บ Mock LINE User ID `mock-line-user-001` ใน Browser Memory โดยไม่เรียก LINE API จริง
@@ -137,7 +137,7 @@
 ### T-08 ตรวจ Mock LINE Connection ล้มเหลว
 - รองรับ: FR-05, FR-06, NFR-REL-01
 - ตรวจด้วย: AC-ACCOUNT-06
-- ไฟล์ที่แตะ: `features/account/index.html`, `features/account/menu.js`, `tests/AC-ACCOUNT-06.test.cjs`, `specs/002-Register/tasks.md`, `prompt-log.md`
+- ไฟล์ที่แตะ: `features/account/index.html`, `features/account/account.js`, `tests/AC-ACCOUNT-06.test.cjs`, `specs/002-Register/tasks.md`, `prompt-log.md`
 - แบบหน้าจอ: ไม่มี mockup หรือ UI ID ใน spec
 - ต้องทำหลัง: T-07
 - เสร็จเมื่อ: `test_AC_ACCOUNT_06_line_connect_failure` ผ่าน โดย failure ไม่สร้างความสัมพันธ์ใหม่กับ LINE, ไม่บันทึก Mock LINE User ID ใหม่ และยังใช้งาน Prototype ต่อได้ ห้ามเพิ่ม OAuth/callback

@@ -8,7 +8,7 @@ test('test_T02_account_page_path_for_AC_ACCOUNT_05', () => {
   // รองรับ FR-02 และ NFR-USE-01: test ของ account ใช้ asset path ที่มีอยู่จริง
   const accountPagePath = resolve(__dirname, '../features/account/index.html');
   const accountPage = readFileSync(accountPagePath, 'utf8');
-  const scriptPath = resolve(__dirname, '../features/account/menu.js');
+  const scriptPath = resolve(__dirname, '../features/account/account.js');
   const stylePath = resolve(__dirname, '../shared/styles.css');
   assert.ok(existsSync(accountPagePath));
   assert.ok(existsSync(scriptPath));
@@ -55,7 +55,7 @@ test('test_AC_ACCOUNT_05_skip_line_connection', () => {
   elements.set('login-identifier', makeElement({ value: 'demo@owlcha.test' }));
   elements.set('login-password', makeElement({ value: 'demo123' }));
 
-  const accountScript = readFileSync(resolve(__dirname, '../features/account/menu.js'), 'utf8');
+  const accountScript = readFileSync(resolve(__dirname, '../features/account/account.js'), 'utf8');
   runInNewContext(accountScript, {
     document: {
       getElementById(id) {

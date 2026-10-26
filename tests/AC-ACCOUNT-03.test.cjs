@@ -4,7 +4,7 @@ const { resolve } = require('node:path');
 const { test } = require('node:test');
 const { runInNewContext } = require('node:vm');
 
-const accountScript = readFileSync(resolve(__dirname, '../features/account/menu.js'), 'utf8');
+const accountScript = readFileSync(resolve(__dirname, '../features/account/account.js'), 'utf8');
 
 function createAccountContext(values = {}) {
   const elements = new Map();

@@ -12,7 +12,7 @@ test('test_T02_account_page_structure_and_test_path', () => {
   assert.ok(existsSync(accountPagePath));
   assert.match(accountPage, /<form id="login-form"/);
   assert.match(accountPage, /<form id="register-form"/);
-  assert.match(accountPage, /<script src="menu\.js" defer><\/script>/);
+  assert.match(accountPage, /<script src="account\.js" defer><\/script>/);
   assert.match(accountPage, /<link rel="stylesheet" href="\.\.\/\.\.\/shared\/styles\.css"\s*\/>/);
 });
 
@@ -53,7 +53,7 @@ test('test_AC_ACCOUNT_01_register_success', () => {
   elements.set('login-identifier', makeElement());
   elements.set('login-password', makeElement());
 
-  const accountScript = readFileSync(resolve(__dirname, '../features/account/menu.js'), 'utf8');
+  const accountScript = readFileSync(resolve(__dirname, '../features/account/account.js'), 'utf8');
   runInNewContext(accountScript, {
     document: {
       getElementById(id) {
@@ -105,7 +105,7 @@ test('test_AC_ACCOUNT_01_register_phone_only_success', () => {
   elements.set('register-phone', makeElement({ value: '0812345678' }));
   elements.set('register-password', makeElement({ value: 'phone-password' }));
 
-  const accountScript = readFileSync(resolve(__dirname, '../features/account/menu.js'), 'utf8');
+  const accountScript = readFileSync(resolve(__dirname, '../features/account/account.js'), 'utf8');
   runInNewContext(accountScript, {
     document: {
       getElementById(id) {

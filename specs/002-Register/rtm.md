@@ -1,7 +1,7 @@
 # RTM: สมัครสมาชิก / เข้าสู่ระบบ (Register & Login)
 
-อ้างอิง: [spec.md](./spec.md) Draft v3 | [plan.md](./plan.md) | [tasks.md](./tasks.md)  
-Use case: UC-02 | Spec ID: SPEC-ACCOUNT-001  
+อ้างอิง: [spec.md](./spec.md) Draft v3 | [plan.md](./plan.md) | [tasks.md](./tasks.md)
+Use case: UC-02 | Spec ID: SPEC-ACCOUNT-001
 สร้างเมื่อ 2569-10-26 | ผลทดสอบล่าสุด: `18 ผ่าน 0 ไม่ผ่าน`
 
 ## ขอบเขตและคำเตือน
@@ -19,29 +19,29 @@ Use case: UC-02 | Spec ID: SPEC-ACCOUNT-001
 
 | Requirement | AC | Task | Test Case (ผลล่าสุด) | Implementation | สถานะตามหลักฐาน |
 |---|---|---|---|---|---|
-| FR-01 สมัครสมาชิกด้วย Email หรือเบอร์โทรศัพท์อย่างน้อยหนึ่งช่องและ password ไม่ว่าง | AC-ACCOUNT-01 | T-03 เสร็จ รอทีมตรวจ | `test_AC_ACCOUNT_01_register_success`, `test_AC_ACCOUNT_01_register_phone_only_success` (ผ่าน) | `features/account/index.html`: `#register-form`; `features/account/menu.js`: register submit, required identifier/password validation | ผ่านใน Mock Prototype สำหรับ Email-only และ phone-only |
-| FR-01 ตรวจข้อมูลสมัครสมาชิกและข้อมูลซ้ำ | AC-ACCOUNT-03 | T-05 เสร็จ รอทีมตรวจ | `test_AC_ACCOUNT_03_register_duplicate_identifier`, `test_AC_ACCOUNT_03_register_duplicate_phone` (ผ่าน) | `menu.js`: email/phone duplicate check และข้อความ error | ผ่านใน Mock Prototype สำหรับ Email และ phone |
-| FR-02 แสดง Login/Register ในหน้าเดียวและตรวจข้อมูลก่อนสร้างบัญชี | AC-ACCOUNT-01, AC-ACCOUNT-02, AC-ACCOUNT-03 | T-01, T-03, T-04, T-05 เสร็จ รอทีมตรวจ | `test_T02_account_page_structure_and_test_path`, `test_AC_ACCOUNT_01_register_success`, `test_AC_ACCOUNT_02_login_success`, tests ของ AC-03 (ผ่าน) | `index.html`: `#login-form`, `#register-form`; `menu.js`: submit handlers และ validation | ผ่านใน Mock Prototype |
-| FR-03 Login ด้วย Email หรือเบอร์โทรศัพท์และ password ที่ถูกต้อง | AC-ACCOUNT-02 | T-04 เสร็จ รอทีมตรวจ | `test_AC_ACCOUNT_02_login_success`, `test_AC_ACCOUNT_02_login_phone_only_account` (ผ่าน) | `menu.js`: `demoAccounts`, login submit และ `finishAccountFlow()` | ผ่านใน Mock Prototype สำหรับ Email และ phone |
-| FR-04 ปฏิเสธ Login ที่ไม่ถูกต้องและแสดงข้อความแจ้งเตือน | AC-ACCOUNT-03 | T-05 เสร็จ รอทีมตรวจ | `test_AC_ACCOUNT_03_login_invalid_input` (ผ่าน) | `menu.js`: invalid/empty login branch และ `กรุณากรอกข้อมูลให้ถูกต้อง` | ผ่าน |
-| FR-04 ปฏิเสธ identifier ซ้ำและไม่สร้างบัญชีซ้ำ | AC-ACCOUNT-03 | T-05 เสร็จ รอทีมตรวจ | `test_AC_ACCOUNT_03_register_duplicate_identifier` (ผ่าน) | `menu.js`: duplicate branch และ `อีเมล/เบอร์โทรศัพท์นี้ถูกใช้งานแล้ว` | ผ่าน |
-| FR-05 จำลอง LINE Connection success/failure และให้เลือกเชื่อมต่อ | AC-ACCOUNT-04, AC-ACCOUNT-05, AC-ACCOUNT-06 | T-06, T-07, T-08 เสร็จ รอทีมตรวจ | `test_AC_ACCOUNT_04_line_connect_success`, `test_AC_ACCOUNT_05_skip_line_connection`, `test_AC_ACCOUNT_06_line_connect_failure` (ผ่าน) | `index.html`: `#line-panel`, `#connect-line`, `#fail-line`, `#skip-line`; `menu.js`: LINE handlers | ผ่านใน Mock Prototype เท่านั้น |
-| FR-06 เก็บ Mock LINE User ID และผูกกับบัญชีที่ Login/Register สำเร็จ | AC-ACCOUNT-04 | T-07 เสร็จ รอทีมตรวจ | `test_AC_ACCOUNT_04_line_connect_success` (ผ่าน) | `menu.js`: `MOCK_LINE_USER_ID`, `activeAccount.lineUserId`, `linePanel.dataset.lineUserId` | ผ่านใน Browser Memory เท่านั้น |
-| FR-06 Failure ไม่สร้างความสัมพันธ์ใหม่กับ LINE และยังใช้งานต่อได้ | AC-ACCOUNT-06 | T-06, T-08 เสร็จ รอทีมตรวจ | `test_AC_ACCOUNT_06_line_connect_failure` (ผ่าน) | `menu.js`: failure handler ไม่เขียน `lineUserId`; `index.html`: account success/LINE UI | ผ่านใน Mock Prototype |
-| NFR-SEC-01 ต้อง Login ก่อนเข้าถึงข้อมูลบัญชี และไม่เก็บ LINE password | ไม่มี AC เฉพาะ | T-01, T-04, T-05, T-07, T-08 เสร็จ รอทีมตรวจ | `test_AC_ACCOUNT_04_line_requires_login_or_register`, `test_AC_ACCOUNT_04_no_line_password_input_or_storage` (ผ่าน) | `menu.js`: guard ก่อนเชื่อม LINE; `index.html`/`menu.js`: ไม่มี LINE password field หรือ storage | มีหลักฐานบางส่วนใน Mock Prototype; ยังพิสูจน์ไม่ครบ |
-| NFR-REL-01 LINE failure ไม่กระทบ Login/Register | AC-ACCOUNT-06 | T-06, T-08 เสร็จ รอทีมตรวจ | `test_AC_ACCOUNT_06_line_connect_failure` (ผ่าน) | `menu.js`: failure handler แสดงข้อความโดยไม่เปลี่ยน account success state | ผ่านใน Mock Prototype |
+| FR-01 สมัครสมาชิกด้วย Email หรือเบอร์โทรศัพท์อย่างน้อยหนึ่งช่องและ password ไม่ว่าง | AC-ACCOUNT-01 | T-03 เสร็จ รอทีมตรวจ | `test_AC_ACCOUNT_01_register_success`, `test_AC_ACCOUNT_01_register_phone_only_success` (ผ่าน) | `features/account/index.html`: `#register-form`; `features/account/account.js`: register submit, required identifier/password validation | ผ่านใน Mock Prototype สำหรับ Email-only และ phone-only |
+| FR-01 ตรวจข้อมูลสมัครสมาชิกและข้อมูลซ้ำ | AC-ACCOUNT-03 | T-05 เสร็จ รอทีมตรวจ | `test_AC_ACCOUNT_03_register_duplicate_identifier`, `test_AC_ACCOUNT_03_register_duplicate_phone` (ผ่าน) | `account.js`: email/phone duplicate check และข้อความ error | ผ่านใน Mock Prototype สำหรับ Email และ phone |
+| FR-02 แสดง Login/Register ในหน้าเดียวและตรวจข้อมูลก่อนสร้างบัญชี | AC-ACCOUNT-01, AC-ACCOUNT-02, AC-ACCOUNT-03 | T-01, T-03, T-04, T-05 เสร็จ รอทีมตรวจ | `test_T02_account_page_structure_and_test_path`, `test_AC_ACCOUNT_01_register_success`, `test_AC_ACCOUNT_02_login_success`, tests ของ AC-03 (ผ่าน) | `index.html`: `#login-form`, `#register-form`; `account.js`: submit handlers และ validation | ผ่านใน Mock Prototype |
+| FR-03 Login ด้วย Email หรือเบอร์โทรศัพท์และ password ที่ถูกต้อง | AC-ACCOUNT-02 | T-04 เสร็จ รอทีมตรวจ | `test_AC_ACCOUNT_02_login_success`, `test_AC_ACCOUNT_02_login_phone_only_account` (ผ่าน) | `account.js`: `demoAccounts`, login submit และ `finishAccountFlow()` | ผ่านใน Mock Prototype สำหรับ Email และ phone |
+| FR-04 ปฏิเสธ Login ที่ไม่ถูกต้องและแสดงข้อความแจ้งเตือน | AC-ACCOUNT-03 | T-05 เสร็จ รอทีมตรวจ | `test_AC_ACCOUNT_03_login_invalid_input` (ผ่าน) | `account.js`: invalid/empty login branch และ `กรุณากรอกข้อมูลให้ถูกต้อง` | ผ่าน |
+| FR-04 ปฏิเสธ identifier ซ้ำและไม่สร้างบัญชีซ้ำ | AC-ACCOUNT-03 | T-05 เสร็จ รอทีมตรวจ | `test_AC_ACCOUNT_03_register_duplicate_identifier` (ผ่าน) | `account.js`: duplicate branch และ `อีเมล/เบอร์โทรศัพท์นี้ถูกใช้งานแล้ว` | ผ่าน |
+| FR-05 จำลอง LINE Connection success/failure และให้เลือกเชื่อมต่อ | AC-ACCOUNT-04, AC-ACCOUNT-05, AC-ACCOUNT-06 | T-06, T-07, T-08 เสร็จ รอทีมตรวจ | `test_AC_ACCOUNT_04_line_connect_success`, `test_AC_ACCOUNT_05_skip_line_connection`, `test_AC_ACCOUNT_06_line_connect_failure` (ผ่าน) | `index.html`: `#line-panel`, `#connect-line`, `#fail-line`, `#skip-line`; `account.js`: LINE handlers | ผ่านใน Mock Prototype เท่านั้น |
+| FR-06 เก็บ Mock LINE User ID และผูกกับบัญชีที่ Login/Register สำเร็จ | AC-ACCOUNT-04 | T-07 เสร็จ รอทีมตรวจ | `test_AC_ACCOUNT_04_line_connect_success` (ผ่าน) | `account.js`: `MOCK_LINE_USER_ID`, `activeAccount.lineUserId`, `linePanel.dataset.lineUserId` | ผ่านใน Browser Memory เท่านั้น |
+| FR-06 Failure ไม่สร้างความสัมพันธ์ใหม่กับ LINE และยังใช้งานต่อได้ | AC-ACCOUNT-06 | T-06, T-08 เสร็จ รอทีมตรวจ | `test_AC_ACCOUNT_06_line_connect_failure` (ผ่าน) | `account.js`: failure handler ไม่เขียน `lineUserId`; `index.html`: account success/LINE UI | ผ่านใน Mock Prototype |
+| NFR-SEC-01 ต้อง Login ก่อนเข้าถึงข้อมูลบัญชี และไม่เก็บ LINE password | ไม่มี AC เฉพาะ | T-01, T-04, T-05, T-07, T-08 เสร็จ รอทีมตรวจ | `test_AC_ACCOUNT_04_line_requires_login_or_register`, `test_AC_ACCOUNT_04_no_line_password_input_or_storage` (ผ่าน) | `account.js`: guard ก่อนเชื่อม LINE; `index.html`/`account.js`: ไม่มี LINE password field หรือ storage | มีหลักฐานบางส่วนใน Mock Prototype; ยังพิสูจน์ไม่ครบ |
+| NFR-REL-01 LINE failure ไม่กระทบ Login/Register | AC-ACCOUNT-06 | T-06, T-08 เสร็จ รอทีมตรวจ | `test_AC_ACCOUNT_06_line_connect_failure` (ผ่าน) | `account.js`: failure handler แสดงข้อความโดยไม่เปลี่ยน account success state | ผ่านใน Mock Prototype |
 | NFR-USE-01 แสดง Login, Register และ LINE อย่างชัดเจน | ไม่มี AC เฉพาะ | T-01, T-02, T-04 เสร็จ รอทีมตรวจ | โครงสร้าง/path tests ในชุด account (ผ่าน) | `index.html`: layout, forms, `#line-panel`; `shared/styles.css` | ผ่านในระดับโครงสร้าง Prototype |
 
 ## 2. ตามรอย Acceptance Criteria
 
 | AC ID | Spec / Flow | Task | Test Case | Implementation ที่เกี่ยวข้อง | ผล |
 |---|---|---|---|---|---|
-| AC-ACCOUNT-01 | FR-01 / FR-02 สมัครสมาชิกสำเร็จ | T-03 | `test_AC_ACCOUNT_01_register_success`; `test_AC_ACCOUNT_01_register_phone_only_success` | `#register-form`; `menu.js` register handler และ `demoAccounts.push()` | ผ่านใน Mock Prototype |
-| AC-ACCOUNT-02 | FR-03 Login สำเร็จ | T-04 | `test_AC_ACCOUNT_02_login_success`; `test_AC_ACCOUNT_02_login_phone_only_account` | `#login-form`; `menu.js` login lookup และ success state | ผ่านใน Mock Prototype |
-| AC-ACCOUNT-03 | FR-04 Login ไม่ถูกต้อง/ข้อมูลซ้ำ | T-05 | `test_AC_ACCOUNT_03_login_invalid_input`; `test_AC_ACCOUNT_03_register_duplicate_identifier`; `test_AC_ACCOUNT_03_register_duplicate_phone` | `menu.js` invalid login และ duplicate branches | ผ่านใน Mock Prototype |
+| AC-ACCOUNT-01 | FR-01 / FR-02 สมัครสมาชิกสำเร็จ | T-03 | `test_AC_ACCOUNT_01_register_success`; `test_AC_ACCOUNT_01_register_phone_only_success` | `#register-form`; `account.js` register handler และ `demoAccounts.push()` | ผ่านใน Mock Prototype |
+| AC-ACCOUNT-02 | FR-03 Login สำเร็จ | T-04 | `test_AC_ACCOUNT_02_login_success`; `test_AC_ACCOUNT_02_login_phone_only_account` | `#login-form`; `account.js` login lookup และ success state | ผ่านใน Mock Prototype |
+| AC-ACCOUNT-03 | FR-04 Login ไม่ถูกต้อง/ข้อมูลซ้ำ | T-05 | `test_AC_ACCOUNT_03_login_invalid_input`; `test_AC_ACCOUNT_03_register_duplicate_identifier`; `test_AC_ACCOUNT_03_register_duplicate_phone` | `account.js` invalid login และ duplicate branches | ผ่านใน Mock Prototype |
 | AC-ACCOUNT-04 | FR-05 / FR-06 Mock LINE success | T-07 | `test_AC_ACCOUNT_04_line_connect_success` | `#connect-line`; `MOCK_LINE_USER_ID`; `activeAccount.lineUserId`; `data-line-user-id` | ผ่านใน Browser Memory เท่านั้น |
-| AC-ACCOUNT-05 | Alternative Flow 7b ข้าม LINE | T-06 | `test_AC_ACCOUNT_05_skip_line_connection` | `#skip-line`; `menu.js` skip handler | ผ่าน |
-| AC-ACCOUNT-06 | Exception Flow 7c LINE failure | T-06, T-08 | `test_AC_ACCOUNT_06_line_connect_failure` | `#fail-line`; `menu.js` failure handler; state ไม่สร้าง Mock ID | ผ่านใน Mock Prototype |
+| AC-ACCOUNT-05 | Alternative Flow 7b ข้าม LINE | T-06 | `test_AC_ACCOUNT_05_skip_line_connection` | `#skip-line`; `account.js` skip handler | ผ่าน |
+| AC-ACCOUNT-06 | Exception Flow 7c LINE failure | T-06, T-08 | `test_AC_ACCOUNT_06_line_connect_failure` | `#fail-line`; `account.js` failure handler; state ไม่สร้าง Mock ID | ผ่านใน Mock Prototype |
 
 ชุดทดสอบปัจจุบันรันด้วย:
 
@@ -71,10 +71,10 @@ node --test tests/AC-ACCOUNT-*.test.cjs
 | รายการ | หลักฐาน | สถานะ |
 |---|---|---|
 | NFR-SEC-01: ต้อง Login ก่อนเข้าถึงข้อมูลบัญชี | `test_AC_ACCOUNT_04_line_requires_login_or_register` ตรวจ guard ก่อนเชื่อม LINE แต่ยังไม่มี protected endpoint หรือ security test ระดับระบบจริง | มีหลักฐานบางส่วนใน Mock Prototype; ยังพิสูจน์ไม่ครบ |
-| NFR-SEC-01: ไม่เก็บ LINE password | `test_AC_ACCOUNT_04_no_line_password_input_or_storage` ตรวจ `index.html` และ `menu.js` แล้วไม่พบ field/storage ของ LINE password | ผ่านใน Mock Prototype; ยังไม่ใช่หลักฐาน security ระดับระบบจริง |
+| NFR-SEC-01: ไม่เก็บ LINE password | `test_AC_ACCOUNT_04_no_line_password_input_or_storage` ตรวจ `index.html` และ `account.js` แล้วไม่พบ field/storage ของ LINE password | ผ่านใน Mock Prototype; ยังไม่ใช่หลักฐาน security ระดับระบบจริง |
 | NFR-REL-01: LINE failure ไม่กระทบ flow หลัก | `test_AC_ACCOUNT_06_line_connect_failure` ผ่าน | ผ่านใน Mock Prototype |
 | NFR-USE-01: ขั้นตอนชัดเจน | หน้าเดียวมี Login, Register และ LINE panel; path/markup tests ผ่าน | ผ่านในระดับโครงสร้าง |
-| Constraint: Email หรือ phone อย่างน้อยหนึ่งช่อง | validation ใน `menu.js` | ยังขาด test phone-only |
+| Constraint: Email หรือ phone อย่างน้อยหนึ่งช่อง | validation ใน `account.js` | ยังขาด test phone-only |
 | Constraint: LINE เป็นทางเลือก | skip/failure tests ผ่าน | ผ่านใน Mock Prototype |
 | Constraint: Mock LINE ID ผูกกับบัญชีที่ Login/Register สำเร็จ | T-07 และ AC-04 test ผ่าน | ผ่านใน Browser Memory เท่านั้น |
 | Constraint: ไม่มี LINE API/Backend/database จริง | source และ plan ระบุ Prototype; tests ใช้ `vm.runInNewContext` | ผ่านตามขอบเขต Prototype |
@@ -95,9 +95,9 @@ node --test tests/AC-ACCOUNT-*.test.cjs
 |---|---|---|
 | `features/account/index.html`: `#login-form`, `#register-form` | FR-02, NFR-USE-01 | ตรงกับหน้าเดียวของ Prototype |
 | `features/account/index.html`: `#line-panel`, `#connect-line`, `#fail-line`, `#skip-line` | FR-05, AC-ACCOUNT-04 ถึง AC-ACCOUNT-06 | ตรงกับ Mock LINE flows |
-| `features/account/menu.js`: `demoAccounts`, register/login handlers | FR-01 ถึง FR-04, AC-ACCOUNT-01 ถึง AC-ACCOUNT-03 | ตรงในขอบเขต Mock Data |
-| `features/account/menu.js`: `MOCK_LINE_USER_ID`, `activeAccount.lineUserId` | FR-05, FR-06, AC-ACCOUNT-04 | ตรงใน Browser Memory ไม่ใช่ระบบจริง |
-| `features/account/menu.js`: failure handler | FR-06, NFR-REL-01, AC-ACCOUNT-06 | ไม่สร้างความสัมพันธ์ใหม่และแสดง failure |
+| `features/account/account.js`: `demoAccounts`, register/login handlers | FR-01 ถึง FR-04, AC-ACCOUNT-01 ถึง AC-ACCOUNT-03 | ตรงในขอบเขต Mock Data |
+| `features/account/account.js`: `MOCK_LINE_USER_ID`, `activeAccount.lineUserId` | FR-05, FR-06, AC-ACCOUNT-04 | ตรงใน Browser Memory ไม่ใช่ระบบจริง |
+| `features/account/account.js`: failure handler | FR-06, NFR-REL-01, AC-ACCOUNT-06 | ไม่สร้างความสัมพันธ์ใหม่และแสดง failure |
 | `tests/AC-ACCOUNT-01.test.cjs` ถึง `tests/AC-ACCOUNT-06.test.cjs` | AC-ACCOUNT-01 ถึง AC-ACCOUNT-06 | มี behavioral tests ครบตามชื่อ AC; รวม 13/13 ผ่าน |
 | `tests/AC-ACCOUNT-01.test.cjs`: `test_T02_account_page_structure_and_test_path` และ tests ชื่อ `test_T02_*` | T-01/T-02 และโครงสร้าง AC อื่น | ผลทดสอบใช้ได้ แต่ชื่อบางรายการไม่สะท้อน Task/AC ปัจจุบันชัดเจน |
 
