@@ -676,3 +676,125 @@
 - ปรับ `features/*/index.html` ให้โหลด `../../shared/styles.css` โดยตรง และลบ `features/*/menu.css` ที่มีรูปแบบซ้ำกัน
 - คง `shared/index.html` ให้โหลด `shared/styles.css` สำหรับหน้าเมนูเดิม
 - ไม่แก้พฤติกรรม JavaScript หรือข้อกำหนดใน spec
+
+---
+
+## 2569-10-26 คำสั่ง: /tasks สำหรับ specs/002-Register/spec.md
+
+- อ่าน [spec.md](specs/002-Register/spec.md), [plan.md](specs/002-Register/plan.md), [AGENTS.md](AGENTS.md) และตรวจแล้วว่าไม่มี `specs/000-shared/` หรือ mockup ของฟีเจอร์นี้
+- แจ้งทีมว่า spec ยังเป็น `Draft v2` และมี Open Questions; ทีมเลือกให้ทำต่อโดยคง task ที่เกี่ยวข้องเป็น `รอ Q-xx`
+- สร้าง [specs/002-Register/tasks.md](specs/002-Register/tasks.md) เป็น 6 เฟส 14 tasks แบบ vertical slice ครอบคลุม AC-ACCOUNT-01 ถึง AC-ACCOUNT-06, FR, NFR และ Constraints
+- แยก T-11 ถึง T-14 ไว้เฟส `รอคำตอบ` สำหรับ Q-01 ถึง Q-03 และไม่เดารูปแบบ LINE หรือพฤติกรรมที่ยังไม่มีคำตอบ
+- ยังไม่เริ่มทำ task ใด ๆ และไม่แก้โค้ด
+
+---
+
+## 2569-10-26 คำสั่ง: /implement T-01 ของ specs/002-Register/tasks.md
+
+- ทีมอนุญาตให้ T-01 แตะไฟล์เพิ่มเติม 3 ไฟล์ และเพิ่มรายการดังกล่าวในช่อง “ไฟล์ที่แตะ” ของ T-01 ก่อนดำเนินการ
+- ไฟล์ที่สร้าง/แก้: `tests/AC-ACCOUNT-01.test.cjs`, `specs/002-Register/tasks.md`; ตรวจโครงสร้างเดิมของ `features/account/index.html` และ `shared/styles.css` แล้วไม่ต้องแก้สองไฟล์ดังกล่าว
+- เพิ่ม test `test_T01_account_page_structure_and_shared_css` เพื่อตรวจเฉพาะ `#login-form`, `#register-form`, `#line-panel`, script `menu.js`, link ไป `../../shared/styles.css`, การมีอยู่ของ shared CSS และการไม่อ้าง React/Vite
+- ผล test: `node --test tests/AC-ACCOUNT-01.test.cjs` ผ่าน 1/1
+- เปลี่ยนสถานะเฉพาะ T-01 เป็น `เสร็จ รอทีมตรวจ`; ไม่ทดสอบการสมัครสมาชิกสำเร็จของ AC-ACCOUNT-01 และไม่เริ่ม task อื่น
+- สิ่งที่เกือบต้องเดา: ไม่มี; ยึด selector และ path ที่มีอยู่จริงในหน้า account และ plan.md
+
+---
+
+## 2569-10-26 คำสั่ง: /implement T-02 ของ specs/002-Register/tasks.md
+
+- ทีมอนุญาตให้ T-02 แตะ `specs/002-Register/tasks.md` และ `prompt-log.md` เพิ่มเติม และเพิ่มไฟล์ทั้งสองในช่อง “ไฟล์ที่แตะ” ของ T-02 ก่อนดำเนินการ
+- สร้าง/ปรับเฉพาะ `tests/AC-ACCOUNT-01.test.cjs` ถึง `tests/AC-ACCOUNT-06.test.cjs` ให้ตรวจ path, โครงสร้างหน้า account, asset `menu.js`/`shared/styles.css` และการค้นพบ test
+- ไม่ทดสอบการสมัครสมาชิก, login สำเร็จ, การจำลอง LINE หรือพฤติกรรมทางธุรกิจของ AC ใด ๆ
+- ผล test: `node --test tests/AC-ACCOUNT-*.test.cjs` ผ่าน 6/6
+- เปลี่ยนสถานะเฉพาะ T-02 เป็น `เสร็จ รอทีมตรวจ`; ไม่แก้ `spec.md`, `plan.md`, feature อื่น หรือ shared CSS
+- สิ่งที่เกือบต้องเดา: ไม่มี; ใช้ path และ selector ที่มีอยู่จริงใน `features/account/` และ `shared/`
+
+---
+
+## 2569-10-26 คำสั่ง: /implement T-03 ของ specs/002-Register/tasks.md
+
+- ทีมอนุญาตให้ T-03 แตะ `tests/AC-ACCOUNT-01.test.cjs`, `specs/002-Register/tasks.md` และ `prompt-log.md` เพิ่มเติม และเพิ่มไฟล์ดังกล่าวในช่อง “ไฟล์ที่แตะ” ของ T-03 ก่อนดำเนินการ
+- ตรวจ `features/account/menu.js` และพบว่า Mock Register Flow ตาม FR-01/FR-02/FR-04 ทำงานตามขอบเขตอยู่แล้ว จึงไม่ต้องแก้โค้ดใน `features/account/menu.js` หรือ `features/account/index.html`
+- เพิ่ม `test_AC_ACCOUNT_01_register_success` โดยจำลอง Given กรอก Email/password, When submit register form และ Then บัญชีถูกเพิ่มใน memory, แสดง “สมัครสมาชิกสำเร็จ”, เปิด flow ต่อ และระบุว่าเข้าสู่ระบบได้ทันที
+- ผล test: `node --test tests/AC-ACCOUNT-01.test.cjs` ผ่าน 2/2
+- เปลี่ยนสถานะเฉพาะ T-03 เป็น `เสร็จ รอทีมตรวจ`; ไม่เริ่ม T-04 และไม่ทดสอบ LINE
+- สิ่งที่เกือบต้องเดา: ไม่มี; ใช้ selector และข้อความที่มีอยู่จริงในหน้า account กับ menu.js
+
+---
+
+## 2569-10-26 คำสั่ง: /implement T-04 ของ specs/002-Register/tasks.md
+
+- ทีมอนุญาตให้ T-04 แตะ `tests/AC-ACCOUNT-02.test.cjs`, `specs/002-Register/tasks.md` และ `prompt-log.md` เพิ่มเติม และเพิ่มไฟล์ดังกล่าวในช่อง “ไฟล์ที่แตะ” ของ T-04 ก่อนดำเนินการ
+- ตรวจ `features/account/menu.js` และพบว่า Mock Login Flow ด้วยบัญชีตัวอย่างทำงานตาม FR-02/FR-03 อยู่แล้ว จึงไม่ต้องแก้ `features/account/menu.js` หรือ `features/account/index.html`
+- เพิ่ม `test_AC_ACCOUNT_02_login_success` โดยจำลอง Given มีบัญชีตัวอย่างและข้อมูลถูกต้อง, When submit login form และ Then แสดงสถานะเข้าสู่ระบบสำเร็จแบบจำลอง
+- ผล test: `node --test tests/AC-ACCOUNT-02.test.cjs` ผ่าน 2/2
+- เปลี่ยนสถานะเฉพาะ T-04 เป็น `เสร็จ รอทีมตรวจ`; ไม่เริ่ม T-05 และไม่ทดสอบ LINE
+- สิ่งที่เกือบต้องเดา: ไม่มี; ใช้บัญชีตัวอย่างและข้อความที่มีอยู่จริงใน `features/account/menu.js`
+
+---
+
+## 2569-10-26 คำสั่ง: /implement T-05 ของ specs/002-Register/tasks.md
+
+- ทีมอนุญาตให้ T-05 แตะ `tests/AC-ACCOUNT-03.test.cjs`, `specs/002-Register/tasks.md` และ `prompt-log.md` เพิ่มเติม และเพิ่มไฟล์ดังกล่าวในช่อง “ไฟล์ที่แตะ” ของ T-05 ก่อนดำเนินการ
+- ตรวจ `features/account/menu.js` และพบว่า validation ของ login/register และ duplicate check ทำงานตาม FR-01/FR-02/FR-04 อยู่แล้ว จึงไม่ต้องแก้ `features/account/menu.js` หรือ `features/account/index.html`
+- เพิ่ม `test_AC_ACCOUNT_03_login_invalid_input` เพื่อตรวจ login ว่าง/ไม่ตรงไม่เปิดสถานะสำเร็จและแสดง “กรุณากรอกข้อมูลให้ถูกต้อง”
+- เพิ่ม `test_AC_ACCOUNT_03_register_duplicate_identifier` เพื่อตรวจ Email ซ้ำไม่สร้างบัญชีและแสดง “อีเมล/เบอร์โทรศัพท์นี้ถูกใช้งานแล้ว”
+- ผล test: `node --test tests/AC-ACCOUNT-03.test.cjs` ผ่าน 3/3
+- เปลี่ยนสถานะเฉพาะ T-05 เป็น `เสร็จ รอทีมตรวจ`; ไม่เริ่ม T-06 และไม่ทดสอบ LINE
+- สิ่งที่เกือบต้องเดา: ไม่มี; ใช้ข้อความและ Mock Data ที่มีอยู่จริงใน `features/account/menu.js`
+
+---
+
+## 2569-10-26 คำสั่ง: /implement T-06 ของ specs/002-Register/tasks.md
+
+- ทีมอนุญาตให้ T-06 แตะ `tests/AC-ACCOUNT-05.test.cjs`, `tests/AC-ACCOUNT-06.test.cjs`, `specs/002-Register/tasks.md` และ `prompt-log.md` เพิ่มเติม และเพิ่มไฟล์ดังกล่าวในช่อง “ไฟล์ที่แตะ” ของ T-06 ก่อนดำเนินการ
+- ตรวจ `features/account/menu.js` และ `features/account/index.html` แล้วพบว่าปุ่มข้าม LINE และ failure fallback แบบจำลองทำงานตาม FR-05 และ NFR-REL-01 อยู่แล้ว จึงไม่ต้องแก้ production code
+- เพิ่ม `test_AC_ACCOUNT_05_skip_line_connection` เพื่อตรวจว่าการข้าม LINE ปิด panel และยังใช้งาน prototype ต่อได้
+- เพิ่ม `test_AC_ACCOUNT_06_line_connect_failure` เพื่อตรวจว่า failure แบบจำลองแสดงข้อความและไม่ขัดขวาง flow หลัก
+- ผล test: `node --test tests/AC-ACCOUNT-05.test.cjs tests/AC-ACCOUNT-06.test.cjs` ผ่าน 4/4
+- เปลี่ยนสถานะเฉพาะ T-06 เป็น `เสร็จ รอทีมตรวจ`; ไม่เริ่ม T-07 และไม่ทดสอบ LINE จริง
+- สิ่งที่เกือบต้องเดา: ไม่มี; ใช้ข้อความและ event handler ที่มีอยู่จริงใน `features/account/menu.js`
+
+---
+
+## 2569-10-26 คำสั่ง: /implement T-07 ของ specs/002-Register/tasks.md
+
+- ทีมอนุญาตให้ T-07 แตะ `specs/002-Register/tasks.md` และ `prompt-log.md` เพิ่มเติม และเพิ่มไฟล์ดังกล่าวในช่อง “ไฟล์ที่แตะ” ของ T-07 ก่อนดำเนินการ
+- เพิ่ม Mock LINE User ID `mock-line-user-001` ใน `features/account/menu.js` โดยเก็บใน Browser Memory และผูกกับ `activeAccount` ที่ Login/Register สำเร็จเท่านั้น
+- ปรับ `features/account/index.html` ให้ `#line-panel` มี state สำหรับ Mock LINE User ID ใน UI โดยไม่เชื่อมต่อ LINE API จริง
+- เพิ่ม `test_AC_ACCOUNT_04_line_connect_success` เพื่อตรวจ login ก่อนเชื่อมต่อ, สถานะ success และ Mock LINE User ID
+- ผล test: `node --test tests/AC-ACCOUNT-04.test.cjs` ผ่าน 2/2
+- เปลี่ยนสถานะเฉพาะ T-07 เป็น `เสร็จ รอทีมตรวจ`; ไม่เริ่ม T-08 และไม่ทำ Q-02/Q-03
+- สิ่งที่เกือบต้องเดา: ไม่มี; ใช้ Mock LINE User ID และเงื่อนไขการผูกบัญชีตามคำตอบ Q-01 ที่ทีมยืนยันแล้ว
+
+---
+
+## 2569-10-26 คำสั่ง: /implement T-08 ของ specs/002-Register/tasks.md
+
+- ทีมอนุญาตให้ T-08 แตะ `specs/002-Register/tasks.md` และ `prompt-log.md` เพิ่มเติม และเพิ่มไฟล์ดังกล่าวในช่อง “ไฟล์ที่แตะ” ของ T-08 ก่อนดำเนินการ
+- ตรวจ `features/account/menu.js` แล้วพบว่า failure handler ไม่สร้างหรือแก้ความสัมพันธ์กับ Mock LINE User ID และไม่กระทบสถานะ account success จึงไม่ต้องแก้ production code
+- ปรับ `test_AC_ACCOUNT_06_line_connect_failure` ให้ตรวจว่า failure ไม่สร้าง Mock LINE User ID ใหม่ โดย `#line-panel.dataset.lineUserId` ยังคงว่าง
+- ผล test: `node --test tests/AC-ACCOUNT-06.test.cjs` ผ่าน 2/2
+- เปลี่ยนสถานะเฉพาะ T-08 เป็น `เสร็จ รอทีมตรวจ`; ไม่เริ่ม T-09 หรือ T-10
+- สิ่งที่เกือบต้องเดา: ไม่มี; ใช้ failure behavior และ state ของ Mock LINE Connection ตามคำตอบ Q-01 ที่ทีมยืนยันแล้ว
+## 2569-10-26 09:39 คำสั่ง: /implement T-05 (เพิ่ม Automated Tests ปิด Coverage Gaps)
+
+- อ้างอิง: `specs/002-Register/spec.md` v3, `plan.md`, `tasks.md`, `rtm.md`, `AGENTS.md`
+- ไฟล์ Test ที่แก้:
+  - `tests/AC-ACCOUNT-01.test.cjs`
+  - `tests/AC-ACCOUNT-02.test.cjs`
+  - `tests/AC-ACCOUNT-03.test.cjs`
+  - `tests/AC-ACCOUNT-04.test.cjs`
+- ไฟล์เอกสารที่แก้หลัง Test ผ่าน:
+  - `specs/002-Register/rtm.md`
+  - `prompt-log.md`
+- เพิ่ม Test:
+  - `test_AC_ACCOUNT_01_register_phone_only_success`
+  - `test_AC_ACCOUNT_02_login_phone_only_account`
+  - `test_AC_ACCOUNT_03_register_duplicate_phone`
+  - `test_AC_ACCOUNT_04_line_requires_login_or_register`
+  - `test_AC_ACCOUNT_04_no_line_password_input_or_storage`
+- ไม่แก้ Production Code เพราะ behavior เดิมรองรับกรณีที่ต้องการทดสอบอยู่แล้ว
+- ผลทดสอบ: `node --test tests/AC-ACCOUNT-*.test.cjs` ผ่าน `18/18`
+- NFR-SEC-01 ยังระบุเป็นหลักฐานระดับ Mock Prototype และยังไม่ถือว่าผ่านครบ
+- ไม่ได้เพิ่ม Backend, Database, LINE API, OAuth หรือ Authentication จริง
