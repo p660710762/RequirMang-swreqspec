@@ -38,8 +38,9 @@
 - `GET /api/admin/menu` — Input: authenticated admin; Output: รายการเมนู พร้อมราคา, status, และ promotion ที่ใช้ได้ — รองรับ FR-42, AC-MENU-MGMT-01
 - `POST /api/admin/menu` — Input: `name`, `price`, `description`, `image_url`, `status`; Output: menu item ที่สร้างใหม่ — รองรับ FR-43, AC-MENU-MGMT-02
 - `PATCH /api/admin/menu/{menu_id}` — Input: price / description / image / promotion / status; Output: menu item ที่อัปเดตและ latest snapshot — รองรับ FR-44, FR-45, FR-47, AC-MENU-MGMT-03, AC-MENU-MGMT-04, AC-MENU-MGMT-06
-- `POST /api/admin/menu/validate` — Input: payload ของเมนู/โปรโมชั่น; Output: validation result และ error list — รองรับ FR-46, Exception Flow 6a, AC-MENU-MGMT-05, AC-MENU-MGMT-11
+- `POST /api/admin/menu/validate` — Input: payload ของเมนู/โปรโมชั่น; Output: validation result และ error list รวมการตรวจ required promotion datetime, ISO 8601 พร้อม timezone, และ end >= start — รองรับ FR-44, FR-46, Exception Flow 6a, AC-MENU-MGMT-05, AC-MENU-MGMT-11, AC-MENU-MGMT-15
 - `PATCH /api/admin/menu/{menu_id}/status` — Input: `status`; Output: status update and block order creation when `status = หมด` — รองรับ FR-45, FR-48, Alternative Flow 4a, AC-MENU-MGMT-04, AC-MENU-MGMT-07, AC-MENU-MGMT-10
+- `DELETE /api/admin/menu/{menu_id}` — Input: authenticated admin; Output: ลบเมนูจาก catalog ปัจจุบันโดยคง Order snapshot ที่จำเป็น — รองรับ FR-49, Constraints, AC-MENU-MGMT-08, AC-MENU-MGMT-14
 - `GET /admin/menu` — Output: หน้า Admin จัดการเมนู, promotion, และ status — รองรับ FR-42, FR-44, FR-45, NFR-USE-03
 
 ## 5. ตารางตรวจ Constraints
@@ -54,6 +55,20 @@
 | ข้อมูลราคาและรายละเอียดที่บันทึกต้องเป็นข้อมูลล่าสุดที่ระบบนำไปแสดงแก่ลูกค้า | ใช้ในหลัง update ทั้ง UI และ team output ให้แสดงข้อมูลล่าสุด | ใช้แล้ว |
 | การเปลี่ยนแปลงเมนูมีผลเฉพาะคำสั่งซื้อใหม่ ส่วน Order เดิมต้องคงค่าสินค้าดั้งเดิมไว้ | ใช้ใน `OrderSnapshot` และ `MenuHistory` เพื่อ snapshot past price | ใช้แล้ว |
 | ข้อมูลที่จำเป็นเพื่อคงความถูกต้องของ Order เก่าควรถูกเก็บไว้ตามกฎที่จำเป็นเท่านั้น | ใช้ใน `OrderSnapshot` เก็บเฉพาะข้อมูลที่จำเป็นเท่านั้น | ใช้แล้ว |
+| ระบบตรวจข้อมูลจำเป็นก่อนบันทึก โดยรายละเอียดและรูปภาพเป็น optional | validation ก่อน save โดยบังคับ name, price, status | ใช้แล้ว |
+| ลบเมนูถาวรได้โดยไม่ทำให้ Order เก่าสูญเสีย snapshot | `DELETE /api/admin/menu/{menu_id}` ลบจาก catalog ปัจจุบันและคง snapshot | ใช้แล้ว |
+| การบันทึกเป็น all-or-nothing และ rollback เมื่อเกิดความล้มเหลว | transaction-safe save/update flow | ใช้แล้ว |
+| โปรโมชั่นต้องมีวันเริ่มต้นและวันสิ้นสุดเป็น ISO 8601 datetime ที่มี timezone และ end ต้องไม่ก่อน start | validation ก่อนบันทึกตาม FR-44 / AC-MENU-MGMT-15 | ใช้แล้ว |
+
+### ค่าที่ตั้งได้
+
+| ค่า | มาจาก ID | ชื่อตัวแปรและไฟล์ |
+|---|---|---|
+| สถานะเมนูมี 2 ค่า: เปิดขาย, หมด | FR-45 และ Constraints | `MENU_STATUS_OPEN`, `MENU_STATUS_SOLD_OUT` ใน `backend/app/config.py` |
+| required fields: name, price, status | FR-43, FR-46, ASM-10 | `required_menu_fields` ใน `backend/app/config.py` |
+| คง Order snapshot เมื่อ delete | ASM-09, FR-49 | `retain_order_snapshot` ใน `backend/app/config.py` |
+| บันทึกแบบ all-or-nothing | ASM-11, NFR-REL-08 | `transactional_save` ใน `backend/app/config.py` |
+| วันเริ่มและวันสิ้นสุดโปรโมชั่นเป็น required และต้องมี timezone | FR-44, ASM-14 | `promotion_start_datetime`, `promotion_end_datetime`, `promotion_requires_datetime` ใน `backend/app/config.py` |
 
 ## 6. แผนทดสอบจาก Acceptance Criteria
 
@@ -73,12 +88,13 @@
 | AC-MENU-MGMT-12 | `test_AC_MENU_MGMT_12_save_failure_is_not_shown_as_success` | จำลอง DB failure แล้วตรวจสอบว่าระบบแจ้ง “ไม่สามารถบันทึกข้อมูลได้” และไม่แสดงข้อมูลใหม่ว่า save สำเร็จ |
 | AC-MENU-MGMT-13 | `test_AC_MENU_MGMT_13_non_admin_cannot_modify_menu` | login เป็นผู้ใช้ไม่ใช่ admin แล้วพยายามเพิ่ม/แก้ไขเมนู ตรวจสอบว่าระบบปฏิเสธ |
 | AC-MENU-MGMT-14 | `test_AC_MENU_MGMT_14_old_orders_keep_legacy_snapshot` | สร้าง Order ที่ใช้เมนูก่อนจะตัดสต๊อก แล้วเปลี่ยนเมนูเป็น “หมด” ตรวจสอบว่าดู Order เก่าได้ตาม snapshot เดิม |
+| AC-MENU-MGMT-15 | `test_AC_MENU_MGMT_15_promotion_datetime_must_be_valid` | ไม่ส่งวันใดวันหนึ่ง, ส่งรูปแบบที่ไม่ใช่ ISO 8601 พร้อม timezone, หรือให้ end < start แล้วตรวจว่าถูกปฏิเสธและไม่มีการบันทึก |
 
 ## 7. ลำดับงาน
 
 1. กำหนด schema สำหรับ `MenuItem`, `Promotion`, `MenuHistory`, `OrderSnapshot` และ validation rules ตาม FR-42 ถึง FR-49 และ Constraints
 2. สร้างหน้า Admin จัดการเมนู พร้อม list view, add form, edit form, status selector, และ promotion section ตาม FR-42, FR-43, FR-44, FR-45, NFR-USE-03
-3. สร้าง API validation สำหรับข้อมูลที่จำเป็นก่อนบันทึกและเก็บ error message ตาม FR-46, Exception Flow 6a, AC-MENU-MGMT-05, AC-MENU-MGMT-11
+3. สร้าง API validation สำหรับข้อมูลเมนูที่จำเป็นและวันเวลาโปรโมชั่นก่อนบันทึกตาม FR-44, FR-46, AC-MENU-MGMT-05, AC-MENU-MGMT-11, AC-MENU-MGMT-15
 4. สร้าง logic เก็บและแสดงข้อมูลล่าสุดหลังบันทึกสำเร็จ, รวมถึงการบันทึกผลลัพธ์ผิดพลาดตาม FR-47, Exception Flow 7a, AC-MENU-MGMT-06, AC-MENU-MGMT-12
 5. สร้าง logic ตาราง status “เปิดขาย/หมด” และป้องกันลูกค้าสั่งเมนูที่ status = หมด ตาม FR-45, FR-48, Alternative Flow 4a, AC-MENU-MGMT-07, AC-MENU-MGMT-10
 6. สร้าง snapshot / archive strategy เพื่อให้ Order เก่าคงข้อมูลเดิมไว้แม้เมนูถูกแก้ไขหรือเปลี่ยน status ตาม FR-49, NFR-REL-09, AC-MENU-MGMT-08, AC-MENU-MGMT-14
@@ -87,20 +103,8 @@
 
 ## 8. สิ่งที่ยังไม่ทำ
 
-- Admin สามารถลบเมนูออกจากระบบถาวรได้หรือใช้วิธีปิดการขายแทน
-  - ส่วนที่เกี่ยวข้องกับข้อนี้จะยังไม่สร้างจนกว่าจะได้คำตอบ
-
-- โปรโมชั่นสามารถกำหนดวันเริ่มต้นและวันสิ้นสุดได้หรือไม่
-  - ส่วนที่เกี่ยวข้องกับข้อนี้จะยังไม่สร้างจนกว่าจะได้คำตอบ
-
-- เมนูหนึ่งรายการสามารถมีหลายโปรโมชั่นพร้อมกันได้หรือไม่
-  - ส่วนที่เกี่ยวข้องกับข้อนี้จะยังไม่สร้างจนกว่าจะได้คำตอบ
-
-- ราคาใหม่จะมีผลทันทีหลังบันทึก หรือมีวันเริ่มต้นของราคา
-  - ส่วนที่เกี่ยวข้องกับข้อนี้จะยังไม่สร้างจนกว่าจะได้คำตอบ
-
-- ต้องเก็บประวัติการแก้ไขว่า Admin คนใดเป็นผู้แก้ไขและแก้ไขเมื่อใดหรือไม่
-  - ส่วนที่เกี่ยวข้องกับข้อนี้จะยังไม่สร้างจนกว่าจะได้คำตอบ
+- Open Questions จาก spec.md: ไม่มีข้อสงสัยที่ค้างจากทีมหลังจากยืนยันคำตอบทั้งหมด
+- ไม่เพิ่มรายละเอียดด้านโปรโมชั่นหรือการ archive ที่ไม่มีข้อกำหนดรองรับใน spec
 
 ---
 
