@@ -652,3 +652,213 @@
 - ปรับ plan.md เฉพาะข้อความที่ไม่ตรงกับ Spec v7/CR-MENU-004: เมื่อไม่มีโปรโมชั่นยังแสดงเมนูหมดสต็อกพร้อม “หมด” และปุ่มสั่งซื้อกดไม่ได้; แก้ข้อความที่ระบุว่าไม่มี Constraints และปรับ API/แผนทดสอบที่กล่าวถึงเมนูเปิดขายอย่างเดียวให้ครอบคลุมเมนูหมดสต็อกด้วย
 - ปรับ test-cases.md ให้อ้างอิง SPEC-MENU-001 Draft v7 และเปลี่ยนเครื่องมือทุกแถวจาก vitest (หน้าจอ) เป็น node:test ตาม runner ที่ใช้จริง
 - คง Task และสถานะ Task เดิม; ไม่แก้โค้ดหรือเพิ่ม Automated Tests; ไม่ติดตั้งเครื่องมือ; ไม่ commit หรือ push
+
+---
+
+## 2569-10-26 คำสั่ง: ซิงก์เอกสารใหม่ Feature 009-MenuManagement
+
+- เครื่องมือ: Copilot in VS Code
+- แหล่งข้อมูล: ไฟล์ spec.md, plan.md และ tasks.md ฉบับใหม่ที่ทีมแนบมาในแชต
+- ไฟล์ที่แก้: specs/009-MenuManagement/spec.md, specs/009-MenuManagement/plan.md, specs/009-MenuManagement/tasks.md
+- ผลลัพธ์: อัปเดต spec เป็น Draft v3, ปรับ plan ให้สะท้อนข้อกำหนดใหม่, และเพิ่ม tasks.md จำนวน 12 tasks; สถานะ T-01/T-02 เป็นเสร็จรอทีมตรวจ และ T-03 เป็นพร้อมทำตามเอกสารที่แนบ
+- คำตอบทีมที่บันทึกใน spec ใหม่: ข้อมูลจำเป็นก่อนบันทึกคือชื่อ ราคา และสถานะ; รายละเอียด/รูปภาพเป็น optional; อนุญาตลบเมนูถาวรโดยรักษา Order snapshot; delete แยกจากการเปลี่ยนสถานะหมด; และการบันทึกต้อง all-or-nothing พร้อม rollback; Open Questions ระบุว่าไม่มี
+- การจัดแนวเอกสาร: นำ AC-MENU-MGMT-15 และ ASM-14 เรื่องตรวจวันเวลาโปรโมชั่นออกจาก plan.md/tasks.md เพราะไม่มีใน spec ซึ่งเป็นแหล่งความจริง; ไม่เพิ่ม ID หรือ requirement ใหม่
+- ผลตรวจ: ยังไม่ได้รัน automated tests เพราะรอบนี้แก้เฉพาะเอกสาร
+- ที่มาของไฟล์: ไฟล์แนบอยู่ใน Downloads ของเครื่องผู้ใช้และไม่ mount ใน container; ใช้เนื้อหาที่แนบในแชตเป็นแหล่งสำหรับซิงก์
+
+---
+
+## 2569-10-26 คำสั่ง: จัดแนวข้อกำหนดวันเวลาโปรโมชั่นของ Feature 009
+
+- เครื่องมือ: Copilot in VS Code
+- ไฟล์ที่แก้: specs/009-MenuManagement/spec.md, specs/009-MenuManagement/plan.md, specs/009-MenuManagement/tasks.md
+- คำตัดสินที่บันทึก: วันเริ่มต้นและวันสิ้นสุดโปรโมชั่นเป็น required; ทั้งคู่ต้องเป็น ISO 8601 datetime พร้อม timezone; วันสิ้นสุดต้องไม่ก่อนวันเริ่มต้น
+- ผลลัพธ์: เพิ่มข้อกำหนดใน FR-44/Constraints, เพิ่ม AC-MENU-MGMT-15 และ ASM-14 ใน spec, ปรับ ASM-02 ให้ตรงกับ required fields ใน FR-43/FR-46, เพิ่ม traceability ใน plan และ T-07/tasks, เปลี่ยน spec เป็น Draft v4
+- ผล test: ไม่ได้รัน automated tests เพราะรอบนี้แก้เอกสารเท่านั้น
+
+---
+
+## 2569-10-26 คำสั่ง: /implement T-01 specs/009-MenuManagement/tasks.md
+
+- เครื่องมือ: Copilot in VS Code
+- ไฟล์ที่สร้าง: backend/app/config.py, backend/app/models.py, backend/app/seed.py, tests/test_AC_MENU_MGMT_01_admin_can_view_menu_list.py, tests/test_AC_MENU_MGMT_02_admin_can_add_menu_item.py
+- ไฟล์ที่แก้: specs/009-MenuManagement/tasks.md
+- ผล test: `PYTHONPATH=. .venv/bin/python -m unittest discover -s tests -p 'test_AC_MENU_MGMT_*.py'` ผ่าน 2 tests (`OK`); diagnostics ไม่พบ errors
+- Constraint ที่ทำให้เป็นจริง: `required_menu_fields` ระบุ name/price/status และ optional description/image; status จำกัดเป็น open/sold_out ใน config; MenuHistory และ OrderSnapshot เก็บข้อมูลย้อนหลังที่จำเป็น; config ระบุ `retain_order_snapshot` และ `transactional_save` สำหรับงานส่วนต่อไป
+- ขอบเขต: ใช้ placeholder seed ที่ทีมอนุมัติ; ไม่ได้ implement transaction/rollback เพราะเป็น T-08
+- สิ่งที่เกือบต้องเดาแต่ถามแทน: seed data ไม่มีใน spec หรือ branch นี้ จึงถามทีมและได้รับอนุญาตให้ใช้ placeholder ทั่วไป
+- สถานะ task: เสร็จ รอทีมตรวจ
+
+---
+
+## 2569-10-26 คำสั่ง: /implement T-07 specs/009-MenuManagement/tasks.md
+
+- ไฟล์ที่สร้าง: backend/app/services/menu_status_service.py, frontend/src/components/StatusToggle.jsx, frontend/src/components/StatusToggle.test.jsx, tests/test_AC_MENU_MGMT_04_admin_can_change_status.py
+- ไฟล์ที่แก้: backend/app/routes/menu.py, backend/app/services/menu_validation.py, frontend/src/pages/AdminMenuPage.jsx, frontend/src/components/MenuEditPanel.test.jsx, frontend/src/styles.css, tests/test_AC_MENU_MGMT_03_admin_can_edit_menu_details.py, specs/009-MenuManagement/tasks.md
+- ผล test: `npm --prefix frontend test` ผ่าน 14 tests; `npm --prefix frontend run build` ผ่าน; `PYTHONPATH=. .venv/bin/python -m unittest discover -s tests -p 'test_AC_MENU_MGMT_*.py'` ผ่าน 13 tests
+- Constraint ที่ทำให้เป็นจริง: status จำกัดเป็น `open`/`sold_out` ผ่าน status service ตาม FR-45; การตั้งเป็นหมดต้องยืนยันก่อนตาม ASM-12 และแสดง error เมื่อบันทึกล้มเหลว; promotion ต้องมี start/end, ISO 8601 พร้อม timezone และ end ไม่ก่อน start ตาม FR-44/ASM-14/AC-MENU-MGMT-15
+- ขอบเขต: ยังไม่ทำ customer order guard ตาม FR-48 เพราะอยู่ T-10; T-07 ทำเฉพาะการบันทึก status และ UI status panel
+- สิ่งที่เกือบต้องเดาแต่ถามแทน: ขออนุญาตเชื่อม `AdminMenuPage.jsx` และเพิ่ม tests เพื่อให้ปุ่ม `ตั้งเป็นหมด` ทำงานจริง
+- หมายเหตุ: backend test แสดง StarletteDeprecationWarning เรื่อง `httpx` แต่ test ผ่าน
+- สถานะ task: เสร็จ รอทีมตรวจ
+
+---
+
+## 2569-10-26 แก้ปุ่ม T-07 ตั้งเป็นหมดไม่เปลี่ยนสถานะ
+
+- สาเหตุ: `handleStatusChange` ถูกวางซ้อนอยู่ภายใน `handleUpdateMenu` ทำให้ handler ไม่อยู่ใน scope ของปุ่มในหน้า Admin
+- ไฟล์ที่แก้: frontend/src/pages/AdminMenuPage.jsx, frontend/src/pages/AdminMenuPage.test.jsx, backend/app/routes/menu.py
+- การแก้: ย้าย `handleStatusChange` ให้อยู่ระดับเดียวกับ handler อื่น และเพิ่ม integration test ที่ตรวจ PATCH `/api/admin/menu/{menu_id}/status` พร้อมอัปเดตข้อความสถานะเป็น `หมด`
+- ผล test: `npm --prefix frontend test` ผ่าน 15 tests; `npm --prefix frontend run build` ผ่าน; backend acceptance tests ผ่าน 13 tests
+
+---
+
+## 2569-10-26 เพิ่มปุ่มล้างข้อมูลโปรโมชั่น
+
+- ไฟล์ที่แก้: frontend/src/components/MenuEditPanel.jsx, frontend/src/components/MenuEditPanel.test.jsx, frontend/src/styles.css, prompt-log.md
+- การปรับ: เพิ่มปุ่ม `ล้างข้อมูลโปรโมชั่น` ซึ่งล้างเฉพาะค่าที่กำลังกรอกในฟอร์ม ไม่บันทึกหรือลบข้อมูลจนกว่าจะกด `บันทึกการแก้ไข`
+- ผล test: เพิ่ม test `test_AC_MENU_MGMT_03_clear_promotion_fields_without_saving`
+- ขอบเขต: ไม่เพิ่ม requirement ใน `spec.md` ตามที่ทีมยืนยัน และไม่มี confirmation ก่อนล้าง
+
+---
+
+## 2569-10-26 คำสั่ง: ปรับ T-06 ช่องวันโปรโมชั่นเป็น date-time picker
+
+- ไฟล์ที่แก้: frontend/src/components/MenuEditPanel.jsx, frontend/src/components/MenuEditPanel.test.jsx, prompt-log.md
+- ผล test: เพิ่ม test `test_AC_MENU_MGMT_03_promotion_datetime_picker_sends_timezone` เพื่อยืนยันการเลือกวันเวลาและส่ง ISO 8601 พร้อม timezone
+- การปรับ: ช่องวันเริ่มต้น/วันสิ้นสุดใช้ `datetime-local` ให้คลิกเลือกได้ และแปลงค่าเป็น ISO 8601 พร้อม timezone ของเครื่องผู้ใช้ก่อนส่ง API
+- ขอบเขต: ยังไม่ตรวจว่าวันสิ้นสุดก่อนวันเริ่มต้น เพราะเป็น validation ของ T-07 ตาม tasks.md
+- สิ่งที่เกือบต้องเดาแต่ถามแทน: ยืนยันให้ใช้ timezone ของเครื่องผู้ใช้และให้ T-07 รับผิดชอบ validation ช่วงเวลา
+
+---
+
+## 2569-10-26 การยืนยันรูปแบบวันที่แบบไทย
+
+- ไฟล์ที่แก้: specs/009-MenuManagement/spec.md, frontend/src/components/MenuEditPanel.jsx, frontend/src/components/MenuEditPanel.test.jsx, prompt-log.md
+- การปรับ: เพิ่ม requirement ให้ date-time picker ใช้ locale `th-TH`; เพิ่ม `lang="th-TH"` ในช่องวันเริ่มต้น/วันสิ้นสุด; ค่าที่ส่ง API ยังคงเป็น ISO 8601 ปี ค.ศ. พร้อม timezone
+- ผล test: เพิ่ม assertion ตรวจ locale ของช่องวันที่; การทดสอบชุดเต็มควรรันด้วย `npm --prefix frontend test`
+- ขอบเขต: ไม่บังคับปี พ.ศ. เพราะ native picker ของ browser อาจแสดงผลต่างกันตาม browser/OS
+
+---
+
+## 2569-10-26 ปรับ date-time picker เป็นการแสดงผลภาษาไทย/พ.ศ.
+
+- ไฟล์ที่แก้: specs/009-MenuManagement/spec.md, frontend/src/components/MenuEditPanel.jsx, frontend/src/components/MenuEditPanel.test.jsx, frontend/src/styles.css, prompt-log.md
+- การปรับ: แสดงค่าที่เลือกเป็นภาษาไทยและปี พ.ศ. บนปุ่ม custom เช่น `1 พ.ย. 2569 10:30`; กดปุ่มเพื่อเปิด native date-time picker และคงค่าภายในเป็น ISO ค.ศ.
+- เหตุผล: native picker ของ browser ไม่ยอมเปลี่ยน placeholder/ปฏิทินเป็นภาษาไทยตาม `lang="th-TH"` ใน environment นี้
+- ผล test: เพิ่ม/ปรับ assertion ของ custom date button; รัน `npm --prefix frontend test`
+
+ผลการรันล่าสุด: `npm --prefix frontend test` ผ่าน 11 tests และ `npm --prefix frontend run build` ผ่าน
+
+---
+
+## 2569-10-26 คำสั่ง: /implement T-02 specs/009-MenuManagement/tasks.md
+
+- เครื่องมือ: Copilot in VS Code
+- ไฟล์ที่สร้าง: backend/app/main.py, backend/app/routes/menu.py, backend/app/services/menu_service.py, tests/test_AC_MENU_MGMT_02_admin_can_add_menu_item_api.py
+- ไฟล์ที่แก้: specs/009-MenuManagement/tasks.md
+- ผล test: `PYTHONPATH=. .venv/bin/python -m unittest discover -s tests -p 'test_AC_MENU_MGMT_*.py'` ผ่าน 6 tests (`OK`); diagnostics ไม่พบ errors
+- Constraint ที่ทำให้เป็นจริง: routes เรียก validation/service ก่อนบันทึก; service บังคับ name/price/status ตาม `required_menu_fields` และรับเฉพาะ `open`/`sold_out`; GET/POST/PATCH ส่ง JSON ของเมนูตาม FR-42/43/45/46/47
+- ขอบเขต: ข้อมูล API เก็บใน memory ระหว่าง process ตาม T-02; ไม่ได้เพิ่ม auth guard (T-03) หรือ transaction/rollback (T-08)
+- สิ่งที่เกือบต้องเดาแต่ถามแทน: tests ไม่อยู่ในช่องไฟล์ที่แตะ จึงขออนุญาตทีมก่อนสร้าง test API เพิ่ม
+- หมายเหตุ: TestClient แสดง StarletteDeprecationWarning เรื่อง `httpx` แต่ test ผ่าน
+- สถานะ task: เสร็จ รอทีมตรวจ
+
+---
+
+## 2569-10-26 คำสั่ง: /implement T-05 specs/009-MenuManagement/tasks.md
+
+- เครื่องมือ: Copilot in VS Code
+- ไฟล์ที่สร้าง: frontend/src/components/MenuForm.jsx, frontend/src/components/MenuForm.test.jsx, frontend/src/api/client.test.js, backend/app/services/menu_validation.py, tests/test_AC_MENU_MGMT_05_validation_before_save.py
+- ไฟล์ที่แก้: frontend/src/pages/AdminMenuPage.jsx, frontend/src/pages/AdminMenuPage.test.jsx, frontend/src/api/client.js, frontend/src/styles.css, backend/app/routes/menu.py, specs/009-MenuManagement/tasks.md
+- ผล test: frontend `npm --prefix frontend test` ผ่าน 7 tests; backend `PYTHONPATH=. .venv/bin/python -m unittest discover -s tests -p 'test_AC_MENU_MGMT_*.py'` ผ่าน 9 tests; `npm --prefix frontend run build` ผ่าน; diagnostics ไม่พบ errors
+- Constraint ที่ทำให้เป็นจริง: form ส่ง name/price/status ที่จำเป็นตาม FR-43/FR-46; description/image เป็น optional ตาม ASM-10; frontend และ backend ปฏิเสธค่าที่ขาดหรือไม่ถูกต้องก่อนบันทึก ตาม AC-MENU-MGMT-02/05/11
+- ขอบเขต: เพิ่มการ mount form, เชื่อม POST route และ CSS/tests นอกไฟล์เดิมของ T-05 ตามที่ทีมอนุมัติ; ไม่เพิ่ม transaction/rollback ซึ่งอยู่ T-08
+- สิ่งที่เกือบต้องเดาแต่ถามแทน: ขออนุญาตเพิ่มไฟล์เชื่อม form/page/API และ tests; ใช้ image URL เป็นช่อง optional ตาม `image_url` schema ใน plan/models
+- สถานะ task: เสร็จ รอทีมตรวจ
+
+---
+
+## 2569-10-26 คำสั่ง: /implement T-04 specs/009-MenuManagement/tasks.md
+
+- เครื่องมือ: Copilot in VS Code
+- ไฟล์ที่สร้าง: frontend/package.json, frontend/package-lock.json, frontend/vite.config.js, frontend/index.html, frontend/src/main.jsx, frontend/src/api/client.js, frontend/src/pages/AdminMenuPage.jsx, frontend/src/styles.css, frontend/src/test-setup.js, frontend/src/pages/AdminMenuPage.test.jsx, frontend/src/api/client.test.js
+- ไฟล์ที่แก้: backend/app/routes/menu.py, specs/009-MenuManagement/tasks.md
+- ผล test: `npm --prefix frontend test` ผ่าน 2 tests; `npm --prefix frontend run build` ผ่าน; browser ตรวจยืนยันโหลดรายการจริงจาก API ได้
+- Constraint ที่ทำให้เป็นจริง: หน้า list ใช้ GET `/api/admin/menu` และ client ส่ง mock Admin `X-User-Id` ตาม guard NFR-SEC-05; แสดงชื่อ รายละเอียด ราคา และสถานะตาม FR-42
+- ขอบเขต: สร้าง scaffold React/Vite เพราะ repo ไม่มี frontend scaffold ตาม plan; เพิ่ม test files หลังทีมอนุมัติ; หน้าเพิ่มเมนูยังไม่ทำเพราะเป็น T-05 ตามการแบ่งขอบเขตที่ทีมยืนยัน
+- สิ่งที่เกือบต้องเดาแต่ถามแทน: ขออนุญาตเพิ่มไฟล์ scaffold/tests และยืนยันให้ T-04 ทำ list/API ส่วนฟอร์มเพิ่มอยู่ T-05
+- สถานะ task: เสร็จ รอทีมตรวจ
+
+---
+
+## 2569-10-26 คำสั่ง: /implement T-03 specs/009-MenuManagement/tasks.md
+
+- เครื่องมือ: Copilot in VS Code
+- ไฟล์ที่สร้าง: backend/app/auth.py, backend/app/middleware/auth_guard.py, tests/test_AC_MENU_MGMT_13_non_admin_is_blocked.py
+- ไฟล์ที่แก้: backend/app/routes/menu.py, tests/test_AC_MENU_MGMT_02_admin_can_add_menu_item_api.py, specs/009-MenuManagement/tasks.md
+- ผล test: `PYTHONPATH=. .venv/bin/python -m unittest discover -s tests -p 'test_AC_MENU_MGMT_*.py'` ผ่าน 7 tests (`OK`); diagnostics ไม่พบ errors
+- Constraint ที่ทำให้เป็นจริง: `get_current_user` resolves configured mock identities; `require_admin` rejects non-admins; dependency protects all existing `/api/admin` routes according to NFR-SEC-05/AC-MENU-MGMT-13
+- ขอบเขต: ใช้ mock identities `admin`/`student` ที่ส่งผ่าน `X-User-Id`; route/tests เดิมเพิ่มเติมจากรายการ T-03 เพราะต้องผูก guard กับ API และยืนยัน Admin flow โดยทีมอนุมัติแล้ว; ไม่เพิ่ม DELETE route ซึ่งเป็นงาน task ภายหลัง
+- สิ่งที่เกือบต้องเดาแต่ถามแทน: ขอและได้รับอนุญาตให้แก้ route integration, เพิ่ม test AC13 และตั้ง API test เดิมให้ใช้ mock Admin; ใช้แนวเลือก mock user ผ่าน `X-User-Id` ตามที่ทีมระบุ
+- หมายเหตุ: TestClient แสดง StarletteDeprecationWarning เรื่อง `httpx` แต่ test ผ่าน
+- สถานะ task: เสร็จ รอทีมตรวจ
+
+---
+
+## 2569-10-26 คำสั่ง: /implement T-04 (ปรับหน้าตาตาม mockup)
+
+- เครื่องมือ: Copilot in VS Code
+- ไฟล์ที่แก้: frontend/src/pages/AdminMenuPage.jsx, frontend/src/styles.css
+- ผล test: `npm --prefix frontend test` ผ่าน 7 tests; `npm --prefix frontend run build` ผ่าน
+- Constraint ที่ทำให้เป็นจริง: ยังคงแสดงชื่อ ราคา และสถานะของแต่ละเมนูตาม FR-42 และ NFR-USE-03; ไม่เพิ่มปุ่มหรือพฤติกรรมแก้ไข/เปลี่ยนสถานะซึ่งเป็นขอบเขตของ T-06/T-07
+- ขอบเขต: ปรับเฉพาะ visual layout, typography, สี, card และ spacing ให้ใกล้ `specs/mockups/MenuManagement/AdminMenu.png`; คงฟอร์มเพิ่มเมนูและ API เดิมไว้เพื่อไม่กระทบ AC-MENU-MGMT-01/02
+- สิ่งที่เกือบต้องเดาแต่ถามแทน: ขออนุญาตแก้ `frontend/src/styles.css` ซึ่งอยู่นอกไฟล์เดิมของ T-04 และยืนยันว่าจะไม่เพิ่มปุ่ม placeholder จาก mockup
+- สถานะ task: เสร็จ รอทีมตรวจ
+
+---
+
+## 2569-10-26 คำสั่ง: ปรับ T-05 รูปภาพเป็น Browse/ลากวาง
+
+- ไฟล์ที่แก้: frontend/src/components/MenuForm.jsx, frontend/src/components/MenuForm.test.jsx, frontend/src/styles.css
+- ผล test: `npm --prefix frontend test` ผ่าน 8 tests; `npm --prefix frontend run build` ผ่าน
+- การปรับ: ช่องรูปภาพรับไฟล์ผ่าน Browse หรือ drag-and-drop, จำกัดเฉพาะ `image/*`, แสดง preview และส่ง Data URL ผ่านฟิลด์ `image_url` เดิม
+- ขอบเขต: ไม่เพิ่ม endpoint upload หรือ storage ใหม่ เพราะทีมเลือกแนวทาง Data URL สำหรับ T-05; backend contract เดิมยังใช้งานได้
+- สิ่งที่เกือบต้องเดาแต่ถามแทน: ยืนยันแนวทาง Data URL, รับเฉพาะรูปภาพ และอนุญาตแก้ `styles.css` เพื่อเพิ่ม dropzone
+
+---
+
+## 2569-10-26 คำสั่ง: เพิ่มปุ่มเลือกไฟล์รูปภาพใน T-05
+
+- ไฟล์ที่แก้: frontend/src/components/MenuForm.jsx, frontend/src/components/MenuForm.test.jsx, frontend/src/styles.css
+- ผล test: `npm --prefix frontend test` ผ่าน 8 tests; `npm --prefix frontend run build` ผ่าน
+- การปรับ: เพิ่มปุ่ม `เลือกไฟล์รูปภาพ` ที่กดเพื่อเปิด file picker ได้โดยตรง พร้อมคงการลากวางและ preview เดิม
+
+---
+
+## 2569-10-26 คำสั่ง: ปรับ T-04 ให้ตรง mockup เพิ่มเติม
+
+- ไฟล์ที่แก้: frontend/src/pages/AdminMenuPage.jsx, frontend/src/pages/AdminMenuPage.test.jsx, frontend/src/styles.css
+- ผล test: `npm --prefix frontend test` ผ่าน 7 tests; `npm --prefix frontend run build` ผ่าน
+- การปรับ: ตัด top bar ออกจากหน้าจอ, ซ่อนฟอร์มเพิ่มเมนูจนกว่าจะกด `+ เพิ่มเมนูตัวอย่าง`, เพิ่มปุ่ม `แก้ราคา` และ `ตั้งเป็นหมด` เป็น visual-only ตามที่ทีมยืนยัน
+- ขอบเขต: ปุ่มทั้งสองยังไม่เปลี่ยนข้อมูล เพราะ logic อยู่ใน T-06/T-07; การเพิ่มเมนูยังทำงานผ่านฟอร์มเดิมเมื่อเปิดฟอร์ม
+
+---
+
+## 2569-10-26 คำสั่ง: /implement T-06 specs/009-MenuManagement/tasks.md
+
+- ไฟล์ที่สร้าง: frontend/src/components/MenuEditPanel.jsx, frontend/src/components/MenuEditPanel.test.jsx, tests/test_AC_MENU_MGMT_03_admin_can_edit_menu_details.py
+- ไฟล์ที่แก้: backend/app/routes/menu.py, backend/app/services/menu_service.py, frontend/src/pages/AdminMenuPage.jsx, frontend/src/styles.css, specs/009-MenuManagement/tasks.md
+- ผล test: `npm --prefix frontend test` ผ่าน 10 tests; `npm --prefix frontend run build` ผ่าน; `PYTHONPATH=. .venv/bin/python -m unittest discover -s tests -p 'test_AC_MENU_MGMT_*.py'` ผ่าน 10 tests; test เฉพาะ AC-MENU-MGMT-03 ผ่าน 1 test
+- Constraint ที่ทำให้เป็นจริง: PATCH route ตรวจและบันทึกราคา/รายละเอียดตาม FR-44/FR-47; `MenuEditPanel` จัดการ promotion ในหน้าเดียวกับเมนูตาม ASM-07; หน้า Admin แทนรายการด้วยข้อมูลล่าสุดหลังบันทึกสำเร็จ
+- ขอบเขต: ยังไม่ทำ status change หรือ validation วันเวลาโปรโมชั่น เพราะเป็น T-07; promotion รับและแก้ไขฟิลด์ได้ แต่ validation ISO 8601/timezone และ end >= start ให้ T-07 รับผิดชอบ
+- สิ่งที่เกือบต้องเดาแต่ถามแทน: ขออนุญาตเชื่อม `AdminMenuPage`, เพิ่ม tests, และเลือกให้ T-06 แก้ฟิลด์ promotion โดยไม่ย้าย validation วันเวลาเข้ามาซ้ำกับ T-07
+- หมายเหตุ: backend test แสดง StarletteDeprecationWarning เรื่อง `httpx` แต่ test ผ่าน
+- สถานะ task: เสร็จ รอทีมตรวจ
+- แก้ไขส่วนลดให้คำนวณราคาหลังลดและปฏิเสธค่าติดลบ/ส่วนลดเกินราคา รวมทั้งเพิ่ม confirmation ตอนเปลี่ยนเป็น “หมด” และ “เปิดขาย”
+- ปรับ date-time picker ไม่ให้เลือกวันเวลาในอดีต แสดงข้อความ `กรุณาเลือกวัน...` เมื่อยังไม่เลือก และเพิ่มการตรวจสอบซ้ำฝั่ง API
+- แก้การแจ้งเตือนก่อนบันทึกโปรโมชั่น: ต้องเลือกวันเริ่มต้น/สิ้นสุดให้ครบ และวันสิ้นสุดต้องไม่ก่อนวันเริ่มต้น พร้อมกำหนด min ของวันสิ้นสุดตามวันเริ่มต้น
+- แก้ native date-time popup ภาษาอังกฤษที่ทำให้หน้าจอเพี้ยน โดยย้ายการตรวจวันย้อนหลัง/วันสิ้นสุดก่อนวันเริ่มต้นมาไว้ใน onChange และแสดงข้อความภาษาไทยในฟอร์ม
+- เพิ่ม validation ให้โปรโมชั่นต้องมีชื่อก่อนจึงจะใช้ส่วนลดได้ ทั้ง frontend และ backend
+- เพิ่มปุ่ม `ยกเลิก` ในฟอร์มเพิ่มเมนู โดยยกเลิกจะปิดฟอร์มและไม่ส่งข้อมูลบันทึก
+- จัดปุ่ม `ยกเลิก` ให้อยู่ข้างปุ่ม `บันทึกเมนู` ในส่วนท้ายฟอร์ม
