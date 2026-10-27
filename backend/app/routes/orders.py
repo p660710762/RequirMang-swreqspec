@@ -9,7 +9,11 @@ from collections.abc import Iterator
 
 from fastapi import APIRouter, Depends, Header, HTTPException
 
-from backend.app.services.orders import list_orders_for_user
+from backend.app.services.orders import (
+    get_order_detail_for_user,
+    get_order_status_for_user,
+    list_orders_for_user,
+)
 from backend.database import connect_database, initialize_database
 
 
@@ -48,10 +52,55 @@ def get_order_database() -> Iterator[sqlite3.Connection]:
         connection.close()
 
 
-# Supports FR-19 and NFR-SEC-02 by returning only orders belonging to the mock-authenticated user.
+# Supports FR-19, FR-22, and NFR-SEC-02 by returning the user's orders and their saved item summaries.
 @router.get("")
 def get_orders(
     user: dict[str, str] = Depends(get_mock_order_user),
     connection: sqlite3.Connection = Depends(get_order_database),
 ) -> list[dict[str, object]]:
     return list_orders_for_user(connection, user["user_id"])
+
+
+# Supports FR-20 and NFR-SEC-02 by returning only details owned by the mock-authenticated user.
+@router.get("/{order_id}")
+def get_order_detail(
+    order_id: str,
+    user: dict[str, str] = Depends(get_mock_order_user),
+    connection: sqlite3.Connection = Depends(get_order_database),
+) -> dict[str, object]:
+    order = get_order_detail_for_user(connection, order_id, user["user_id"])
+    if order is None:
+        raise HTTPException(status_code=404, detail="Order not found")
+    return order
+
+
+# Supports FR-21, NFR-REL-03, NFR-SEC-02, and AC-STATUS-07 by reloading only the owner's confirmed status.
+@router.post("/{order_id}/status/refresh")
+def refresh_order_status(
+    order_id: str,
+    user: dict[str, str] = Depends(get_mock_order_user),
+    connection: sqlite3.Connection = Depends(get_order_database),
+) -> dict[str, object]:
+    try:
+        status = get_order_status_for_user(connection, order_id, user["user_id"])
+    except sqlite3.Error as error:
+        raise HTTPException(
+            status_code=503,
+            detail="Unable to load confirmed order status",
+        ) from error
+    if status is None:
+        raise HTTPException(status_code=404, detail="Order not found")
+    return status
+
+
+# Supports FR-21, NFR-REL-03, and NFR-SEC-02 by exposing only an owner's confirmed status history.
+@router.get("/{order_id}/status")
+def get_order_status(
+    order_id: str,
+    user: dict[str, str] = Depends(get_mock_order_user),
+    connection: sqlite3.Connection = Depends(get_order_database),
+) -> dict[str, object]:
+    status = get_order_status_for_user(connection, order_id, user["user_id"])
+    if status is None:
+        raise HTTPException(status_code=404, detail="Order not found")
+    return status

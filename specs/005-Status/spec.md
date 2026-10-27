@@ -79,8 +79,8 @@ Depends on: SPEC-ORDER-001, SPEC-PAYMENT-001 | Reviewed by: -
 
 - [ ] AC-STATUS-01 (FR-19)
 
-  Given ลูกค้ามี Order อยู่ในระบบ  
-  When ลูกค้าเปิดหน้ารายการ Order  
+  Given ลูกค้ามี Order อยู่ในระบบ
+  When ลูกค้าเปิดหน้ารายการ Order
   Then ระบบแสดงรายการ Order ของลูกค้า
 
 - [ ] AC-STATUS-02 (FR-20)

@@ -113,6 +113,318 @@ h1 { margin: 0; font-size: 22px; line-height: 1.2; }
 .page-state { margin: 0; padding: 24px; color: var(--muted); background: var(--paper); border: 1px solid var(--line); border-radius: 8px; }
 .page-state--error { color: #8c3d2d; }
 
+.tracking-page {
+  min-height: 100vh;
+  padding: 28px clamp(18px, 4vw, 64px);
+  color: #24170f;
+  background: #f7f3ed;
+}
+
+.tracking-page__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 8px 0 34px;
+}
+
+.tracking-page__eyebrow {
+  margin: 0 0 6px;
+  color: #946746;
+  font-family: Arial, sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+
+.tracking-page__header h1 {
+  font-size: clamp(24px, 3vw, 30px);
+}
+
+.tracking-page__subtitle {
+  margin: 7px 0 0;
+  color: #8d7969;
+  font-size: 14px;
+}
+
+.tracking-panel {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 22px 18px 28px;
+  background: #fff;
+  border: 1px solid #eadfce;
+  border-radius: 18px;
+  box-shadow: 0 7px 20px rgb(102 74 47 / 5%);
+}
+
+.tracking-panel > h2 {
+  margin: 0 0 14px;
+  font-size: 20px;
+}
+
+.tracking-order-list {
+  display: grid;
+  gap: 10px;
+}
+
+.tracking-order-card {
+  padding: 14px;
+  border: 1px solid #ead9c8;
+  border-radius: 14px;
+}
+
+.tracking-order-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.tracking-order-card__header h3 {
+  margin: 0;
+  font-size: 16px;
+  overflow-wrap: anywhere;
+}
+
+.tracking-order-card__date,
+.tracking-order-card__total,
+.tracking-order-card__id {
+  margin: 8px 0 0;
+  color: #8d7969;
+  font-size: 13px;
+}
+
+.tracking-order-card__id {
+  margin-top: 4px;
+  font-size: 12px;
+}
+
+.tracking-order-card__summary {
+  margin-top: 10px;
+  color: #8d7969;
+  font-size: 13px;
+}
+
+.tracking-order-card__summary p {
+  margin: 4px 0;
+}
+
+.tracking-order-card__summary .tracking-order-card__total {
+  margin-top: 8px;
+  color: #5f3d20;
+  font-weight: 700;
+}
+
+.tracking-status-badge {
+  flex: 0 0 auto;
+  padding: 6px 11px;
+  color: #815528;
+  background: #f8e9c9;
+  border-radius: 999px;
+  font-size: 12px;
+}
+
+.tracking-progress {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 5px;
+  margin: 18px 0 12px;
+  padding: 0;
+  list-style: none;
+}
+
+.tracking-progress__step {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  color: #8d7969;
+  font-size: 12px;
+  text-align: center;
+}
+
+.tracking-progress__bar {
+  height: 7px;
+  background: #e8e1d8;
+  border-radius: 999px;
+}
+
+.tracking-progress__step[data-state="complete"] .tracking-progress__bar,
+.tracking-progress__step[data-state="current"] .tracking-progress__bar {
+  background: #916039;
+}
+
+.tracking-progress__step[data-state="current"] {
+  color: #5f3d20;
+  font-weight: 700;
+}
+
+.tracking-progress__label {
+  overflow-wrap: anywhere;
+}
+
+.tracking-order-card__link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  margin-top: 4px;
+  padding: 0 12px;
+  color: #633f21;
+  background: #f8f3ec;
+  border: 1px solid #e6d3be;
+  border-radius: 9px;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.tracking-order-card__link:hover {
+  background: #f1e5d7;
+}
+
+.tracking-order-card__link:focus-visible {
+  outline: 2px solid #916039;
+  outline-offset: 2px;
+}
+
+.tracking-state {
+  margin: 0;
+  padding: 24px;
+  color: #8d7969;
+  background: #fff;
+  border: 1px solid #ead9c8;
+  border-radius: 12px;
+}
+
+.tracking-state--error {
+  color: #8c3d2d;
+}
+
+.tracking-page__footer {
+  max-width: 1440px;
+  margin: 30px auto 0;
+  color: #8d7969;
+  font-size: 12px;
+}
+
+.order-detail-panel {
+  max-width: 1000px;
+}
+
+.order-detail-content {
+  display: grid;
+  gap: 20px;
+}
+
+.order-detail-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #ead9c8;
+}
+
+.order-detail-header h2 {
+  margin: 0;
+  font-size: 22px;
+  overflow-wrap: anywhere;
+}
+
+.order-detail-header p {
+  margin: 7px 0 0;
+  color: #8d7969;
+  font-size: 13px;
+}
+
+.order-detail-section {
+  padding: 16px;
+  background: #fffdfa;
+  border: 1px solid #ead9c8;
+  border-radius: 14px;
+}
+
+.order-detail-section__title {
+  margin: 0 0 12px;
+  font-size: 18px;
+}
+
+.order-items-list {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.order-item-card {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 20px;
+  padding: 12px;
+  background: #fff;
+  border: 1px solid #eee3d7;
+  border-radius: 10px;
+}
+
+.order-item-card__name {
+  flex: 1 1 100%;
+  margin: 0;
+  font-size: 15px;
+}
+
+.order-item-card p {
+  margin: 0;
+  color: #8d7969;
+  font-size: 13px;
+}
+
+.order-detail-total {
+  justify-self: end;
+  margin: -8px 0 0;
+  color: #5f3d20;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.order-detail-progress {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.order-detail-progress__step {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  padding: 12px;
+  color: #8d7969;
+  background: #fff;
+  border: 1px solid #ead9c8;
+  border-radius: 10px;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.order-detail-progress__step[data-state="complete"],
+.order-detail-progress__step[data-state="current"] {
+  color: #5f3d20;
+  background: #f8f3ec;
+  border-color: #c99f78;
+}
+
+.order-detail-progress__step[data-state="current"] {
+  font-weight: 700;
+}
+
+.order-detail-progress__step time {
+  color: #8d7969;
+  font-size: 12px;
+  font-weight: 400;
+}
+
 .menu-form {
   margin-top: 18px;
   padding: 18px;
@@ -238,6 +550,16 @@ h1 { margin: 0; font-size: 22px; line-height: 1.2; }
 
 @media (max-width: 720px) {
   .admin-page { padding: 8px 10px; }
+  .tracking-page { padding: 20px 12px; }
+  .tracking-page__header { margin: 4px 0 24px; }
+  .tracking-panel { padding: 18px 12px 20px; }
+  .tracking-order-card { padding: 12px 10px; }
+  .tracking-progress { gap: 3px; }
+  .tracking-progress__step { font-size: 10px; }
+  .tracking-progress__bar { height: 6px; }
+  .order-detail-header { flex-direction: column; }
+  .order-detail-progress { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .order-detail-section { padding: 13px 10px; }
   .page-content { margin: 0 0 24px; padding: 18px 10px 16px; }
   .menu-table__header { display: none; }
   .menu-row { grid-template-columns: minmax(0, 1fr) auto; gap: 8px 10px; padding: 13px 15px; }

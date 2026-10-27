@@ -665,3 +665,337 @@
 - ผลทดสอบ `python -m unittest discover -s tests -p 'test_*.py' -v`: ผ่าน 21/21; `py_compile` ผ่าน; ตรวจ whitespace ผ่าน; มี Starlette deprecation warning เกี่ยวกับ httpx แต่ไม่กระทบผลทดสอบ
 - ติดตั้ง FastAPI และ httpx เฉพาะใน environment เพื่อรันทดสอบ เนื่องจากก่อนหน้านี้ไม่มี FastAPI; ไม่แก้ dependency manifest
 - อัปเดต T-03 เป็น “เสร็จ รอทีมตรวจ”; ไม่สร้างระบบ auth จริง ไม่แก้ `backend/app/auth.py` หรือไฟล์นอกขอบเขตที่อนุมัติ
+
+---
+
+## 2026-10-27 คำสั่ง: /implement T-04 specs/005-Status/spec.md
+
+- ตรวจ `tasks.md`, `spec.md`, `plan.md`, `AGENTS.md` และโครงสร้าง frontend; T-04 พร้อมทำ, prerequisite T-03 มีสถานะ “เสร็จ”, และไม่พบ Open Questions ใน spec
+- ผู้ใช้อนุมัติให้ขยายไฟล์จากรายการ T-04 เพื่อเพิ่ม route ใน `frontend/src/main.jsx` และ AC test ใน `frontend/src/pages/OrderList.test.jsx`; เหตุผลคือแอปเดิม render `AdminMenuPage` โดยตรงและไม่มี test ของ Order list
+- เพิ่ม `getOrders()` ใน `frontend/src/api/client.js` เรียก `GET /api/orders` พร้อม `X-Test-User: customer-a` ตาม allowlist mock ที่มีอยู่; สร้างหน้ารายการใน `frontend/src/pages/OrderList.jsx` และเปิดหน้าเมื่อ path เป็น `/orders/status` ใน `frontend/src/main.jsx`
+- เพิ่ม `test_AC_STATUS_01_show_only_user_orders` ใน `frontend/src/pages/OrderList.test.jsx`; ใช้ response จำลองของผู้ใช้ที่ API client กำหนดและตรวจว่า Order ปรากฏในหน้า
+- ผล `cd frontend && npm test -- src/pages/OrderList.test.jsx`: ผ่าน 1/1; ชุดเต็ม `cd frontend && npm test`: ผ่าน 22/22; ผล `cd frontend && npm run build`: ผ่าน; `git diff --check` ผ่าน
+- อัปเดต T-04 เป็น “เสร็จ รอทีมตรวจ”; ไม่แก้ task อื่น; mock identity เป็น `customer-a` จากรายการผู้ใช้ทดสอบที่ T-03 กำหนดไว้แล้ว
+
+---
+
+## 2026-10-27 คำสั่ง: /implement T-05 specs/005-Status/spec.md
+
+- ตรวจ `tasks.md`, `spec.md`, `plan.md`, `AGENTS.md`; T-05 พร้อมทำ, prerequisite T-03/T-04 เป็น “เสร็จ”, ช่องไฟล์และเกณฑ์เสร็จครบ และไม่มี Open Questions
+- สร้าง `backend/tests/test_orders.py` ตาม path ที่ task ระบุ เพราะ `backend/tests/` ยังไม่มีอยู่; test สร้าง Order ให้ผู้ใช้สองคนและตรวจ AC-STATUS-01 ว่าแต่ละ identity เห็นเฉพาะ Order ของตน พร้อมยืนยัน user_id ทั้งสองไม่ซ้ำกัน
+- `frontend/src/pages/OrderList.test.jsx` มี `test_AC_STATUS_01_show_only_user_orders` จาก T-04 อยู่แล้ว จึงไม่แก้ไฟล์นี้และรันทดสอบซ้ำด้วย mocked `fetch` ตามเกณฑ์ T-05
+- ผล `python -m unittest discover -s backend/tests -p 'test_*.py' -v`: ผ่าน 1/1; ผล `cd frontend && npm test -- src/pages/OrderList.test.jsx`: ผ่าน 1/1; `git diff --check` ผ่าน; มี Starlette deprecation warning เกี่ยวกับ httpx แต่การทดสอบผ่าน
+- เปลี่ยนเฉพาะสถานะ T-05 เป็น “เสร็จ รอทีมตรวจ”; ไม่แก้ task อื่น และไม่พบจุดที่ต้องเดา/ถามเพิ่ม
+
+---
+
+## 2026-10-27 คำสั่ง: /implement T-06 specs/005-Status/spec.md
+
+- ตรวจ `tasks.md`, `spec.md`, `plan.md`, `AGENTS.md`; T-06 พร้อมทำและ prerequisite T-03 มีสถานะ “เสร็จ”
+- พบว่า `backend/services/orders.py` ตาม tasks ไม่มีอยู่จริง; service อยู่ที่ `backend/app/services/orders.py` และ T-06 ไม่ได้ระบุไฟล์ test แม้ต้องตรวจ AC-STATUS-05. ขออนุมัติทีมและได้รับอนุญาตให้แก้ `backend/app/services/orders.py` และ `backend/tests/test_orders.py`
+- เพิ่ม `ORDER BY created_at DESC` ใน query ที่กรอง `user_id` เพื่อให้ API ส่ง Order ล่าสุดก่อน โดยยังคง owner filter เดิมตาม NFR-SEC-02; เพิ่ม `test_AC_STATUS_05_list_orders_sorted_by_latest_created` ด้วยข้อมูลวันเวลาที่ต่างกันและยืนยัน response order
+- แก้ช่องไฟล์ T-06 ให้ตรงกับไฟล์จริงที่อนุมัติ และเปลี่ยนสถานะ T-06 เป็น “เสร็จ รอทีมตรวจ”; ไม่เปลี่ยน task อื่น
+- ผล `python -m unittest backend.tests.test_orders.TestOrderListOwnership.test_AC_STATUS_05_list_orders_sorted_by_latest_created -v`: ผ่าน 1/1; ผล `python -m unittest discover -s backend/tests -p 'test_*.py' -v`: ผ่าน 2/2; `py_compile` และ `git diff --check` ผ่าน; มี Starlette deprecation warning เกี่ยวกับ httpx แต่การทดสอบผ่าน
+
+---
+
+## 2026-10-27 คำสั่ง: /implement T-09 specs/005-Status/spec.md
+
+- ตรวจ `tasks.md`, `spec.md`, `plan.md`, `AGENTS.md`; T-09 พร้อมทำและ prerequisites T-01/T-03 เป็น “เสร็”
+- พบ path เดิม `backend/routes/orders.py` และ `backend/services/orders.py` ไม่มีจริง; ขออนุมัติและได้รับอนุญาตให้แก้ `backend/app/routes/orders.py`, `backend/app/services/orders.py` และเพิ่ม AC test ใน `backend/tests/test_orders.py`
+- ก่อนลงมือขอคำตัดสินเพราะ spec/plan ไม่ระบุ response สำหรับ Order ของผู้ใช้อื่นและไม่มีสถานะยืนยัน; ทีมเลือก 404 สำหรับ Order ที่ไม่ได้เป็นเจ้าของ และ `latest_status: null` เมื่อไม่มีสถานะยืนยัน
+- เพิ่ม `GET /api/orders/{order_id}`; query กรองทั้ง `order_id` และ `user_id` ของ Mock Auth, ส่งข้อมูล Order/รายการสินค้า และสถานะล่าสุดจาก history ที่ `is_confirmed = 1` เท่านั้น; Order ที่หาไม่พบหรือไม่ใช่ของผู้ใช้ตอบ 404
+- เพิ่ม `test_AC_STATUS_02_select_order_and_view_detail` ตรวจข้อมูล detail, latest confirmed status, items และการปฏิเสธ Order ของเจ้าของอื่น; เพิ่ม `test_AC_STATUS_02_detail_without_confirmed_status_returns_null` ซึ่งตรวจว่า API ไม่ส่ง status จาก Order row เมื่อไม่มี history ที่ยืนยัน
+- เพื่อไม่เผยสถานะที่ไม่ยืนยัน API ส่งสถานะเฉพาะใน `latest_status` จาก confirmed history; เมื่อไม่มีรายการยืนยันส่ง `null` ตามคำตัดสินของทีม
+- ผล targeted tests: ผ่าน 2/2; `python -m unittest discover -s backend/tests -p 'test_*.py' -v`: ผ่าน 4/4; `python -m unittest discover -s tests -p 'test_*.py' -v`: ผ่าน 21/21; `py_compile` และ `git diff --check` ผ่าน; มี Starlette deprecation warning เกี่ยวกับ httpx แต่ไม่กระทบผล
+- ปรับ file list และเกณฑ์เสร็จ T-09 ให้ตรงกับ paths ที่อนุมัติ; เปลี่ยนเฉพาะสถานะ T-09 เป็น “เสร็จ รอทีมตรวจ”
+
+---
+
+## 2026-10-27 คำสั่ง: /implement T-10 specs/005-Status/spec.md
+
+- ตรวจ `tasks.md`, `spec.md`, `plan.md`, `AGENTS.md`; T-10 พร้อมทำและ prerequisites T-04/T-09 เป็น “เสร็จ”
+- ขออนุมัติและได้รับอนุญาตให้ขยายไฟล์ที่แตะเพื่อเพิ่ม routing ใน `frontend/src/main.jsx` และ AC test ใน `frontend/src/pages/OrderDetail.test.jsx`; เหตุผลคือ main ปัจจุบันไม่มี route สำหรับรายละเอียดและ T-10 ต้องตรวจ AC-STATUS-02
+- เพิ่ม `getOrderDetails()` ใน `frontend/src/api/client.js` เรียก `GET /api/orders/{order_id}` ด้วย mock identity เดิม; เพิ่ม link “ดูรายละเอียด” ในรายการ; สร้าง `OrderDetail.jsx` เพื่อโหลดและแสดง Order ที่เลือกพร้อมสถานะล่าสุด; route `/orders/{order_id}/details` เลือกหน้า detail ใน `main.jsx`
+- เพิ่ม `test_AC_STATUS_02_select_order_and_view_detail` ตรวจ URL ของ link, รายละเอียด/สถานะที่แสดง และ request endpoint ที่ส่ง mock header
+- ผล `cd frontend && npm test -- src/pages/OrderDetail.test.jsx src/pages/OrderList.test.jsx`: ผ่าน 3/3; ชุด frontend ทั้งหมด `cd frontend && npm test`: ผ่าน 24/24; `cd frontend && npm run build`: ผ่าน; `git diff --check` ผ่าน
+- อัปเดต file list ที่ได้รับอนุมัติและเปลี่ยนสถานะ T-10 เป็น “เสร็จ รอทีมตรวจ”; ไม่มี mockup ใน spec และไม่มีประเด็นกำกวมที่ต้องตัดสินใจเพิ่ม
+
+---
+
+## 2026-10-27 คำสั่ง: /implement T-07 specs/005-Status/spec.md
+
+- ตรวจ `tasks.md`, `spec.md`, `plan.md`, `AGENTS.md`; T-07 พร้อมทำและ prerequisites T-04/T-06 เป็น “เสร็จ”
+- ตรวจพบว่า `OrderList.jsx` ใช้ `orders.map(...)` และรักษาลำดับที่ API ส่งมา ซึ่ง API เรียงล่าสุดก่อนตาม T-06; ขออนุมัติและได้รับอนุญาตให้เพิ่ม assertion ใน `frontend/src/pages/OrderList.test.jsx` เพื่อยืนยันลำดับใน UI
+- ปรับ comment ของ `OrderListPage` ให้อ้าง FR-19 และ FR-23; เพิ่ม `test_AC_STATUS_05_list_orders_sorted_by_latest_created` โดย mock response ที่ API เรียง Order ล่าสุดก่อนและตรวจลำดับหัวข้อที่ render
+- เพิ่ม `frontend/src/pages/OrderList.test.jsx` ในรายการไฟล์ T-07 ที่อนุมัติ และเปลี่ยนสถานะ T-07 เป็น “เสร็จ รอทีมตรวจ”; ไม่พบข้อมูลที่ต้องเดาหรือถามเพิ่มเติม
+- ผล `cd frontend && npm test -- src/pages/OrderList.test.jsx`: ผ่าน 2/2; ผล `cd frontend && npm run build`: ผ่าน; `git diff --check` ผ่าน
+
+---
+
+## 2026-10-27 คำสั่ง: /implement T-08 specs/005-Status/spec.md
+
+- ตรวจ `tasks.md`, `spec.md`, `plan.md`, `AGENTS.md`; T-08 พร้อมทำและ prerequisites T-06/T-07 เป็น “เสร็จ”; ช่องไฟล์และเกณฑ์เสร็จครบ
+- พบ test ที่ task ต้องการอยู่แล้วในทั้งสองไฟล์: backend test สร้าง Order ที่ `created_at` ต่างกันแล้วตรวจ response API ว่าใหม่กว่ามาก่อน; frontend test ตรวจว่าหน้าจอ render ตามลำดับ response ที่ API เรียงแล้ว จึงไม่ต้องแก้ test code ซ้ำ
+- ผล `python -m unittest backend.tests.test_orders.TestOrderListOwnership.test_AC_STATUS_05_list_orders_sorted_by_latest_created -v`: ผ่าน 1/1; ผล `cd frontend && npm test -- src/pages/OrderList.test.jsx`: ผ่าน 2/2 (รวม AC-STATUS-01 และ AC-STATUS-05)
+- เปลี่ยนเฉพาะสถานะ T-08 เป็น “เสร็จ รอทีมตรวจ”; ไม่พบประเด็นกำกวมหรือสิ่งที่ต้องถามเพิ่ม; backend แสดง Starlette deprecation warning เกี่ยวกับ httpx แต่การทดสอบผ่าน
+
+---
+
+## 2026-10-27 คำสั่ง: /implement T-11 specs/005-Status/spec.md
+
+- ตรวจ `tasks.md`, `spec.md`, `plan.md`, `AGENTS.md`; T-11 พร้อมทำและ prerequisites T-09/T-10 มีสถานะ “เสร็จ”
+- test ที่ระบุใน `backend/tests/test_orders.py` และ `frontend/src/pages/OrderDetail.test.jsx` มีอยู่แล้วจาก T-09/T-10 และใช้ชื่อ `test_AC_STATUS_02_select_order_and_view_detail`; ไม่แก้ test source ซ้ำ
+- ผล targeted backend test: ผ่าน 1/1; targeted frontend test: ผ่าน 1/1; backend suite `python -m unittest discover -s tests -p 'test_*.py' -v`: ผ่าน 21/21; frontend suite `cd frontend && npm test`: ผ่าน 24/24; `git diff --check` ผ่าน
+- เปลี่ยนเฉพาะสถานะ T-11 เป็น “เสร็จ รอทีมตรวจ”; ไม่มีจุดกำกวมหรือสิ่งที่ต้องเดา/ถามเพิ่ม; มี Starlette deprecation warning เกี่ยวกับ httpx แต่การทดสอบผ่าน
+
+## 2026-10-27 คำสั่ง: /implement T-12 specs/005-Status/spec.md
+
+- ตรวจ `tasks.md`, `spec.md`, `plan.md`, `AGENTS.md`; T-12 พร้อมทำและ prerequisites T-01/T-09 มีสถานะ “เสร็จ”
+- ทีมอนุมัติปรับ path ไปยัง `backend/app/routes/orders.py` และ `backend/app/services/orders.py` ซึ่งเป็นโครงสร้างจริง และเพิ่ม test ใน `backend/tests/test_orders.py`
+- ทีมเลือกให้ `current_status` เป็น status code string และให้ `status_history[]` มี `status_code`, `status_name`, `changed_at`
+- เพิ่ม `GET /api/orders/{order_id}/status`; query จำกัด `user_id` ตาม Mock Authentication และอ่านเฉพาะ `is_confirmed = 1`; Order ที่ผู้ใช้ไม่มีสิทธิ์เห็นตอบ 404
+- เพิ่ม `test_AC_STATUS_03_display_4_step_status_flow` ครอบคลุมสถานะทั้งสี่, เวลาเปลี่ยนสถานะสองขั้นท้าย, กรองสถานะไม่ยืนยัน และปฏิเสธ Order ของผู้ใช้อื่น
+- ผล targeted backend test (`PYTHONPATH=.. python -m unittest discover -s tests -p 'test_orders.py' -v` จาก `backend/`): ผ่าน 5/5; `git diff --check` ผ่าน; มี Starlette deprecation warning เกี่ยวกับ httpx แต่การทดสอบผ่าน
+- เปลี่ยนเฉพาะสถานะ T-12 เป็น “เสร็จ รอทีมตรวจ”; ตัดสินใจเรื่องรูปแบบ `current_status` โดยถามทีมก่อน ไม่ได้เดา
+
+## 2026-10-27 คำสั่ง: /implement T-13 specs/005-Status/spec.md
+
+- ตรวจ `tasks.md`, `spec.md`, `plan.md`, `AGENTS.md`; T-13 พร้อมทำและ prerequisites T-10/T-12 มีสถานะ “เสร็จ”
+- ทีมอนุมัติขยายรายการไฟล์ T-13 เพื่อเพิ่ม API client และ test ของ status timeline
+- ทีมอนุมัติปรับ `OrderDetail.test.jsx` ให้ mock status response เพื่อให้ test เดิมครอบคลุมการโหลด timeline โดยตรง
+- เพิ่ม `getOrderStatus()` และแสดงลำดับ 4 สถานะใน `OrderStatusTimeline`; แสดงเวลาเฉพาะสถานะ “พร้อมรับสินค้า” และ “รับสินค้าแล้ว” จากประวัติที่ API ยืนยัน และไม่แสดง timeline หากโหลดสถานะไม่สำเร็จ
+- เพิ่ม `test_AC_STATUS_03_display_4_step_status_flow` และ test กรณี API status ล้มเหลว
+- ผล targeted frontend tests (`npm test -- src/components/OrderStatusTimeline.test.jsx src/pages/OrderDetail.test.jsx` จาก `frontend/`): ผ่าน 3/3; `npm run build` ผ่าน; `git diff --check` ผ่าน
+- เปลี่ยนเฉพาะสถานะ T-13 เป็น “เสร็จ รอทีมตรวจ”; รูปแบบข้อมูลใช้ API response ที่ทีมเลือกใน T-12
+
+## 2026-10-27 คำสั่ง: /implement T-14 specs/005-Status/spec.md
+
+- ตรวจ `tasks.md`, `spec.md`, `plan.md`, `AGENTS.md`; T-14 พร้อมทำและ prerequisites T-12/T-13 มีสถานะ “เสร็จ”
+- test `test_AC_STATUS_03_display_4_step_status_flow` มีอยู่แล้วใน `backend/tests/test_orders.py` และ `frontend/src/components/OrderStatusTimeline.test.jsx` จาก T-12/T-13 จึงนำมารันซ้ำโดยไม่แก้ source test
+- ผล backend `PYTHONPATH=.. python -m unittest discover -s tests -p 'test_orders.py' -v` จาก `backend/`: ผ่าน 5/5; frontend `npm test -- src/components/OrderStatusTimeline.test.jsx` จาก `frontend/`: ผ่าน 2/2; มี Starlette deprecation warning เกี่ยวกับ httpx แต่การทดสอบผ่าน
+- เปลี่ยนเฉพาะสถานะ T-14 เป็น “เสร็จ รอทีมตรวจ”; ไม่มีจุดกำกวมหรือสิ่งที่ต้องเดา/ถามเพิ่ม
+
+## 2026-10-27 คำสั่ง: /implement T-15 specs/005-Status/spec.md
+
+- ตรวจ `tasks.md`, `spec.md`, `plan.md`, `AGENTS.md`; T-15 พร้อมทำและ prerequisites T-01/T-09 มีสถานะ “เสร็จ”
+- ทีมอนุมัติใช้ `backend/app/services/orders.py` แทน path ที่ไม่มีอยู่ และเพิ่ม test ใน `backend/tests/test_orders.py`
+- service ปัจจุบันมี logic ส่งรายการสินค้าและสถานะล่าสุดที่ยืนยันแล้วอยู่แล้ว จึงคง behavior เดิมและเพิ่ม `test_AC_STATUS_04_show_order_items_and_latest_status` ยืนยันรายการ/จำนวน/ราคาและสถานะล่าสุด โดยไม่ส่งสถานะที่ไม่ยืนยัน
+- ผล `PYTHONPATH=.. python -m unittest discover -s tests -p 'test_orders.py' -v` จาก `backend/`: ผ่าน 6/6; `git diff --check` ผ่าน; มี Starlette deprecation warning เกี่ยวกับ httpx แต่การทดสอบผ่าน
+- เปลี่ยนเฉพาะสถานะ T-15 เป็น “เสร็จ รอทีมตรวจ”; ไม่พบข้อกำกวมเพิ่มเติม
+
+## 2026-10-27 คำสั่ง: /implement T-16 specs/005-Status/spec.md
+
+- ตรวจ `tasks.md`, `spec.md`, `plan.md`, `AGENTS.md`; T-16 พร้อมทำและ prerequisites T-10/T-15 มีสถานะ “เสร็จ”
+- ทีมอนุมัติเพิ่ม `frontend/src/pages/OrderDetail.test.jsx` ใน file list เพื่อทดสอบ AC-STATUS-04
+- ทีมระบุให้แสดง `unit_price` เท่านั้นเมื่อ spec/API มี `unit_price` และ `line_total` แต่ AC-STATUS-04 ระบุเพียง “ราคา”
+- เพิ่ม `OrderItems` และเชื่อมในหน้า Order detail โดยแสดงสินค้า จำนวน และราคาต่อหน่วยจาก API; สถานะล่าสุดที่ยืนยันแล้วแสดงจากข้อมูล Order เดิม
+- เพิ่ม `test_AC_STATUS_04_show_order_items_and_latest_status`
+- ผล targeted frontend tests (`npm test -- src/pages/OrderDetail.test.jsx src/components/OrderStatusTimeline.test.jsx` จาก `frontend/`): ผ่าน 4/4; `npm run build` ผ่าน; `git diff --check` ผ่าน
+- เปลี่ยนเฉพาะสถานะ T-16 เป็น “เสร็จ รอทีมตรวจ”; ไม่ได้เดารูปแบบราคาหรือเพิ่มข้อมูลนอก FR-22
+
+## 2026-10-27 คำสั่ง: /implement T-17 specs/005-Status/spec.md
+
+- ตรวจ `tasks.md`, `spec.md`, `plan.md`, `AGENTS.md`; T-17 พร้อมทำและ prerequisites T-15/T-16 มีสถานะ “เสร็จ”
+- backend test `test_AC_STATUS_04_show_order_items_and_latest_status` มีอยู่แล้วใน `backend/tests/test_orders.py` จาก T-15 จึงรันซ้ำโดยไม่แก้ source นั้น
+- เพิ่ม `frontend/src/components/OrderItems.test.jsx` พร้อม test ชื่อเดียวกัน ตรวจชื่อสินค้า จำนวน ราคาต่อหน่วย และสถานะล่าสุดบนหน้า Order detail
+- ผล frontend test: ผ่าน 1/1; backend `PYTHONPATH=.. python -m unittest discover -s tests -p 'test_orders.py' -v` จาก `backend/`: ผ่าน 6/6; `git diff --check` ผ่าน; มี Starlette deprecation warning เกี่ยวกับ httpx แต่การทดสอบผ่าน
+- เปลี่ยนเฉพาะสถานะ T-17 เป็น “เสร็จ รอทีมตรวจ”; การเลือก `unit_price` ถูกกำหนดโดยทีมใน T-16 จึงไม่มีการเดาเพิ่ม
+
+## 2026-10-27 คำสั่ง: /implement T-18 specs/005-Status/spec.md
+
+- ตรวจ `tasks.md`, `spec.md`, `plan.md`, `AGENTS.md`; T-18 พร้อมทำและ prerequisites T-07/T-10 มีสถานะ “เสร็จ”
+- เพิ่ม `test_AC_STATUS_06_select_order_from_multiple_orders` ใน `OrderList.test.jsx` ตรวจรายการหลาย Order และ href สำหรับรายละเอียดของรายการที่เลือก
+- เพิ่ม `test_AC_STATUS_06_select_order_from_multiple_orders` ใน `OrderDetail.test.jsx` ตรวจว่า detail page ขอและแสดง Order ID ที่เลือก โดยใช้ mock API client ผ่าน fetch
+- ผล `npm test -- src/pages/OrderList.test.jsx src/pages/OrderDetail.test.jsx` จาก `frontend/`: ผ่าน 6/6; `git diff --check` ผ่าน
+- เปลี่ยนเฉพาะสถานะ T-18 เป็น “เสร็จ รอทีมตรวจ”; ไม่มีจุดกำกวมหรือสิ่งที่ต้องเดา/ถามเพิ่ม
+
+## 2026-10-27 คำสั่ง: /implement T-19 specs/005-Status/spec.md
+
+- ตรวจ `tasks.md`, `spec.md`, `plan.md`, `AGENTS.md`; T-19 พร้อมทำและ prerequisite T-12 มีสถานะ “เสร็จ”
+- ทีมอนุมัติปรับ path ไปยัง `backend/app/services/orders.py` และเพิ่ม AC-STATUS-08 test ใน `backend/tests/test_orders.py`
+- service มีการกรอง `is_confirmed = 1` ใน detail query และ status history อยู่แล้ว จึงคง logic เดิม; เพิ่ม `test_AC_STATUS_08_show_only_confirmed_status` ให้ยืนยันว่าทั้งสอง API คืนเฉพาะสถานะล่าสุดที่ยืนยันแล้วและไม่ส่งสถานะล่าสุดที่ไม่ยืนยัน
+- ผล `PYTHONPATH=.. python -m unittest discover -s tests -p 'test_orders.py' -v` จาก `backend/`: ผ่าน 7/7; `git diff --check` ผ่าน; มี Starlette deprecation warning เกี่ยวกับ httpx แต่การทดสอบผ่าน
+- เปลี่ยนเฉพาะสถานะ T-19 เป็น “เสร็จ รอทีมตรวจ”; path ที่ผิดได้รับการยืนยันจากทีมก่อนปรับ
+
+## 2026-10-27 คำสั่ง: /implement T-20 specs/005-Status/spec.md
+
+- ตรวจ `tasks.md`, `spec.md`, `plan.md`, `AGENTS.md`; T-20 พร้อมทำและ prerequisites T-13/T-19 มีสถานะ “เสร็จ”
+- `test_AC_STATUS_08_show_only_confirmed_status` ฝั่ง backend มีอยู่แล้วจาก T-19 จึงรันซ้ำโดยไม่แก้ source test; เพิ่ม test ชื่อเดียวกันใน `frontend/src/pages/OrderDetail.test.jsx`
+- UI test ตรวจว่า current status และเวลาเป็นสถานะล่าสุดที่ยืนยันแล้ว และสถานะถัดไปที่ไม่ยืนยันไม่ถูกกำหนดเวลา/ไม่เป็น current; timeline ยังคงแสดง 4 ขั้นตาม FR-21
+- ผล backend `PYTHONPATH=.. python -m unittest discover -s tests -p 'test_orders.py' -v` จาก `backend/`: ผ่าน 7/7; frontend `npm test -- src/pages/OrderDetail.test.jsx` จาก `frontend/`: ผ่าน 4/4; `git diff --check` ผ่าน; มี Starlette deprecation warning เกี่ยวกับ httpx แต่การทดสอบผ่าน
+- ระหว่างทดสอบครั้งแรก assertion คาดว่า label ของขั้นที่ยังไม่ถึงจะไม่แสดง ซึ่งขัดกับ timeline 4 ขั้น; ปรับ test ให้ยืนยันว่า step ยังเป็น upcoming และไม่มีเวลาแทน โดยไม่เปลี่ยน behavior
+- เปลี่ยนเฉพาะสถานะ T-20 เป็น “เสร็จ รอทีมตรวจ”; ไม่มีข้อกำกวมอื่น
+
+## 2026-10-27 คำสั่ง: /implement T-21 specs/005-Status/spec.md
+
+- ตรวจ `tasks.md`, `spec.md`, `plan.md`, `AGENTS.md`; T-21 พร้อมทำและ prerequisites T-03/T-04 มีสถานะ “เสร็จ”
+- เพิ่ม `test_AC_STATUS_09_show_only_authorized_orders` ใน `backend/tests/test_orders.py`; มี Order ของ `sample-user` และ `sample-user-2` แล้วขอรายการด้วย identity `customer-a`; ยืนยันว่ามีเฉพาะ `order-a`
+- เพิ่ม `test_AC_STATUS_09_show_only_authorized_orders` ใน `frontend/src/pages/OrderList.test.jsx`; mock ผล Order ของผู้ใช้ปัจจุบัน ตรวจว่าไม่ render Order อื่น และยืนยัน request ส่ง `X-Test-User: customer-a`
+- ผล backend `PYTHONPATH=.. python -m unittest discover -s tests -p 'test_orders.py' -v` จาก `backend/`: ผ่าน 8/8; frontend `npm test -- src/pages/OrderList.test.jsx` จาก `frontend/`: ผ่าน 4/4; `git diff --check` ผ่าน; มี Starlette deprecation warning เกี่ยวกับ httpx แต่การทดสอบผ่าน
+- เปลี่ยนเฉพาะสถานะ T-21 เป็น “เสร็จ รอทีมตรวจ”; ไม่พบข้อกำกวมหรือสิ่งที่ต้องเดา
+## 2026-10-27 คำสั่ง: /implement T-22 specs/005-Status/spec.md
+
+- ตรวจ `tasks.md`, `spec.md`, `plan.md`, `AGENTS.md`; T-22 พร้อมทำและ prerequisites T-09/T-12 มีสถานะ “เสร็จ”
+- แจ้งทีมว่า path ใน task เดิมไม่ตรงกับโครงสร้างจริงและขออนุมัติเพิ่ม backend test; ทีมอนุมัติใช้ `backend/app/routes/orders.py`, `backend/app/services/orders.py` และเพิ่ม `backend/tests/test_orders.py`
+- ทีมยืนยันว่า refresh ต้องอ่านสถานะที่ยืนยันแล้วจากฐานข้อมูลซ้ำเท่านั้น ไม่เปลี่ยนหรือสร้าง status history
+- เพิ่ม `POST /api/orders/{order_id}/status/refresh` ซึ่งใช้ service อ่านเฉพาะสถานะยืนยันของเจ้าของ Order; SQLite load failure ตอบ HTTP 503 และ Order ที่ไม่ใช่ของผู้ใช้ตอบ 404
+- เพิ่ม `test_AC_STATUS_07_refresh_returns_confirmed_status_or_error` เพื่อตรวจผล refresh ที่ไม่รวมสถานะไม่ยืนยันและกรณีโหลดฐานข้อมูลล้มเหลว
+- Constraint NFR-REL-03 ถูกบังคับใน query `is_confirmed = 1`; NFR-SEC-02 ถูกบังคับด้วย owner-scoped service query
+- ผล `python -m unittest backend.tests.test_orders`: ผ่าน 9/9; test เฉพาะ T-22 ผ่าน 1/1; `git diff --check` ผ่าน; มี Starlette deprecation warning เกี่ยวกับ httpx แต่การทดสอบผ่าน
+- จุดที่ถามแทนการเดา: path ของไฟล์, การเพิ่ม test, และความหมายของการ refresh ได้รับการยืนยันจากทีมก่อนแก้
+
+## 2026-10-27 คำสั่ง: /implement T-23 specs/005-Status/spec.md
+
+- ตรวจ `tasks.md`, `spec.md`, `plan.md`, `AGENTS.md`; T-23 พร้อมทำและ prerequisites T-10/T-22 มีสถานะ “เสร็จ”
+- file list เดิมไม่ครอบคลุม `OrderStatusTimeline.jsx` ซึ่งเป็นเจ้าของ error state และไม่มีไฟล์ test สำหรับ AC-STATUS-07; ขออนุมัติและทีมอนุมัติขยาย file list เป็น `frontend/src/api/client.js`, `frontend/src/pages/OrderDetail.jsx`, `frontend/src/components/OrderStatusTimeline.jsx`, `frontend/src/pages/OrderDetail.test.jsx`
+- เพิ่ม `refreshOrderStatus()` สำหรับเรียก POST refresh; timeline แสดงข้อความผิดพลาดและปุ่ม “ลองใหม่”, ล้าง status เดิม และนำผล refresh ที่ตอบสำเร็จมาแสดง
+- ให้ status summary ใช้ข้อมูลยืนยันจาก timeline และซ่อนทันทีเมื่อโหลด status/refresh ไม่สำเร็จ เพื่อไม่ให้ข้อมูลเดิมปรากฏใน error state
+- เพิ่ม `test_AC_STATUS_07_show_retry_when_load_fails` ครอบคลุม error state, การไม่แสดงสถานะเดิม, retry ที่ยังล้มเหลว และ retry ที่สำเร็จด้วยข้อมูลยืนยันใหม่
+- Constraint NFR-REL-03 อยู่ใน client/refresh flow โดยแสดงเฉพาะผล refresh ที่ backend ส่งกลับ; status ถูกล้างเมื่อโหลดล้มเหลวหรือ retry อยู่ระหว่างดำเนินการ
+- ผล `cd frontend && npm test -- src/pages/OrderDetail.test.jsx src/components/OrderStatusTimeline.test.jsx`: ผ่าน 7/7 tests ใน 2 files; `git diff --check` ผ่าน
+- จุดที่ถามแทนการเดา: ขออนุมัติขยาย file list เพราะ retry UI ต้องแก้ component timeline และต้องเพิ่ม AC test; ได้รับอนุมัติก่อนแก้ไข
+
+## 2026-10-27 คำสั่ง: /implement T-24 specs/005-Status/spec.md
+
+- ตรวจ `tasks.md`, `spec.md`, `plan.md`, `AGENTS.md`; T-24 พร้อมทำและ prerequisites T-22/T-23 มีสถานะ “เสร็จ”
+- test สำหรับ AC-STATUS-07 มีอยู่แล้วจาก T-22/T-23; ไม่แก้ test/source เพิ่ม เพราะทดสอบตามเกณฑ์ T-24 ครบแล้ว
+- รัน backend `test_AC_STATUS_07_refresh_returns_confirmed_status_or_error`: ผ่าน 1/1 โดยจำลอง refresh API ล้มเหลวด้วย SQLite error และยืนยัน HTTP 503; มี Starlette deprecation warning เกี่ยวกับ httpx
+- รัน `cd frontend && npm test -- src/pages/OrderDetail.test.jsx`: ผ่าน 5/5; `test_AC_STATUS_07_show_retry_when_load_fails` จำลอง status API ล้มเหลว, retry ล้มเหลว, และ retry สำเร็จผ่าน client mock พร้อมตรวจว่าไม่แสดงสถานะเดิมที่ไม่ได้ยืนยัน
+- `git diff --check` ผ่าน; NFR-REL-03 ตรวจจาก error/retry flow ที่ไม่แสดงข้อมูลเก่า และผล retry แสดงจาก API ที่สำเร็จเท่านั้น
+- เปลี่ยนเฉพาะสถานะ T-24 เป็น “เสร็จ รอทีมตรวจ”; ไม่มีจุดกำกวมที่ต้องถามเพิ่ม
+
+## 2026-10-27 คำสั่ง: ปรับหน้า Order ให้ใกล้เคียง `specs/mockups/Tracking/TrackingMenu.png`
+
+- อ่าน `specs/005-Status/spec.md`, `specs/005-Status/tasks.md`, `specs/005-Status/plan.md`, `AGENTS.md` และ mockup ก่อนแก้ไข
+- ทีมเลือกแนวทางให้ใช้เฉพาะรูปแบบหน้าติดตาม Order ที่สอดคล้องกับ spec; ไม่เพิ่ม notification banner หรือ Guest badge เพราะไม่อยู่ใน scope/requirement
+- ปรับ `frontend/src/pages/OrderList.jsx` และ `frontend/src/styles.css` ให้มีพื้นหลังโทนอุ่น, header, panel, order cards, status badge, progress 4 ขั้น และรายละเอียดที่ใช้ข้อมูลจริงจาก API (วันที่/ยอดรวม); คง link ไปหน้า Order detail
+- ใช้ชื่อ status ตาม FR-21 ใน spec และไม่ hardcode ข้อมูล Order ตัวอย่างจาก mockup; เพิ่ม assertions สำหรับโครงหน้า/ลำดับ progress ใน `frontend/src/pages/OrderList.test.jsx`
+- ผล `cd frontend && npm test -- src/pages/OrderList.test.jsx`: ผ่าน 4/4; `cd frontend && npm run build`: ผ่าน; `git diff --check`: ผ่าน
+- build สร้าง output ใหม่ใน `frontend/dist/`; พยายามตรวจด้วย browser แต่ Playwright ไม่มี Chromium executable ในสภาพแวดล้อมนี้ จึงยืนยันผ่าน component tests และ production build แทน
+- จุดที่ยึด spec แทน mockup: ไม่แสดง Guest badge หรือแถบ Notification; รายละเอียดสินค้าไม่จำลองในรายการเพราะ endpoint รายการไม่ได้ส่งสินค้าแต่ละ Order และ FR-22 กำหนดข้อมูลรายการสินค้าในรายละเอียด Order
+
+## 2026-10-27 คำสั่ง: แสดงชื่อเมนูจาก Order data และปรับสไตล์หน้ารายละเอียด
+
+- ตรวจ `specs/005-Status/spec.md`, `specs/005-Status/plan.md`, `AGENTS.md` และโค้ด Order/API ก่อนแก้
+- พบว่า `GET /api/orders` เดิมส่งเพียง Order ID/สถานะ/วันที่/ยอดรวม ไม่ได้ส่งรายการสินค้า; เพิ่มรายการ `items` จาก snapshot ในฐานข้อมูลด้วย owner-scoped LEFT JOIN ใน service เพื่อให้ frontend แสดงชื่อเมนู จำนวน และราคาที่บันทึก โดยไม่ยิง request แยกราย Order
+- แก้หน้า Order ให้ใช้ชื่อเมนูจาก `items` เป็นหัวข้อ และแสดง Order ID เป็นข้อมูลรอง; แก้ Order detail ให้ใช้พื้นหลัง การ์ด ป้ายสถานะและสีเดียวกับหน้า list
+- เพิ่ม backend/UI assertions ว่าข้อมูลชื่อสินค้าและรายละเอียดดึงจาก API/ข้อมูลที่บันทึก และเพิ่ม class assertions สำหรับการจัดรูปแบบหน้า detail
+- ผล `python -m unittest backend.tests.test_orders`: ผ่าน 9/9; `cd frontend && npm test -- src/pages/OrderList.test.jsx src/pages/OrderDetail.test.jsx src/components/OrderItems.test.jsx src/components/OrderStatusTimeline.test.jsx`: ผ่าน 12/12; `cd frontend && npm run build`: ผ่าน; `git diff --check`: ผ่าน
+- ข้อจำกัดของข้อมูลทดสอบที่ตรวจพบ: `orders.sqlite` ปัจจุบันมี `menu_name` เป็น “รายการตัวอย่าง 1/2” ตาม seed ไม่ใช่ชื่อ Order ID แล้ว; UI จะแสดงค่าที่บันทึกจริงตามนี้จนกว่าจะมีข้อมูล Order ที่มีชื่อเมนูจริง
+- ไม่แก้ `orders.sqlite` หรือสร้างชื่อเมนูแทนข้อมูลจริง; backend listing ยังคงกรองเจ้าของตาม NFR-SEC-02 และอ่านชื่อจาก item snapshot ที่บันทึกใน Order
+
+## 2026-10-27 คำสั่ง: เปลี่ยนชื่อเมนูใน Order ตัวอย่าง
+
+- ทีมระบุชื่อเมนูตัวอย่างที่ต้องการเป็น “ชาไทย” และ “มัทฉะลาเต้”
+- ปรับ `backend/seed.py` สำหรับ Order ตัวอย่างให้บันทึกชื่อทั้งสองเป็น item snapshot; ไม่เปลี่ยนโครงสร้างหรือพฤติกรรมของ Order จริง ตาม FR-22 และ FR-49
+- อัปเดตเฉพาะรายการ `sample-item-older` และ `sample-item-newer` ใน `orders.sqlite` ซึ่งเป็นข้อมูลตัวอย่างที่แสดงในหน้า Order
+
+## 2026-10-27 คำสั่ง: `/testcases AC-STATUS-01 specs/005-Status/spec.md`
+
+- โหมดร่าง: ยังไม่มี `specs/005-Status/test-cases.md` และยังไม่มีแถว test case สำหรับ AC-STATUS-01
+- ตรวจ spec.md, plan.md ส่วนแผนทดสอบ, tasks.md, AGENTS.md และคำสั่ง testcases; T-03, T-04, T-05 ที่ตรวจด้วย AC นี้มีสถานะ “เสร็จ”
+- สร้าง `specs/005-Status/test-cases.md` พร้อม TC-STATUS-01-1 ถึง TC-STATUS-01-3 เป็นสถานะ “ร่าง”; ครอบคลุมทางปกติ, กรณีมี Order คนอื่นตาม NFR-SEC-02, และกรณีลูกค้าไม่มี Order
+- กรณีไม่มี Order: spec ไม่ได้กำหนดเนื้อหา/รูปแบบ empty state จึงไม่กำหนด expected behavior และเสนอให้ทีมตัดสินใจ
+- ยังไม่ได้เขียนหรือรันโค้ด test เพราะแถวทั้งหมดอยู่ในสถานะ “ร่าง”
+
+## 2026-10-27 คำสั่ง: `/testcases AC-STATUS-02 specs/005-Status/spec.md`
+
+- โหมดร่าง: ไม่พบแถว test case สำหรับ AC-STATUS-02 ใน `specs/005-Status/test-cases.md`
+- ตรวจ spec.md, plan.md ส่วนแผนทดสอบ, tasks.md, AGENTS.md และคำสั่ง testcases; T-09, T-10, T-11 ที่ตรวจด้วย AC นี้มีสถานะ “เสร็จ” หรือ “เสร็จ รอทีมตรวจ”
+- เพิ่ม TC-STATUS-02-1 ถึง TC-STATUS-02-3 สถานะ “ร่าง”: การเลือก Order ปกติ, Order ที่อยู่สถานะสุดท้ายตาม FR-21, และการพยายามเข้าดู Order ของผู้อื่นตาม NFR-SEC-02
+- กรณีไม่มีสิทธิ์เข้าถึง Order อื่น: spec ระบุให้ผู้ใช้เข้าถึงเฉพาะข้อมูลของตน แต่ไม่ได้กำหนดรหัสหรือข้อความตอบกลับ; test case จำกัด expected result ว่าไม่เปิดเผยรายละเอียด/สถานะเท่านั้น
+- ยังไม่ได้เขียนหรือรันโค้ด test เพราะแถวทั้งหมดอยู่ในสถานะ “ร่าง”
+
+## 2026-10-27 คำสั่ง: `/testcases AC-STATUS-03 specs/005-Status/spec.md`
+
+- โหมดร่าง: ไม่พบแถว test case สำหรับ AC-STATUS-03 ใน `specs/005-Status/test-cases.md`
+- ตรวจ spec.md, plan.md ส่วนแผนทดสอบ, tasks.md, AGENTS.md และคำสั่ง testcases; T-12, T-13, T-14 ที่ตรวจด้วย AC นี้มีสถานะ “เสร็จ”
+- เพิ่ม TC-STATUS-03-1 ถึง TC-STATUS-03-3 สถานะ “ร่าง”: ตรวจลำดับสถานะ 4 ขั้น, ตรวจเวลาและสถานะล่าสุดเมื่อถึง “พร้อมรับสินค้า”, และตรวจไม่แสดงสถานะที่ไม่มีการบันทึก/ยืนยันตาม NFR-REL-03
+- กรณีไม่มีสถานะที่ยืนยันแล้ว: spec กำหนดห้ามแสดงสถานะที่ไม่ยืนยัน แต่ไม่ได้ระบุ empty state ของ timeline จึงบันทึกเป็นข้อที่ต้องให้ทีมพิจารณา
+- ยังไม่ได้เขียนหรือรันโค้ด test เพราะแถวทั้งหมดอยู่ในสถานะ “ร่าง”
+
+## 2026-10-27 คำสั่ง: `/testcases AC-STATUS-04 specs/005-Status/spec.md`
+
+- โหมดร่าง: ไม่พบแถว test case สำหรับ AC-STATUS-04 ใน `specs/005-Status/test-cases.md`
+- ตรวจ spec.md, plan.md ส่วนแผนทดสอบ, tasks.md, AGENTS.md และคำสั่ง testcases; T-15, T-16, T-17 ที่ตรวจด้วย AC นี้มีสถานะ “เสร็จ”
+- เพิ่ม TC-STATUS-04-1 ถึง TC-STATUS-04-3 สถานะ “ร่าง”: กรณีปกติ, Order ที่มีสินค้า 2 รายการซึ่งเป็นขอบล่างของช่วง 2-3 รายการตามแผนทดสอบ, และกรณียังไม่ได้เลือก Order
+- กรณียังไม่ได้เลือก Order: spec ไม่ได้กำหนดผลเมื่อเงื่อนไข Given ไม่เป็นจริง จึงเสนอให้ทีมตัดสินใจ
+- ยังไม่ได้เขียนหรือรันโค้ด test เพราะแถวทั้งหมดอยู่ในสถานะ “ร่าง”
+
+## 2026-10-27 คำสั่ง: `/testcases AC-STATUS-05 specs/005-Status/spec.md`
+
+- โหมดร่าง: ไม่พบแถว test case สำหรับ AC-STATUS-05 ใน `specs/005-Status/test-cases.md`
+- ตรวจ spec.md, plan.md ส่วนแผนทดสอบ, tasks.md, AGENTS.md และคำสั่ง testcases; T-06, T-07, T-08 ที่ตรวจด้วย AC นี้มีสถานะ “เสร็จ”
+- เพิ่ม TC-STATUS-05-1 ถึง TC-STATUS-05-3 สถานะ “ร่าง”: กรณีปกติที่มีหลาย Order, กรณีขอบที่มี 2 Order เรียงใหม่ไปเก่า, และกรณีมี Order เดียว
+- กรณีมี Order เดียว: AC-STATUS-05 ไม่กำหนดพฤติกรรมนี้โดยตรง จึงระบุว่า spec ไม่ได้บอกและเสนอให้ทีมตัดสินใจ
+- ยังไม่ได้เขียนหรือรันโค้ด test เพราะแถวทั้งหมดอยู่ในสถานะ “ร่าง”
+
+## 2026-10-27 คำสั่ง: `/testcases AC-STATUS-01 specs/005-Status/spec.md`
+
+- โหมดเขียน test: ทีมเปลี่ยน TC-STATUS-01-1 และ TC-STATUS-01-2 เป็น “ใช้ได้”; TC-STATUS-01-3 เป็น “ใช้ได้” แต่ระบุ `ตรวจด้วย: คน` จึงไม่นำไปเขียนเป็นโค้ด
+- เพิ่ม `backend/tests/test_AC_STATUS_01.py` พร้อม `test_TC_STATUS_01_1_customer_sees_own_orders` และ `test_TC_STATUS_01_2_hides_other_customers_orders`; เพิ่ม Vitest ตามแถวใน `frontend/src/__tests__/TC-STATUS-01-1.test.jsx` และ `frontend/src/__tests__/TC-STATUS-01-2.test.jsx`
+- ทดสอบคนตาม TC-STATUS-01-3: เตรียมให้ลูกค้าไม่มี Order, เปิดหน้ารายการ Order และตรวจว่าหน้าแสดงข้อความ “ไม่พบ order” ตามที่ทีมระบุในตาราง
+- ผล `cd frontend && npm test`: ผ่าน 35/35 ใน 11 test files
+- ผล `.venv/bin/python -m pytest -v backend/tests`: ผ่าน 11 tests (รวม 2 test ใหม่) และ 2 subtests; มี Starlette deprecation warning เกี่ยวกับ httpx
+- ก่อนรัน backend suite พบว่า pytest ไม่มีใน `.venv`; ติดตั้ง pytest ใน virtualenv เพื่อรันทดสอบ โดยไม่เปลี่ยน dependency manifest
+- TC-STATUS-01-3 ยังต้องให้คนลองจริง; จากการอ่านหน้า `OrderList.jsx` ข้อความ empty state ปัจจุบันคือ “ไม่มีรายการ Order” ซึ่งต่างจากข้อความที่แถวอนุมัติระบุว่า “ไม่พบ order”
+- `git diff --check` ผ่าน; เพิ่ม 2 test ต่อแถวที่ต้องตรวจทั้ง pytest และ vitest (รวมเพิ่ม 4 test); ไม่แก้ test-cases.md หรือโค้ดระบบ
+
+## 2026-10-27 คำสั่ง: `/testcases AC-STATUS-01 specs/005-Status/spec.md` (รันซ้ำหลังทีมอนุมัติ)
+
+- สถานะตาราง: TC-STATUS-01-1 และ TC-STATUS-01-2 เป็น “ใช้ได้” และมี test code อยู่แล้ว จึงไม่เพิ่ม test ซ้ำ; TC-STATUS-01-3 ระบุ “คน” จึงคงเป็นการตรวจด้วยคน
+- รัน `.venv/bin/python -m pytest -v backend/tests/test_AC_STATUS_01.py`: ผ่าน 2/2; มี Starlette deprecation warning เกี่ยวกับ httpx
+- รัน `cd frontend && npm test -- src/__tests__/TC-STATUS-01-1.test.jsx src/__tests__/TC-STATUS-01-2.test.jsx`: ผ่าน 2/2
+- TC-STATUS-01-3 ให้คนทดสอบด้วยการเปิดหน้ารายการขณะไม่มี Order และตรวจข้อความ “ไม่พบ order”; ยังไม่ได้ทำ manual run ใน browser. จากโค้ดหน้าจอปัจจุบันพบข้อความ “ไม่มีรายการ Order” ซึ่งไม่ตรงกับข้อความที่ระบุในแถวอนุมัติ จึงต้องให้ทีมพิจารณาแยกต่างหาก
+- ไม่มีการแก้ test-cases.md หรือโค้ดระบบในรอบรันซ้ำนี้
+
+## 2026-10-27 คำสั่ง: `/testcases AC-STATUS-02 specs/005-Status/spec.md`
+
+- โหมดเขียน test: TC-STATUS-02-1, TC-STATUS-02-2 และ TC-STATUS-02-3 อยู่สถานะ “ใช้ได้” และไม่มี test ชื่อตาม TC ใน codebase
+- เพิ่ม backend pytest ใน `backend/tests/test_AC_STATUS_02.py` และ UI Vitest แยกไฟล์ `frontend/src/__tests__/TC-STATUS-02-1.test.jsx`, `TC-STATUS-02-2.test.jsx`, `TC-STATUS-02-3.test.jsx`; แต่ละ test ตรวจรายละเอียด/status ของ Order ที่เลือก, สถานะ “รับสินค้าแล้ว”, และไม่เปิดเผยข้อมูล Order ของเจ้าของอื่นตาม NFR-SEC-02
+- จำนวน test ก่อน/หลัง: backend TC tests 0 → 3; UI TC tests 0 → 3 (เพิ่ม 6 tests ตรงกับ 3 แถวที่ต้องตรวจทั้ง pytest และ vitest)
+- ผล `.venv/bin/python -m pytest -v backend/tests`: ผ่าน 14 tests และ 2 subtests; มี Starlette deprecation warning เกี่ยวกับ httpx
+- ผล `cd frontend && npm test -- src/__tests__/TC-STATUS-02-1.test.jsx src/__tests__/TC-STATUS-02-2.test.jsx src/__tests__/TC-STATUS-02-3.test.jsx`: ผ่าน 3/3
+- Full frontend suite `cd frontend && npm test`: 37 passed, 1 failed ใน test เดิม `src/pages/OrderDetail.test.jsx > test_AC_STATUS_04_show_order_items_and_latest_status`; ขาด list “ลำดับสถานะ Order”. ไม่ใช่ test ที่เพิ่มในงานนี้ และไม่แก้ test/ระบบนอกขอบเขตตามคำสั่ง
+- TC-STATUS-02-3 ตรวจ API ด้วย response ที่ไม่สำเร็จและไม่มีข้อมูล Order/status/items; UI ตรวจไม่แสดง detail, latest status, หรือ timeline ที่ไม่ได้รับอนุญาต โดยไม่ยืนยันรหัส/ข้อความตอบกลับเฉพาะ
+
+## 2026-10-27 คำสั่ง: `/testcases AC-STATUS-03 specs/005-Status/spec.md`
+
+- โหมดเขียน test: TC-STATUS-03-1, TC-STATUS-03-2 และ TC-STATUS-03-3 อยู่สถานะ “ใช้ได้” และยังไม่มี test ชื่อตาม TC
+- เพิ่ม pytest ทั้งสามกรณีใน `backend/tests/test_AC_STATUS_03.py`; เพิ่ม UI Vitest แยกไฟล์ `frontend/src/__tests__/TC-STATUS-03-1.test.jsx`, `TC-STATUS-03-2.test.jsx`, `TC-STATUS-03-3.test.jsx`
+- Test ตรวจลำดับสถานะ 4 ขั้น, เวลา/สถานะเมื่อถึง “พร้อมรับสินค้า”, และไม่แสดงสถานะที่ไม่มีการยืนยัน ตาม NFR-REL-03; เพิ่ม 3 test ต่อฝั่งตาม 3 แถว
+- ผลทดสอบและข้อสังเกตจะเติมหลังรัน full suites
+
+## 2026-10-27 ผลรันต่อ: `/testcases AC-STATUS-03 specs/005-Status/spec.md`
+
+- ปรับ assertion ใน UI tests TC-STATUS-03-1 และ TC-STATUS-03-2 ให้ตรวจข้อความแต่ละขั้นโดยตรง เพื่อไม่ตัดข้อความของสถานะที่ไม่มี timestamp
+- ผล focused backend: `.venv/bin/python -m pytest -v backend/tests/test_AC_STATUS_03.py` ผ่าน 3/3; มี Starlette deprecation warning เกี่ยวกับ httpx
+- ผล focused UI: `cd frontend && npm test -- src/__tests__/TC-STATUS-03-1.test.jsx src/__tests__/TC-STATUS-03-2.test.jsx src/__tests__/TC-STATUS-03-3.test.jsx` ผ่าน 3/3
+- ผล full backend: `.venv/bin/python -m pytest -v backend/tests` ผ่าน 17 tests และ 2 subtests; มี Starlette deprecation warning เกี่ยวกับ httpx
+- ผล full UI: `cd frontend && npm test` ผ่าน 41/41 tests ใน 17 test files
+- จำนวน test ตาม TC: pytest 0 → 3 และ vitest 0 → 3 ตรงกับ 3 แถวที่อนุมัติ (แต่ละแถวตรวจทั้งสองฝั่ง)
+- `git diff --check` ผ่าน; ไม่แก้โค้ดระบบหรือ test-cases.md
+
+## 2026-10-27 คำสั่ง: `/testcases AC-STATUS-04 specs/005-Status/spec.md`
+
+- โหมดเขียน test: TC-STATUS-04-1 และ TC-STATUS-04-2 สถานะ “ใช้ได้” และยังไม่มี test ตาม TC ID; T-15, T-16 และ T-17 ใน `tasks.md` ระบุ “เสร็จ”
+- เพิ่ม pytest ใน `backend/tests/test_AC_STATUS_04.py` และ Vitest ใน `frontend/src/__tests__/TC-STATUS-04-1.test.jsx`, `TC-STATUS-04-2.test.jsx` ตรวจสถานะล่าสุด รายการสินค้า จำนวน และราคา โดย TC-STATUS-04-2 ตรวจ Order ที่มีสินค้า 2 รายการ
+- จำนวน test ใหม่ตาม TC ก่อน/หลัง: pytest 0 → 2 และ vitest 0 → 2 สำหรับ 2 แถวอัตโนมัติที่อนุมัติ
+- ผล full backend: `.venv/bin/python -m pytest -v backend/tests` ผ่าน 19 tests และ 2 subtests; มี Starlette deprecation warning เกี่ยวกับ httpx
+- ผล focused UI: `cd frontend && npm test -- src/__tests__/TC-STATUS-04-1.test.jsx src/__tests__/TC-STATUS-04-2.test.jsx` ผ่าน 2/2
+- ผล full UI: `cd frontend && npm test` มี 42 ผ่าน และ 1 ไม่ผ่านใน test เดิม `src/pages/OrderDetail.test.jsx > OrderDetailPage > test_AC_STATUS_04_show_order_items_and_latest_status`; ไม่พบ list “ลำดับสถานะ Order”. ไม่แก้ test เดิมหรือโค้ดระบบนอกขอบเขต
+- TC-STATUS-04-3 เป็นการตรวจด้วยคน แต่แถวระบุว่า spec ไม่ได้บอกผลเมื่อยังไม่ได้เลือก Order จึงยังไม่มีผลคาดหวังให้ตรวจ; ต้องให้ทีมกำหนดก่อนทดลองยืนยันผล
+- ไม่แก้ `test-cases.md` หรือโค้ดระบบ
+- คำถามติดตามสำหรับ TC-STATUS-04-3: “ผลที่ต้องการเมื่อไม่มี Order ถูกเลือกคืออะไร?” คำตอบทีม: “แสดงข้อความ กรุณาเลือก Order ที่ต้องการติดตาม”
+- ข้อความจากคำตอบทีมยังไม่มีใน `spec.md`; ไม่เพิ่ม assertion หรือเปลี่ยนแถวที่อนุมัติในรอบนี้ เพื่อให้ข้อกำหนดและ test ยังคงอ้างอิง spec เดียวกัน ต้องนำข้อความนี้ไปปรับ spec ก่อนจึงจะเขียน/ยืนยัน test สำหรับ TC-STATUS-04-3 ได้
+
+## 2026-10-27 คำสั่ง: `/testcases AC-STATUS-05 specs/005-Status/spec.md`
+
+- โหมดเขียน test: TC-STATUS-05-1 และ TC-STATUS-05-2 สถานะ “ใช้ได้” และยังไม่มี test ตาม TC ID; T-06, T-07 และ T-08 ใน `tasks.md` ระบุ “เสร็จ”
+- เพิ่ม pytest ใน `backend/tests/test_AC_STATUS_05.py` และ Vitest ใน `frontend/src/__tests__/TC-STATUS-05-1.test.jsx`, `TC-STATUS-05-2.test.jsx` เพื่อตรวจรายการ Order หลายรายการที่เลือกได้ และลำดับวันที่สร้างใหม่ก่อน รวมถึงกรณีขอบที่มี 2 Order
+- จำนวน test ใหม่ตาม TC ก่อน/หลัง: pytest 0 → 2 และ vitest 0 → 2 สำหรับ 2 แถวอัตโนมัติที่อนุมัติ
+- ผล full backend: `.venv/bin/python -m pytest -v backend/tests` ผ่าน 21 tests และ 2 subtests; มี Starlette deprecation warning เกี่ยวกับ httpx
+- ผล full UI: `cd frontend && npm test` ผ่าน 45/45 tests ใน 21 test files
+- `git diff --check` ผ่าน; ไม่แก้ `test-cases.md` หรือโค้ดระบบ
+- TC-STATUS-05-3 ให้คนตรวจ: Given ลูกค้ามี Order เพียงรายการเดียว; When เปิดหน้าติดตามสถานะ Order; Then ตารางระบุว่า spec ไม่ได้บอกว่าต้องแสดงตัวเลือกติดตามหรือจัดลำดับอย่างไร จึงยังไม่มีผลคาดหวังสำหรับสรุปผ่าน/ไม่ผ่าน

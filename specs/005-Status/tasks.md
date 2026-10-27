@@ -47,7 +47,7 @@
 - แบบหน้าจอ: ไม่มี
 - ต้องทำหลัง: T-01, T-02
 - เสร็จเมื่อ: `GET /api/orders` ส่งกลับเฉพาะ Order ของผู้ใช้จาก Mock Authentication ซึ่งเปิดได้เฉพาะ Development/Test และปฏิเสธ Production; test ตรวจการแยก owner ผ่าน
-- สถานะ: เสร็จ รอทีมตรวจ
+- สถานะ: เสร็จ
 
 ### T-04 สร้างหน้ารายการ Order ของผู้ใช้
 - รองรับ: FR-19, FR-23
@@ -56,7 +56,7 @@
 - แบบหน้าจอ: ไม่มี UI ID/mockup ใน spec; หน้ารายการ Order ตาม plan.md
 - ต้องทำหลัง: T-03
 - เสร็จเมื่อ: หน้า `/orders/status` เรียก `GET /api/orders` ผ่าน `frontend/src/api/client.js` และแสดงรายการที่ได้รับจาก API
-- สถานะ: พร้อมทำ
+- สถานะ: เสร็จ
 
 ### T-05 ทดสอบการแสดงรายการ Order ของผู้ใช้
 - รองรับ: FR-19, NFR-SEC-02
@@ -65,25 +65,25 @@
 - แบบหน้าจอ: ไม่มี UI ID/mockup ใน spec
 - ต้องทำหลัง: T-03, T-04
 - เสร็จเมื่อ: `test_AC_STATUS_01_show_only_user_orders` ผ่านโดยใช้ client จำลองสำหรับการทดสอบหน้าจอ
-- สถานะ: พร้อมทำ
+- สถานะ: เสร็จ
 
 ### T-06 เรียง API รายการ Order ตามวันที่สร้าง
 - รองรับ: FR-23
 - ตรวจด้วย: AC-STATUS-05
-- ไฟล์ที่แตะ: `backend/services/orders.py`
+- ไฟล์ที่แตะ: `backend/app/services/orders.py`, `backend/tests/test_orders.py`
 - แบบหน้าจอ: ไม่มี
 - ต้องทำหลัง: T-03
 - เสร็จเมื่อ: ผลจาก `GET /api/orders` เรียง Order ตามวันที่สร้างจากใหม่ไปเก่า
-- สถานะ: พร้อมทำ
+- สถานะ: เสร็จ
 
 ### T-07 แสดงรายการ Order หลายรายการตามลำดับที่ได้รับ
 - รองรับ: FR-23
 - ตรวจด้วย: AC-STATUS-05
-- ไฟล์ที่แตะ: `frontend/src/pages/OrderList.jsx`
+- ไฟล์ที่แตะ: `frontend/src/pages/OrderList.jsx`, `frontend/src/pages/OrderList.test.jsx`
 - แบบหน้าจอ: ไม่มี UI ID/mockup ใน spec; หน้ารายการ Order ตาม plan.md
 - ต้องทำหลัง: T-04, T-06
 - เสร็จเมื่อ: หน้ารายการแสดง Order หลายรายการตามลำดับวันที่สร้างล่าสุดก่อนที่ API ส่งมา
-- สถานะ: พร้อมทำ
+- สถานะ: เสร็จ
 
 ### T-08 ทดสอบการเรียงรายการ Order
 - รองรับ: FR-23
@@ -92,25 +92,25 @@
 - แบบหน้าจอ: ไม่มี UI ID/mockup ใน spec
 - ต้องทำหลัง: T-06, T-07
 - เสร็จเมื่อ: `test_AC_STATUS_05_list_orders_sorted_by_latest_created` ผ่านเมื่อมี Order หลายรายการในวันเวลาต่างกัน
-- สถานะ: พร้อมทำ
+- สถานะ: เสร็จ
 
 ### T-09 สร้าง API รายละเอียด Order ที่ผู้ใช้มีสิทธิ์เข้าถึง
 - รองรับ: FR-20, NFR-SEC-02, Constraint: ผู้ใช้สามารถดูสถานะเฉพาะ Order ของตนเอง
 - ตรวจด้วย: AC-STATUS-02
-- ไฟล์ที่แตะ: `backend/routes/orders.py`, `backend/services/orders.py`
+- ไฟล์ที่แตะ: `backend/app/routes/orders.py`, `backend/app/services/orders.py`, `backend/tests/test_orders.py`
 - แบบหน้าจอ: ไม่มี
 - ต้องทำหลัง: T-01, T-03
-- เสร็จเมื่อ: `GET /api/orders/{order_id}` ส่งรายละเอียดและสถานะล่าสุดของ Order ที่เป็นของผู้ใช้ปัจจุบัน
-- สถานะ: พร้อมทำ
+- เสร็จเมื่อ: `GET /api/orders/{order_id}` ส่งรายละเอียดและสถานะล่าสุดที่ยืนยันแล้วของ Order ที่เป็นของผู้ใช้ปัจจุบัน; Order ของผู้อื่นไม่เปิดเผย
+- สถานะ: เสร็จ
 
 ### T-10 สร้างหน้ารายละเอียด Order ที่เลือก
 - รองรับ: FR-20
 - ตรวจด้วย: AC-STATUS-02
-- ไฟล์ที่แตะ: `frontend/src/api/client.js`, `frontend/src/pages/OrderDetail.jsx`, `frontend/src/pages/OrderList.jsx`
+- ไฟล์ที่แตะ: `frontend/src/api/client.js`, `frontend/src/pages/OrderDetail.jsx`, `frontend/src/pages/OrderList.jsx`, `frontend/src/main.jsx`, `frontend/src/pages/OrderDetail.test.jsx`
 - แบบหน้าจอ: ไม่มี UI ID/mockup ใน spec; หน้ารายละเอียด Order ตาม plan.md
 - ต้องทำหลัง: T-04, T-09
 - เสร็จเมื่อ: การเลือก Order จากรายการเปิดหน้า `/orders/{order_id}/details` และโหลดข้อมูลผ่าน `frontend/src/api/client.js`
-- สถานะ: พร้อมทำ
+- สถานะ: เสร็จ
 
 ### T-11 ทดสอบการเลือก Order และดูรายละเอียด
 - รองรับ: FR-20, NFR-SEC-02
@@ -119,25 +119,25 @@
 - แบบหน้าจอ: ไม่มี UI ID/mockup ใน spec
 - ต้องทำหลัง: T-09, T-10
 - เสร็จเมื่อ: `test_AC_STATUS_02_select_order_and_view_detail` ผ่านโดยใช้ client จำลองสำหรับการทดสอบหน้าจอ
-- สถานะ: พร้อมทำ
+- สถานะ: เสร็จ รอทีมตรวจ
 
 ### T-12 สร้าง API ประวัติสถานะที่ยืนยันแล้ว
 - รองรับ: FR-21, NFR-REL-03, Constraint: สถานะ Order ต้องมาจากข้อมูลที่ระบบบันทึกไว้
 - ตรวจด้วย: AC-STATUS-03
-- ไฟล์ที่แตะ: `backend/routes/orders.py`, `backend/services/orders.py`
+- ไฟล์ที่แตะ: `backend/app/routes/orders.py`, `backend/app/services/orders.py`, `backend/tests/test_orders.py`
 - แบบหน้าจอ: ไม่มี
 - ต้องทำหลัง: T-01, T-09
 - เสร็จเมื่อ: API ส่งสถานะปัจจุบันและประวัติสถานะที่บันทึกยืนยันแล้ว โดยมีเวลาเปลี่ยนสถานะตามข้อมูล
-- สถานะ: พร้อมทำ
+- สถานะ: เสร็จ
 
 ### T-13 แสดงแถบสถานะ Order สี่ขั้น
 - รองรับ: FR-21
 - ตรวจด้วย: AC-STATUS-03
-- ไฟล์ที่แตะ: `frontend/src/components/OrderStatusTimeline.jsx`, `frontend/src/pages/OrderDetail.jsx`
+- ไฟล์ที่แตะ: `frontend/src/api/client.js`, `frontend/src/components/OrderStatusTimeline.jsx`, `frontend/src/components/OrderStatusTimeline.test.jsx`, `frontend/src/pages/OrderDetail.jsx`, `frontend/src/pages/OrderDetail.test.jsx`
 - แบบหน้าจอ: ไม่มี UI ID/mockup ใน spec; แถบสถานะตามลำดับที่กำหนดใน AC-STATUS-03
 - ต้องทำหลัง: T-10, T-12
 - เสร็จเมื่อ: หน้ารายละเอียดแสดง “รอรับ Order” → “กำลังเตรียม” → “พร้อมรับสินค้า” → “รับสินค้าแล้ว” และแสดงเวลาเมื่อเป็นสองสถานะท้ายตามข้อมูลยืนยัน
-- สถานะ: พร้อมทำ
+- สถานะ: เสร็จ
 
 ### T-14 ทดสอบลำดับสถานะและเวลาเปลี่ยนสถานะ
 - รองรับ: FR-21, NFR-REL-03
@@ -146,25 +146,25 @@
 - แบบหน้าจอ: ไม่มี UI ID/mockup ใน spec
 - ต้องทำหลัง: T-12, T-13
 - เสร็จเมื่อ: `test_AC_STATUS_03_display_4_step_status_flow` ผ่านสำหรับสถานะทั้งสี่และเวลาของสถานะ “พร้อมรับสินค้า” หรือ “รับสินค้าแล้ว”
-- สถานะ: พร้อมทำ
+- สถานะ: เสร็จ
 
 ### T-15 เพิ่มข้อมูลรายการสินค้าในผลรายละเอียด Order
 - รองรับ: FR-22
 - ตรวจด้วย: AC-STATUS-04
-- ไฟล์ที่แตะ: `backend/services/orders.py`
+- ไฟล์ที่แตะ: `backend/app/services/orders.py`, `backend/tests/test_orders.py`
 - แบบหน้าจอ: ไม่มี
 - ต้องทำหลัง: T-01, T-09
 - เสร็จเมื่อ: รายละเอียดที่ API ส่งกลับมีรายการสินค้า จำนวน ราคา และสถานะล่าสุดที่เกี่ยวข้องกับ Order ที่เลือก
-- สถานะ: พร้อมทำ
+- สถานะ: เสร็จ
 
 ### T-16 แสดงรายการสินค้าในหน้ารายละเอียด Order
 - รองรับ: FR-22
 - ตรวจด้วย: AC-STATUS-04
-- ไฟล์ที่แตะ: `frontend/src/components/OrderItems.jsx`, `frontend/src/pages/OrderDetail.jsx`
+- ไฟล์ที่แตะ: `frontend/src/components/OrderItems.jsx`, `frontend/src/pages/OrderDetail.jsx`, `frontend/src/pages/OrderDetail.test.jsx`
 - แบบหน้าจอ: ไม่มี UI ID/mockup ใน spec; แสดงเฉพาะรายการสินค้า จำนวน ราคา และสถานะล่าสุดตาม FR-22
 - ต้องทำหลัง: T-10, T-15
 - เสร็จเมื่อ: หน้า Order detail แสดงรายการสินค้า จำนวน ราคา และสถานะล่าสุดจาก API
-- สถานะ: พร้อมทำ
+- สถานะ: เสร็จ
 
 ### T-17 ทดสอบข้อมูลสินค้าในรายละเอียด Order
 - รองรับ: FR-22
@@ -173,7 +173,7 @@
 - แบบหน้าจอ: ไม่มี UI ID/mockup ใน spec
 - ต้องทำหลัง: T-15, T-16
 - เสร็จเมื่อ: `test_AC_STATUS_04_show_order_items_and_latest_status` ผ่านและยืนยันรายการสินค้า จำนวน ราคา และสถานะล่าสุด
-- สถานะ: พร้อมทำ
+- สถานะ: เสร็จ
 
 ### T-18 ทดสอบเลือก Order ที่ต้องการจากรายการหลาย Order
 - รองรับ: FR-20, FR-23
@@ -182,16 +182,16 @@
 - แบบหน้าจอ: ไม่มี UI ID/mockup ใน spec
 - ต้องทำหลัง: T-07, T-10
 - เสร็จเมื่อ: `test_AC_STATUS_06_select_order_from_multiple_orders` ผ่านและยืนยันว่ารายละเอียดที่แสดงเป็นของ Order ที่ผู้ใช้เลือก โดยใช้ client จำลอง
-- สถานะ: พร้อมทำ
+- สถานะ: เสร็จ
 
 ### T-19 กรองสถานะที่ยังไม่ยืนยันออกจากข้อมูลที่ส่งให้ผู้ใช้
 - รองรับ: NFR-REL-03, FR-21, Constraint: หากไม่สามารถโหลดสถานะล่าสุดได้ ระบบต้องไม่แสดงข้อมูลสถานะที่ไม่ยืนยัน
 - ตรวจด้วย: AC-STATUS-08
-- ไฟล์ที่แตะ: `backend/services/orders.py`
+- ไฟล์ที่แตะ: `backend/app/services/orders.py`, `backend/tests/test_orders.py`
 - แบบหน้าจอ: ไม่มี
 - ต้องทำหลัง: T-12
 - เสร็จเมื่อ: API เลือกเฉพาะสถานะล่าสุดที่บันทึกและยืนยันแล้ว และไม่ส่งสถานะที่ยังไม่ยืนยันเป็นสถานะปัจจุบัน
-- สถานะ: พร้อมทำ
+- สถานะ: เสร็จ
 
 ### T-20 ทดสอบการแสดงสถานะที่ยืนยันแล้วเท่านั้น
 - รองรับ: NFR-REL-03
@@ -200,7 +200,7 @@
 - แบบหน้าจอ: ไม่มี UI ID/mockup ใน spec
 - ต้องทำหลัง: T-13, T-19
 - เสร็จเมื่อ: `test_AC_STATUS_08_show_only_confirmed_status` ผ่านเมื่อมีทั้งสถานะยืนยันแล้วและสถานะที่ยังไม่ยืนยัน
-- สถานะ: พร้อมทำ
+- สถานะ: เสร็จ
 
 ### T-21 ทดสอบการแยกข้อมูล Order ระหว่างผู้ใช้
 - รองรับ: NFR-SEC-02, FR-19, Constraint: ผู้ใช้สามารถดูสถานะเฉพาะ Order ของตนเอง
@@ -209,25 +209,25 @@
 - แบบหน้าจอ: ไม่มี UI ID/mockup ใน spec
 - ต้องทำหลัง: T-03, T-04
 - เสร็จเมื่อ: `test_AC_STATUS_09_show_only_authorized_orders` ผ่านโดยมี Order ของผู้ใช้ปัจจุบันและผู้ใช้อื่น และหน้ารายการแสดงเฉพาะผล API ของผู้ใช้ปัจจุบัน
-- สถานะ: พร้อมทำ
+- สถานะ: เสร็จ
 
 ### T-22 สร้าง API สำหรับเรียกโหลดสถานะใหม่
 - รองรับ: FR-21, NFR-REL-03, Constraint: หากไม่สามารถโหลดสถานะล่าสุดได้ ระบบต้องไม่แสดงข้อมูลสถานะที่ไม่ยืนยัน
 - ตรวจด้วย: AC-STATUS-07
-- ไฟล์ที่แตะ: `backend/routes/orders.py`, `backend/services/orders.py`
+- ไฟล์ที่แตะ: `backend/app/routes/orders.py`, `backend/app/services/orders.py`, `backend/tests/test_orders.py`
 - แบบหน้าจอ: ไม่มี
 - ต้องทำหลัง: T-09, T-12
 - เสร็จเมื่อ: `POST /api/orders/{order_id}/status/refresh` ส่งผลโหลดใหม่หรือ error state โดยไม่ทำให้สถานะที่ไม่ยืนยันกลายเป็นสถานะปัจจุบัน
-- สถานะ: พร้อมทำ
+- สถานะ: เสร็จ
 
 ### T-23 แสดงข้อความผิดพลาดและปุ่มลองใหม่
 - รองรับ: FR-21, NFR-REL-03
 - ตรวจด้วย: AC-STATUS-07
-- ไฟล์ที่แตะ: `frontend/src/api/client.js`, `frontend/src/pages/OrderDetail.jsx`
+- ไฟล์ที่แตะ: `frontend/src/api/client.js`, `frontend/src/pages/OrderDetail.jsx`, `frontend/src/components/OrderStatusTimeline.jsx`, `frontend/src/pages/OrderDetail.test.jsx`
 - แบบหน้าจอ: ไม่มี UI ID/mockup ใน spec; ข้อความและปุ่มตาม AC-STATUS-07
 - ต้องทำหลัง: T-10, T-22
 - เสร็จเมื่อ: เมื่อโหลดสถานะล้มเหลว หน้าแสดง “ไม่สามารถโหลดสถานะได้” พร้อมปุ่ม “ลองใหม่” และไม่แสดงสถานะเก่าที่ไม่ได้รับการยืนยัน
-- สถานะ: พร้อมทำ
+- สถานะ: เสร็จ
 
 ### T-24 ทดสอบกรณีโหลดสถานะล้มเหลวและลองใหม่
 - รองรับ: NFR-REL-03, FR-21
@@ -236,7 +236,7 @@
 - แบบหน้าจอ: ไม่มี UI ID/mockup ใน spec
 - ต้องทำหลัง: T-22, T-23
 - เสร็จเมื่อ: `test_AC_STATUS_07_show_retry_when_load_fails` ผ่านโดยจำลอง API ล้มเหลวและใช้ client จำลองใน test หน้าจอ
-- สถานะ: พร้อมทำ
+- สถานะ: เสร็จ
 
 #### จุดตรวจเฟส 1
 - test ที่ต้องผ่านทั้งหมด: `test_AC_STATUS_01_show_only_user_orders`, `test_AC_STATUS_02_select_order_and_view_detail`, `test_AC_STATUS_03_display_4_step_status_flow`, `test_AC_STATUS_04_show_order_items_and_latest_status`, `test_AC_STATUS_05_list_orders_sorted_by_latest_created`, `test_AC_STATUS_06_select_order_from_multiple_orders`, `test_AC_STATUS_07_show_retry_when_load_fails`, `test_AC_STATUS_08_show_only_confirmed_status`, `test_AC_STATUS_09_show_only_authorized_orders` และ test ของเฟส 0 ต้องยังผ่าน

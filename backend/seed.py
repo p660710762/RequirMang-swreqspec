@@ -42,8 +42,8 @@ def seed_order_data(connection: sqlite3.Connection) -> None:
             ) VALUES (?, ?, ?, ?, ?, ?, ?)
             """,
             [
-                ("sample-item-older", "sample-order-older", "sample-menu-1", "รายการตัวอย่าง 1", 1, 50, 50),
-                ("sample-item-newer", "sample-order-newer", "sample-menu-2", "รายการตัวอย่าง 2", 1, 75, 75),
+                ("sample-item-older", "sample-order-older", "sample-menu-1", "ชาไทย", 1, 50, 50),
+                ("sample-item-newer", "sample-order-newer", "sample-menu-2", "มัทฉะลาเต้", 1, 75, 75),
             ],
         )
         connection.executemany(
