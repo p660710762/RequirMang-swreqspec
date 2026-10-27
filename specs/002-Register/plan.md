@@ -1,23 +1,31 @@
 # แผนงานสำหรับ Feature: สมัครสมาชิก / เข้าสู่ระบบ (Register & Login)
 
 ## 1. สรุปแนวทาง
+- Release 1 พัฒนาด้วย React + Vite ใน `frontend/src/` โดยใช้ React State
+  และ Mock Data ในหน่วยความจำระหว่างเปิดหน้า Prototype
 - ฟีเจอร์นี้จะสร้างหน้าเดียวสำหรับลูกค้าในการสมัครสมาชิกและเข้าสู่ระบบ โดยมีฟอร์ม login ด้านบนและปุ่มสมัครสมาชิกด้านล่าง ตาม FR-02 และ NFR-USE-01
 - ระบบจะตรวจสอบข้อมูล Email หรือเบอร์โทรศัพท์ + รหัสผ่าน ก่อนสร้างบัญชีหรืออนุญาตให้เข้าสู่ระบบ ตาม FR-01, FR-03, FR-04
 - ระบบจะเก็บข้อมูลบัญชีพื้นฐานและตรวจสอบข้อมูลซ้ำก่อนยอมให้สมัครใหม่ เพื่อป้องกันการสร้างบัญชีซ้ำตาม FR-01, FR-02, FR-04
-- ระบบจะมีทางเลือกเชื่อมต่อ LINE แบบไม่บังคับ โดยบันทึก LINE User ID เมื่อสำเร็จ และให้ผู้ใช้ข้ามได้ตาม FR-05, FR-06 และ Alternative Flow 7a/7b
-- กลุ่มงานจะออกแบบแบบฟอร์มหน้าเว็บ, API สำหรับ auth, validation และ guard สิทธิ์รองรับการเข้าถึงข้อมูลบัญชีพื้นฐาน ตาม NFR-SEC-01 และ Acceptance Criteria AC-ACCOUNT-01 ถึง AC-ACCOUNT-06
+- ระบบจะมีทางเลือก Mock LINE Connection แบบไม่บังคับ โดย React State จำลองผลสำเร็จ
+  ผลล้มเหลว และการข้าม ใช้ Mock LINE User ID `mock-line-user-001`
+  และให้ผู้ใช้ข้ามได้ตาม FR-05, FR-06 และ Alternative Flow 7a/7b
+- Release 1 ไม่สร้าง API, Backend, Database, JWT หรือ session จริง
+  การ Auto-login เป็นสถานะใน React State เท่านั้น
 
 ## 2. เทคโนโลยีที่ใช้
 
 | สิ่งที่เลือก | มาจาก | หมายเหตุ |
 |---|---|---|
-| React (Vite) สำหรับหน้าเว็บ | ทีมเลือกเอง ไม่ได้มาจาก spec | ใช้สร้างหน้าเดียวสำหรับ login/signup และ flow การเชื่อมต่อ LINE |
-| Python FastAPI สำหรับ API แก้ไขบัญชีและเข้าสู่ระบบ | ทีมเลือกเอง ไม่ได้มาจาก spec | ใช้จัดการ validation, duplicate check, token/session, และ LINE linkage |
-| ฐานข้อมูลเชิงสัมพันธ์ (เช่น PostgreSQL) | ทีมเลือกเอง ไม่ได้มาจาก spec | ใช้เก็บบัญชีผู้ใช้และ mapping ระหว่างบัญชีกับ LINE User ID |
-| JWT หรือ session-based auth | ทีมเลือกเอง ไม่ได้มาจาก spec | ใช้หลัง login เพื่อป้องกันการเข้าถึงข้อมูลบัญชีพื้นฐานที่ต้องมีสิทธิ์ |
-| LINE OAuth / LINE Login หรือ callback webhook แบบทีมกำหนด | ทีมเลือกเอง ไม่ได้มาจาก spec | ต้องรอคำตอบ Open Questions ก่อนตัดสินใจรูปแบบจริง |
+| React + Vite สำหรับหน้าเว็บ | ข้อสรุปของทีมสำหรับ Release 1 | ใช้พัฒนาใน `frontend/src/` และจัดการ UI/React State ของ Login, Register และ Mock LINE |
+| Python FastAPI สำหรับ API | ข้อเสนอเดิมของทีม ไม่ใช่ Release 1 | ต้องยืนยันและจัดเป็นงาน Release ถัดไป หากมี Requirement รองรับ; ยังไม่สร้าง |
+| ฐานข้อมูลเชิงสัมพันธ์ (เช่น PostgreSQL) | ข้อเสนอเดิมของทีม ไม่ใช่ Release 1 | ต้องยืนยันและจัดเป็นงาน Release ถัดไป; Release 1 ใช้ Mock Data ในหน่วยความจำ |
+| JWT หรือ session-based auth | ข้อเสนอเดิมของทีม ไม่ใช่ Release 1 | Auto-login ของ Release 1 ใช้ React State เท่านั้น; JWT/session จริงต้องยืนยันเพิ่มเติม |
+| Mock LINE Connection ด้วย React State | คำตอบ Q-01 ของทีม | จำลอง success/failure/skip และใช้ `mock-line-user-001` ในหน่วยความจำ โดยไม่ใช้ LINE API/OAuth/callback |
 
 ## 3. โมเดลข้อมูล
+
+โมเดลในตารางนี้เป็นข้อเสนอสำหรับระบบจริง/Release ถัดไป ไม่ใช่สิ่งที่ต้องสร้างใน
+Release 1 ซึ่งใช้ React State และ Mock Data ในหน่วยความจำเท่านั้น
 
 | Entity | ฟิลด์หลัก | รองรับ FR / NFR |
 |---|---|---|
@@ -32,6 +40,10 @@
 - ข้อมูลส่วนบุคคลที่เกี่ยวกับบัญชี เช่น ชื่อ อีเมล เบอร์โทรศัพท์ จะเข้าถึงได้เฉพาะหลัง login ตาม NFR-SEC-01
 
 ## 4. API / หน้าจอ
+
+ส่วน API ด้านล่างเป็นข้อเสนอเดิมสำหรับระบบจริงหรือ Release ถัดไป
+ไม่ใช่ขอบเขตการ Implement ของ Release 1 และยังต้องยืนยัน Requirement/Constraints
+ก่อนสร้าง
 
 - `GET /auth` — แสดงหน้า login/signup เดียวกัน พร้อมฟอร์ม login ด้านบนและปุ่มสมัครสมาชิกด้านล่าง — รองรับ FR-02, NFR-USE-01
 - `POST /api/auth/register` — Input: `email?`, `phone_number?`, `password`; Output: created account / validation error / duplicate error — รองรับ FR-01, FR-02, FR-04, AC-ACCOUNT-01
@@ -76,13 +88,16 @@
 
 ## 8. สิ่งที่ยังไม่ทำ
 
-- ระบบจะใช้ LINE Login หรือวิธีการเชื่อมบัญชี LINE รูปแบบใด
-  - ส่วนที่เกี่ยวข้องกับข้อนี้จะยังไม่สร้างจนกว่าจะได้คำตอบ
-- ลูกค้าสามารถยกเลิกการเชื่อมต่อ LINE ภายหลังได้หรือไม่
-  - ส่วนที่เกี่ยวข้องกับข้อนี้จะยังไม่สร้างจนกว่าจะได้คำตอบ
-- หากลูกค้าเปลี่ยนบัญชี LINE จะต้องดำเนินการเชื่อมต่อใหม่อย่างไร
-  - ส่วนที่เกี่ยวข้องกับข้อนี้จะยังไม่สร้างจนกว่าจะได้คำตอบ
+- Release 1 ไม่สร้าง LINE Login, LINE OAuth หรือ callback จริง เพราะ Q-01
+  ปิดด้วย Mock LINE Connection ใน React State แล้ว
+- การยกเลิกการเชื่อมต่อ LINE เลื่อนไป Release 2 ตาม Q-02
+- การเปลี่ยนบัญชี LINE เลื่อนไป Release 2 ตาม Q-03
+- FastAPI, Database, JWT/session และ API เป็นข้อเสนอสำหรับระบบจริงหรือ Release ถัดไป
+  ต้องยืนยัน Requirement/Constraints ก่อน จึงยังไม่สร้างใน Release 1
 
 ---
 
-สรุป: แผนงานนี้จะสร้างระบบสมัคร/เข้าสู่ระบบแบบหน้าเดียว, validation และ duplicate-check สำหรับบัญชี, auth guard สำหรับข้อมูลส่วนบุคคล, และ flow เชื่อมต่อ LINE แบบเสริมที่ไม่กระทบต่อการสมัครหรือ login หลัก ตาม spec.md โดยไม่มีการขยาย scope เกินที่กำหนดไว้
+สรุป: Release 1 จะสร้างหน้า React + Vite สำหรับสมัคร/เข้าสู่ระบบแบบหน้าเดียว,
+validation และ duplicate-check สำหรับ Mock Data, Auto-login ใน React State,
+และ Mock LINE Connection แบบเสริมที่ไม่กระทบต่อการสมัครหรือ login หลัก ตาม spec.md
+โดยไม่สร้าง Backend, API, Database, JWT/session หรือ LINE API จริง

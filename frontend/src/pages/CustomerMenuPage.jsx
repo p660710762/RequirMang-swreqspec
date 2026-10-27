@@ -69,13 +69,17 @@ function sortMenuItems(items) {
   });
 }
 
-export default function CustomerMenuPage() {
+export default function CustomerMenuPage({
+  isLoggedIn,
+  pendingSelection,
+  onLoginRequired,
+  onOpenLogin,
+  onPendingSelectionConsumed,
+}) {
   const [menuItems, setMenuItems] = useState(SAMPLE_MENU);
   const [promotions, setPromotions] = useState(SAMPLE_PROMOTIONS);
   const [query, setQuery] = useState('');
   const [loadState, setLoadState] = useState('ready');
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [pendingSelection, setPendingSelection] = useState(null);
   const [orderItems, setOrderItems] = useState([]);
 
   const activePromotions = useMemo(
@@ -131,6 +135,17 @@ export default function CustomerMenuPage() {
     loadMenu();
   }, []);
 
+  useEffect(() => {
+    if (!isLoggedIn || !pendingSelection) return;
+
+    setOrderItems((current) => {
+      const exists = current.find((entry) => entry.id === pendingSelection.id);
+      if (exists) return current;
+      return [...current, { ...pendingSelection, price: getDiscountedPrice(pendingSelection) }];
+    });
+    onPendingSelectionConsumed();
+  }, [isLoggedIn, onPendingSelectionConsumed, pendingSelection]);
+
   const filteredItems = useMemo(() => {
     const keyword = query.trim().toLowerCase();
     const items = sortMenuItems(menuItems);
@@ -142,7 +157,7 @@ export default function CustomerMenuPage() {
     if (item.status === 'sold_out') return;
 
     if (!isLoggedIn) {
-      setPendingSelection(item);
+      onLoginRequired(item);
       return;
     }
 
@@ -151,22 +166,6 @@ export default function CustomerMenuPage() {
       if (exists) return current;
       return [...current, { ...item, price: getDiscountedPrice(item) }];
     });
-  };
-
-  const handleLoginSuccess = () => {
-    setIsLoggedIn(true);
-    if (pendingSelection) {
-      setOrderItems((current) => {
-        const exists = current.find((entry) => entry.id === pendingSelection.id);
-        if (exists) return current;
-        return [...current, { ...pendingSelection, price: getDiscountedPrice(pendingSelection) }];
-      });
-      setPendingSelection(null);
-    }
-  };
-
-  const handleCancelLogin = () => {
-    setPendingSelection(null);
   };
 
   return (
@@ -179,24 +178,15 @@ export default function CustomerMenuPage() {
           </div>
           <div className="customer-page__meta">
             <span>{filteredItems.length} รายการ</span>
-            <button type="button" className="customer-page__login-toggle" onClick={() => setIsLoggedIn((value) => !value)}>
-              {isLoggedIn ? 'Logged in' : 'เข้าสู่ระบบ'}
-            </button>
+            {isLoggedIn ? (
+              <span className="customer-page__login-toggle">Logged in</span>
+            ) : (
+              <button type="button" className="customer-page__login-toggle" onClick={onOpenLogin}>
+                เข้าสู่ระบบ
+              </button>
+            )}
           </div>
         </header>
-
-        {pendingSelection && (
-          <div className="customer-page__banner" role="alert">
-            <div>
-              <strong>กรุณาเข้าสู่ระบบก่อนเพิ่ม {pendingSelection.name} เข้า Order</strong>
-              <p>ระบบจะเก็บเมนูที่เลือกไว้และนำคุณกลับไปยัง UC-02 ก่อนดำเนินการต่อ</p>
-            </div>
-            <div className="customer-page__banner-actions">
-              <button type="button" className="primary-button" onClick={handleLoginSuccess}>เข้าสู่ระบบ</button>
-              <button type="button" className="secondary-button" onClick={handleCancelLogin}>ยกเลิก</button>
-            </div>
-          </div>
-        )}
 
         <label className="customer-page__search">
           <span>ค้นหาเมนู</span>
