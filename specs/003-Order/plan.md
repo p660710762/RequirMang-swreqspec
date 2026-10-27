@@ -22,13 +22,15 @@
 | Entity | ฟิลด์หลัก | รองรับ FR / NFR |
 |---|---|---|
 | MenuItem | `menu_item_id`, `name`, `status`, `price`, `promotion_price`, `is_available` | รองรับ FR-06, FR-08, AC-ORDER-01, AC-ORDER-03, ASM-01 |
-| Order | `order_id`, `user_id`, `status`, `created_at`, `total_amount`, `paid_at`, `payment_status` | รองรับ FR-08, FR-10, FR-11, FR-12, NFR-23, NFR-24 |
-| OrderItem | `order_item_id`, `order_id`, `menu_item_id`, `quantity`, `unit_price`, `line_total` | รองรับ FR-06, FR-07, FR-08, FR-09, AC-ORDER-02, AC-ORDER-04 |
+| Order | `order_date`, `order_id`, `status`, `created_at`, `total_amount`, `paid_at`, `payment_status` | รองรับ FR-08, FR-10, FR-11, FR-12, NFR-23, NFR-24 |
+| OrderItem | `order_item_id`, `order_date`, `order_id`, `menu_item_id`, `quantity`, `unit_price`, `line_total` | รองรับ FR-06, FR-07, FR-08, FR-09, AC-ORDER-02, AC-ORDER-04 |
 | OrderOption | `order_option_id`, `order_item_id`, `sweetness_level`, `toppings`, `ice_level` | รองรับ FR-07, AC-ORDER-02, ASM-08, ASM-09 |
-| PaymentTransaction | `payment_id`, `order_id`, `qr_code`, `expires_at`, `payment_result`, `reference_key` | รองรับ FR-11, FR-12, AC-ORDER-06, AC-ORDER-07, NFR-23 |
+| PaymentTransaction | `payment_id`, `order_date`, `order_id`, `qr_code`, `expires_at`, `payment_result`, `reference_key` | รองรับ FR-11, FR-12, AC-ORDER-06, AC-ORDER-07, NFR-23 |
 
 หมายเหตุโมเดลข้อมูล:
 - จะไม่มีฟิลด์สำหรับข้อมูลผู้ใช้งานหรือพนักงานใน feature นี้ เนื่องจาก Out of scope
+- `Order` ใช้ composite primary key (`order_date`, `order_id`) โดย `order_id` เป็นหมายเลข 3 หลักที่เริ่มใหม่ในแต่ละวัน; `OrderItem` และ `PaymentTransaction` อ้างถึงคีย์ทั้งสองฟิลด์นี้
+- `OrderItem.menu_item_id` อ้างถึง `menu_items.menu_id`
 - `sweetness_level` เป็นข้อมูลที่ต้องเลือกทุกครั้ง และ `ice_level` จะมีค่า default เป็น “ใส่น้ำแข็งปริมาณปกติ” เมื่อผู้ใช้ไม่เลือก ตาม FR-07 และ ASM-09
 - เมื่อ `quantity = 0` จะไม่เก็บ item บน Order อีกต่อไป และจะคำนวณยอดรวมใหม่ตาม FR-09 และ AC-ORDER-04
 - `payment_status` จะมีค่าเพียง “pending / success / failed / timeout” ตาม Constraint และ Exception Flow

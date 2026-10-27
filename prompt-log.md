@@ -652,3 +652,109 @@
 - ปรับ plan.md เฉพาะข้อความที่ไม่ตรงกับ Spec v7/CR-MENU-004: เมื่อไม่มีโปรโมชั่นยังแสดงเมนูหมดสต็อกพร้อม “หมด” และปุ่มสั่งซื้อกดไม่ได้; แก้ข้อความที่ระบุว่าไม่มี Constraints และปรับ API/แผนทดสอบที่กล่าวถึงเมนูเปิดขายอย่างเดียวให้ครอบคลุมเมนูหมดสต็อกด้วย
 - ปรับ test-cases.md ให้อ้างอิง SPEC-MENU-001 Draft v7 และเปลี่ยนเครื่องมือทุกแถวจาก vitest (หน้าจอ) เป็น node:test ตาม runner ที่ใช้จริง
 - คง Task และสถานะ Task เดิม; ไม่แก้โค้ดหรือเพิ่ม Automated Tests; ไม่ติดตั้งเครื่องมือ; ไม่ commit หรือ push
+
+---
+
+## 2569-10-26 คำสั่ง: /tasks specs/003-Order/spec.md
+
+- ไฟล์ที่สร้าง: specs/003-Order/tasks.md; เพิ่มบันทึกนี้ท้าย prompt-log.md
+- อ่าน spec.md และ plan.md ครบก่อนจัดทำ; พบส่วน Requirements/AC/Assumptions/Open Questions ซ้ำ และ Open Questions มีทั้งส่วนว่างกับรายการ 5 ข้อ จึงบันทึกข้อสังเกตไว้ใน tasks.md
+- สร้าง 5 เฟส รวม 16 tasks: เฟส 0 ฐานราก, เฟส 1–3 ตามเส้นทางเลือก/แก้/ยืนยัน/ชำระ Order และเฟส 4 สำหรับคำตอบที่ยังรอ; ครบ AC-ORDER-01 ถึง AC-ORDER-12, FR-06 ถึง FR-12 และ Constraints ที่ไม่มี ID ใน Spec
+- บันทึกแนวทาง Q-01 ถึง Q-05 ตามคำสั่งทีมก่อนหน้า โดยระบุข้อที่ยังต้องปรับ Spec/Plan ให้สอดคล้อง และไม่อ้างว่ามีการสมัครหรือทดสอบ Payment Gateway จริง
+- T-15 รอ Q-01; T-16 รอผู้รับผิดชอบ Spec ยืนยันการปรับ NFR-22/NFR-26 ให้สอดคล้องกับ Out of scope
+- ไม่แก้ Spec, Plan หรือโค้ด; ไม่รัน tests เนื่องจากเป็นงานจัดทำเอกสาร; ไม่ commit หรือ push
+
+---
+
+## 2569-10-26 คำสั่ง: /tasks specs/004-Payment/spec.md
+
+- ไฟล์ที่สร้าง: specs/004-Payment/tasks.md; เพิ่มบันทึกนี้ท้าย prompt-log.md
+- อ่าน spec.md, plan.md และ AGENTS.md ครบก่อนจัดทำ; ไม่พบ specs/000-shared/ หรือ mockup ของ Payment
+- สร้าง 5 เฟส รวม 12 tasks ครอบคลุม AC-PAYMENT-01 ถึง AC-PAYMENT-11, FR-13 ถึง FR-18, NFR-SEC-01, NFR-REL-01/02 และ Constraints ทั้งหมด
+- Spec ไม่มีรายการ Open Questions แต่ Plan ระบุว่ายังไม่เลือก Payment Gateway; ติดตามเป็น Q-01 และกำหนด T-12 รอการยืนยัน vendor โดยงานก่อนหน้านั้นทดสอบด้วย Gateway จำลอง
+- ไม่อ้างว่ามีการสมัครหรือทดสอบ Payment Gateway จริง; สถานะ tasks ไม่เป็น Done
+- ไม่แก้ Spec, Plan หรือโค้ด; ไม่รัน tests เนื่องจากเป็นงานจัดทำเอกสาร; ไม่ commit หรือ push
+
+---
+
+## 2569-10-27 คำสั่ง: /implement T-01 specs/003-Order/tasks.md
+
+- สร้างโมเดล SQLAlchemy `Order`, `OrderItem`, `OrderOption` และ `PaymentTransaction` ใน `backend/app/models/order.py`, `backend/app/models/order_item.py` และ `backend/app/models/payment_transaction.py`
+- อัปเดต `specs/003-Order/plan.md` ตามการยืนยันของทีม: ไม่มี `user_id`; ใช้ composite key (`order_date`, `order_id`) สำหรับหมายเลข 001–999 รายวัน; `OrderItem.menu_item_id` อ้าง `menu_items.menu_id`
+- Constraint ในโมเดล: จำนวน OrderItem ต้องมากกว่า 0, sweetness เป็น required และจำกัดค่าตาม FR-07, ice default เป็น “ใส่น้ำแข็งปริมาณปกติ”, payment_status จำกัดเป็น pending/success/failed/timeout; option เป็นของ OrderItem เดียว
+- Test: `smoke_test_T01_order_models` ผ่าน — ตรวจ composite key และหมายเลขซ้ำข้ามวัน, หลาย OrderItems พร้อม options แยกกัน, FK ไปเมนู/Order, ค่า default น้ำแข็ง, ค่า option/หมายเลขที่ไม่ถูกต้อง และ quantity > 0; `python -m compileall -q ...` ผ่าน
+- การรัน smoke test รอบแรกหลังเพิ่ม CheckConstraint พบว่า SQLite ยอมรับ `order_id` ที่ไม่ใช่ตัวเลข; แก้ด้วย validation ที่โมเดลและรัน smoke test ซ้ำจนผ่าน
+- ติดตั้ง SQLAlchemy ใน environment ตามที่ทีมอนุญาต; ไม่เพิ่มไฟล์ test เพราะ T-01 จำกัดไฟล์ที่แตะเฉพาะโมเดลสามไฟล์
+- ประเด็นที่ถามทีมแทนการเดา: ตัด `user_id`, ยืนยัน SQLAlchemy ORM, ชื่อ FK `menu_items.menu_id`, และวิธีแยกหมายเลข Order รายวันเป็น composite key
+- เปลี่ยนสถานะ T-01 เป็น “เสร็จ รอทีมตรวจ”; ไม่แก้ task อื่น; ไม่ commit หรือ push
+
+---
+
+## 2569-10-27 คำสั่ง: /implement T-02 specs/003-Order/tasks.md
+
+- สร้าง `backend/app/main.py` เป็น FastAPI app และ mount router จาก `backend/app/routes/orders.py` ที่ prefix `/api/orders`; สร้าง `backend/app/services/order_service.py` เป็น service boundary
+- ทำตามการยืนยันของทีมให้จำกัด T-02 เป็น router-only: ยังไม่ประกาศ endpoint, persistence หรือ cart storage; endpoint behavior อยู่ใน tasks ถัดไป
+- Test: `test_T02_fastapi_loads_orders_router` และ `test_T02_order_service_boundary_importable` ผ่าน (2 passed); ตรวจยืนยันว่า `app.include_router` ถูกเรียกด้วย Order router; `python -m compileall -q ...` ผ่าน
+- ไม่เพิ่มไฟล์ test เพราะไฟล์ที่ T-02 อนุญาตให้แตะมีเพียง `main.py`, `routes/orders.py` และ `services/order_service.py`; ทดสอบด้วย smoke test ชั่วคราว
+- ประเด็นที่ถามทีมแทนการเดา: การจัดการ storage/session และ payload confirm ยังไม่กำหนดใน plan จึงให้ทีมเลือก router-only ก่อน โดยไม่มีการเลือก persistence หรือ response contract เอง
+- เปลี่ยนสถานะ T-02 เป็น “เสร็จ รอทีมตรวจ”; ไม่แก้ task อื่น; ไม่ commit หรือ push
+
+---
+
+## 2569-10-27 คำสั่ง: /implement T-03 specs/003-Order/tasks.md
+
+- ปรับ `backend/app/routes/orders.py` ให้มี `POST /api/orders/items`; รับ draft reference (`order_date`, `order_id`), `menu_item_id`, `quantity` และส่งผล OrderItem กลับ
+- ปรับ `backend/app/services/order_service.py` ให้ตรวจเมนูผ่าน injected MenuRepository; เพิ่มรายการผ่าน injected OrderRepository เฉพาะเมื่อ `status == "open"`; เมนูที่ไม่มีส่ง 404, เมนูไม่เปิดขายส่ง 409, repository ที่ยังไม่ inject ส่ง 503
+- สร้าง `backend/tests/test_order_flow.py` ครอบคลุม `test_AC_ORDER_01_add_item_to_order`, `test_AC_ORDER_01_cannot_add_unavailable_menu` และ `test_AC_ORDER_01_rejects_non_positive_quantity`
+- ผลทดสอบ: `PYTHONPATH=/workspaces/660710762-swreqspec/backend pytest -q backend/tests/test_order_flow.py` — 3 passed; `compileall` และ `git diff --check` ผ่าน; มี Starlette deprecation warning จาก TestClient/httpx ที่ไม่ทำให้ test ล้มเหลว
+- ทำตามคำยืนยันทีม: รับ MenuRepository/OrderRepository ผ่าน dependency injection, อ้าง draft ด้วย `order_date` + `order_id`, รับ quantity จาก request และใช้ HTTP contract 201/409/404/503; ไม่สร้าง repository จริงหรือฐานข้อมูลนอกไฟล์ที่ task อนุญาต
+- สิ่งที่ถามทีมแทนการเดา: แหล่งอ่านเมนู, การจัดเก็บ OrderItem ใน draft, วิธีระบุ draft/quantity และ HTTP status/body; ให้ repository implementation จริงถูก inject ก่อนเปิดใช้ endpoint ใน runtime
+- เปลี่ยนสถานะ T-03 เป็น “เสร็จ รอทีมตรวจ”; ไม่แก้ task อื่น; ไม่ commit หรือ push
+
+---
+
+## 2569-10-27 คำสั่ง: /implement T-04 specs/003-Order/tasks.md
+
+- ปรับ `backend/app/services/order_service.py` ให้บันทึก sweetness, toppings และ ice แยกตาม `order_item_id`; ตรวจ sweetness/ice/toppings ตามตัวเลือกใน FR-07; เมื่อไม่ส่ง ice ใช้ “ใส่น้ำแข็งปริมาณปกติ”
+- ปรับ `backend/app/models/order_item.py` ให้ default น้ำแข็งถูกกำหนดทั้งระดับ ORM และฐานข้อมูล; คงความสัมพันธ์ options ต่อ OrderItem แบบหนึ่งต่อหนึ่งและ sweetness required ตามโมเดล
+- ปรับ `backend/tests/test_order_flow.py` เพิ่ม test AC-ORDER-02 สำหรับ options ที่แตกต่างกันต่อ item, toppings หลายรายการ, default/ตัวเลือกน้ำแข็ง, การปฏิเสธค่าที่ขาดหรือไม่ถูกต้อง และ persistence ผ่าน SQLAlchemy SQLite
+- ผลทดสอบ: `PYTHONPATH=/workspaces/660710762-swreqspec/backend pytest -q backend/tests/test_order_flow.py` — 10 passed (รวม T-03 regression); `compileall` และ `git diff --check` ผ่าน; มี Starlette deprecation warning จาก TestClient/httpx ที่ไม่ทำให้ tests ล้มเหลว
+- ทำตามคำยืนยันทีม: toppings เลือกได้หลายรายการ และ T-04 บันทึกตัวเลือกอย่างเดียวโดยไม่คำนวณราคาเพิ่ม; service ใช้ OrderRepository interface ที่ T-03 กำหนด
+- สิ่งที่ถามทีมแทนการเดา: cardinality ของ toppings และการคิดราคาเพิ่ม; ไม่มีการเพิ่มการคิดราคาเพราะ Spec ไม่กำหนดสูตร
+- เปลี่ยนสถานะ T-04 เป็น “เสร็จ รอทีมตรวจ”; ไม่แก้ task อื่น; ไม่ commit หรือ push
+
+---
+
+## 2569-10-27 คำสั่ง: ปรับ Menu Spec ให้รองรับ online ordering
+
+- ปรับ `specs/001-Menu/spec.md` รุ่น v8: แก้ Scope, FR-02, AC-MENU-02, ASM-02 และบันทึกการตัดสินใจเดิม Q-04 ว่าถูกแทนที่ เพื่อให้ปุ่ม “สั่งซื้อ” ส่งเมนูที่เลือกไปยังขั้นตอนสั่งซื้อใน SPEC-ORDER-001
+- คงการจัดการ Order และการชำระเงินไว้นอกขอบเขตของฟีเจอร์ Menu; ไม่สร้าง ID requirement ใหม่และไม่เปลี่ยนหมายเลข requirement เดิม
+- ไม่ได้แก้ `specs/001-Menu/tasks.md` หรือ `specs/001-Menu/test-cases.md`; รายการงานและ test case เดิมที่คาดหวังข้อความปิดการสั่งซื้อยังต้องปรับก่อนนำไปใช้กับ Menu T-02
+- การตรวจสอบ: อ่านทบทวนความสอดคล้องกับ FR-06/FR-07 ของ `specs/003-Order/spec.md`; ไม่รัน automated tests เนื่องจากเป็นการแก้เอกสารข้อกำหนด
+
+---
+
+## 2569-10-27 คำสั่ง: /implement T-05 specs/003-Order/tasks.md
+
+- สร้างหน้าเลือกเครื่องดื่มใน `frontend/src/pages/OrderPage.jsx` และ client ใน `frontend/src/api/client.js`: โหลด `GET /api/menu` ที่คืน `{ items: [{ menu_id, name, status, price }] }`, ขอ draft reference จาก API, เลือกได้เฉพาะเมนู `open`, บังคับเลือก sweetness, เปิดให้เลือก toppings หลายรายการและ ice เป็น optional; ถ้าไม่เลือก ice จะไม่ส่ง field เพื่อให้ backend ใช้ค่าเริ่มต้นตาม FR-07/ASM-09
+- เพิ่ม `frontend/src/pages/OrderPage.test.jsx` สำหรับ `test_AC_ORDER_01_add_item_to_order` และ `test_AC_ORDER_02_save_item_options` รวมกรณีตัวเลือกเสริมไม่ถูกส่งเมื่อไม่เลือก
+- ตามคำยืนยันทีมที่อนุญาตขยายขอบเขต backend: เพิ่ม API อ่านเมนูและสร้าง draft ใน `backend/app/routes/orders.py`, mount menu route ใน `backend/app/main.py`, เพิ่ม service/repository contract สำหรับการจองหมายเลข draft ใน `backend/app/services/order_service.py`, และขยาย POST `/api/orders/items` ให้บันทึกตัวเลือกพร้อมรายการ; ปรับ regression/API tests ใน `backend/tests/test_order_flow.py`
+- การตัดสินใจทีมที่ถามก่อน implement: จองหมายเลข `order_date`/`order_id` ฝั่ง backend ตอนสร้าง draft; ใช้ POST `/api/orders/items` ส่ง sweetness/toppings/ice; ใช้ GET `/api/menu` ตาม Menu plan พร้อม response object `items`
+- ผลทดสอบ UI: `frontend/node_modules/.bin/vitest run src/pages/OrderPage.test.jsx --root frontend --environment jsdom` — 3 passed
+- ผลทดสอบ backend: `PYTHONPATH=/workspaces/660710762-swreqspec/backend pytest -q backend/tests/test_order_flow.py` — 12 passed, 1 Starlette deprecation warning; `python -m compileall -q backend/app backend/tests` และ `git diff --check` ผ่าน
+- ข้อจำกัด runtime ที่ยังต้องทีมตรวจ: MenuRepository และ OrderRepository จริงยังไม่ได้ inject ในแอป; endpoint จึงตอบ 503 จนกว่าจะมี repository implementation/configuration ตาม boundary ที่ T-03 วางไว้
+- ไม่มี mockup ให้เทียบ; ไม่มีการเปลี่ยน test `test_TC_*`; เปลี่ยนสถานะ T-05 เป็น “เสร็จ รอทีมตรวจ”; ไม่ commit หรือ push
+
+---
+
+## 2569-10-27 คำสั่ง: /implement T-06 specs/003-Order/tasks.md
+
+- ปรับ `backend/app/services/order_service.py` และ `backend/app/routes/orders.py` เพิ่ม contract `GET /api/orders/preview?order_date=...&order_id=...` ให้คืนรายการ Order พร้อมชื่อ จำนวน unit price, line total และยอดรวมจาก repository; draft ที่ไม่พบตอบ 404
+- ปรับ `frontend/src/api/client.js` ให้โหลด summary ของ draft ที่เลือก และ `frontend/src/pages/OrderPage.jsx` ให้สลับจากเมนูไปหน้า summary แล้วกลับมาเลือกเพิ่ม โดยรายการเดิมยังอยู่ใน draft และแสดงชื่อ/จำนวน/ราคา/ยอดรวม
+- เพิ่ม `test_AC_ORDER_03_show_order_summary` และ `test_AC_ORDER_08_return_to_menu_for_more_items` ใน `frontend/src/pages/OrderPage.test.jsx`; เพิ่ม backend coverage ของ `test_AC_ORDER_03_show_order_summary` และ draft ที่ไม่พบใน `backend/tests/test_order_flow.py`
+- คำยืนยันทีมก่อน implement: ใช้ `price` จาก Menu API โดยไม่คำนวณโปรโมชั่นเพิ่ม (ไม่มีสูตรส่วนลดใน spec/API); อนุญาตเพิ่ม summary API และขยาย repository ให้คืนรายการ/ยอดรวม; ใช้ปุ่ม “ตรวจสอบ Order” และ “เลือกเครื่องดื่มเพิ่ม” สลับมุมมองหน้าเดิม
+- T-05 อยู่สถานะ “เสร็จ รอทีมตรวจ”; ทีมยืนยันให้นับเป็น prerequisite ที่เสร็จสำหรับการปิด T-06
+- ผลทดสอบ UI: `frontend/node_modules/.bin/vitest run src/pages/OrderPage.test.jsx --root frontend --environment jsdom` — 5 passed
+- ผลทดสอบ backend: `PYTHONPATH=/workspaces/660710762-swreqspec/backend pytest -q backend/tests/test_order_flow.py` — 14 passed, 1 Starlette deprecation warning; `python -m compileall -q backend/app backend/tests` และ `git diff --check` ผ่าน
+- ข้อจำกัด runtime: repository จริงยังไม่ได้ inject ในแอป; API จะตอบ 503 จนกว่าจะกำหนด implementation จริง; T-06 test ใช้ client mock ตาม Done Criteria
+- ไม่มี mockup ให้เทียบ; ไม่แก้ `test_TC_*`; เปลี่ยนสถานะ T-06 เป็น “เสร็จ รอทีมตรวจ”; ไม่ commit หรือ push
