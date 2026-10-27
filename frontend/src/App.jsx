@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import './Account.css';
 
 export const MOCK_LINE_USER_ID = 'mock-line-user-001';
 
@@ -213,89 +214,171 @@ export default function App() {
     setLineError(result.error);
   };
 
+  
   return (
-    <main>
-      <h1>Account Prototype</h1>
-      <p>
-        {currentAccount
-          ? 'สถานะ: Auto-login ใน Prototype'
-          : 'ยังไม่มีผู้ใช้ปัจจุบัน'}
-      </p>
+    <main className="account-page">
+      <div className="account-container">
+        <header>
+          <h1>OWL CHA</h1>
+          <p>สมัครสมาชิกและเข้าสู่ระบบ</p>
+          <p className="account-message" role="status">
+            {currentAccount
+              ? 'สถานะ: Auto-login ใน Prototype'
+              : 'ยังไม่มีผู้ใช้ปัจจุบัน'}
+          </p>
+        </header>
 
-      {currentAccount && (
-        <section aria-labelledby="line-heading">
-          <h2 id="line-heading">เชื่อมต่อ LINE</h2>
-          <button type="button" onClick={handleMockLineConnect}>
-            เชื่อมต่อ Mock LINE
-          </button>
-          <button type="button" onClick={handleMockLineSkip}>
-            ข้ามการเชื่อมต่อ LINE
-          </button>
-          <button type="button" onClick={handleMockLineFailure}>
-            จำลองการเชื่อมต่อล้มเหลว
-          </button>
-          {lineSuccess && <p role="status">{lineSuccess}</p>}
-          {lineSkipped && <p role="status">{lineSkipped}</p>}
-          {lineError && <p role="alert">{lineError}</p>}
+        {currentAccount && (
+          <section className="account-card" aria-labelledby="line-heading">
+            <h2 id="line-heading">เชื่อมต่อ LINE</h2>
+            <p>เชื่อมต่อบัญชี LINE หรือข้ามขั้นตอนนี้ได้</p>
+
+            <div className="account-line-actions">
+              <button
+                className="account-button"
+                type="button"
+                onClick={handleMockLineConnect}
+              >
+                เชื่อมต่อ Mock LINE
+              </button>
+
+              <button
+                className="account-button"
+                type="button"
+                onClick={handleMockLineSkip}
+              >
+                ข้ามการเชื่อมต่อ LINE
+              </button>
+
+              <button
+                className="account-button"
+                type="button"
+                onClick={handleMockLineFailure}
+              >
+                จำลองการเชื่อมต่อล้มเหลว
+              </button>
+            </div>
+
+            {lineSuccess && (
+              <p className="account-message" role="status">
+                {lineSuccess}
+              </p>
+            )}
+            {lineSkipped && (
+              <p className="account-message" role="status">
+                {lineSkipped}
+              </p>
+            )}
+            {lineError && (
+              <p className="account-message" role="alert">
+                {lineError}
+              </p>
+            )}
+          </section>
+        )}
+
+        <section className="account-card" aria-labelledby="login-heading">
+          <h2 id="login-heading">เข้าสู่ระบบ</h2>
+
+          <form className="account-form" onSubmit={handleLogin}>
+            <div>
+              <label htmlFor="login-identity">อีเมลหรือเบอร์โทรศัพท์</label>
+              <input
+                id="login-identity"
+                name="loginIdentity"
+                placeholder="กรอกอีเมลหรือเบอร์โทรศัพท์"
+                value={loginIdentity}
+                onChange={(event) => setLoginIdentity(event.target.value)}
+              />
+            </div>
+
+            <div>
+              <label htmlFor="login-password">รหัสผ่าน</label>
+              <input
+                id="login-password"
+                name="loginPassword"
+                type="password"
+                placeholder="กรอกรหัสผ่าน"
+                value={loginPassword}
+                onChange={(event) => setLoginPassword(event.target.value)}
+              />
+            </div>
+
+            <button className="account-button" type="submit">
+              เข้าสู่ระบบ
+            </button>
+
+            {loginSuccess && (
+              <p className="account-message" role="status">
+                {loginSuccess}
+              </p>
+            )}
+            {loginError && (
+              <p className="account-message" role="alert">
+                {loginError}
+              </p>
+            )}
+          </form>
         </section>
-      )}
 
-      <section aria-labelledby="login-heading">
-        <h2 id="login-heading">เข้าสู่ระบบ</h2>
-        <form onSubmit={handleLogin}>
-          <label htmlFor="login-identity">อีเมลหรือเบอร์โทรศัพท์</label>
-          <input
-            id="login-identity"
-            name="loginIdentity"
-            value={loginIdentity}
-            onChange={(event) => setLoginIdentity(event.target.value)}
-          />
-          <label htmlFor="login-password">รหัสผ่าน</label>
-          <input
-            id="login-password"
-            name="loginPassword"
-            type="password"
-            value={loginPassword}
-            onChange={(event) => setLoginPassword(event.target.value)}
-          />
-          <button type="submit">เข้าสู่ระบบ</button>
-          {loginSuccess && <p role="status">{loginSuccess}</p>}
-          {loginError && <p role="alert">{loginError}</p>}
-        </form>
-      </section>
+        <section className="account-card" aria-labelledby="register-heading">
+          <h2 id="register-heading">สมัครสมาชิก</h2>
+          <p>สมัครสมาชิกเพื่อใช้บริการ OWL CHA</p>
 
-      <section aria-labelledby="register-heading">
-        <h2 id="register-heading">สมัครสมาชิก</h2>
-        <form onSubmit={handleRegister}>
-          <label htmlFor="register-email">อีเมล</label>
-          <input
-            id="register-email"
-            name="registerEmail"
-            type="email"
-            value={registerEmail}
-            onChange={(event) => setRegisterEmail(event.target.value)}
-          />
-          <label htmlFor="register-phone">เบอร์โทรศัพท์</label>
-          <input
-            id="register-phone"
-            name="registerPhone"
-            type="tel"
-            value={registerPhone}
-            onChange={(event) => setRegisterPhone(event.target.value)}
-          />
-          <label htmlFor="register-password">รหัสผ่าน</label>
-          <input
-            id="register-password"
-            name="registerPassword"
-            type="password"
-            value={registerPassword}
-            onChange={(event) => setRegisterPassword(event.target.value)}
-          />
-          <button type="submit">สมัครสมาชิก</button>
-          {registerSuccess && <p role="status">{registerSuccess}</p>}
-          {registerError && <p role="alert">{registerError}</p>}
-        </form>
-      </section>
+          <form className="account-form" onSubmit={handleRegister}>
+            <div>
+              <label htmlFor="register-email">อีเมล</label>
+              <input
+                id="register-email"
+                name="registerEmail"
+                type="email"
+                placeholder="กรอกอีเมล"
+                value={registerEmail}
+                onChange={(event) => setRegisterEmail(event.target.value)}
+              />
+            </div>
+
+            <div>
+              <label htmlFor="register-phone">เบอร์โทรศัพท์</label>
+              <input
+                id="register-phone"
+                name="registerPhone"
+                type="tel"
+                placeholder="กรอกเบอร์โทรศัพท์"
+                value={registerPhone}
+                onChange={(event) => setRegisterPhone(event.target.value)}
+              />
+            </div>
+
+            <div>
+              <label htmlFor="register-password">รหัสผ่าน</label>
+              <input
+                id="register-password"
+                name="registerPassword"
+                type="password"
+                placeholder="กรอกรหัสผ่าน"
+                value={registerPassword}
+                onChange={(event) => setRegisterPassword(event.target.value)}
+              />
+            </div>
+
+            <button className="account-button" type="submit">
+              สมัครสมาชิก
+            </button>
+
+            {registerSuccess && (
+              <p className="account-message" role="status">
+                {registerSuccess}
+              </p>
+            )}
+            {registerError && (
+              <p className="account-message" role="alert">
+                {registerError}
+              </p>
+            )}
+          </form>
+        </section>
+      </div>
     </main>
   );
 }
