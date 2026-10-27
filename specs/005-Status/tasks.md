@@ -31,7 +31,7 @@
 
 #### จุดตรวจเฟส 0
 - test ที่ต้องผ่านทั้งหมด: `test_data_model_order_status`, `test_seed_order_data`
-- เปิดระบบ: plan.md ไม่ได้ระบุคำสั่งเปิด backend/frontend; ทีมกำหนดคำสั่งก่อนเริ่มพัฒนา
+- เปิดระบบ: กำหนด `APP_ENV=development` และ `ORDER_DATABASE_PATH` ก่อนเปิด FastAPI; plan.md ไม่ได้ระบุคำสั่งเปิด backend/frontend
 - คนลองเองตาม FR-19:
   Given มีข้อมูล Order ตัวอย่างของผู้ใช้ในฐานข้อมูล
   When ตรวจข้อมูลตัวอย่างและโครงสร้างข้อมูล
@@ -43,11 +43,11 @@
 ### T-03 สร้าง API รายการ Order ของผู้ใช้ปัจจุบัน
 - รองรับ: FR-19, NFR-SEC-02, Constraint: ผู้ใช้ต้องมี Order อยู่ในระบบก่อนจึงสามารถติดตามสถานะได้, Constraint: ผู้ใช้สามารถดูสถานะเฉพาะ Order ของตนเอง
 - ตรวจด้วย: AC-STATUS-01
-- ไฟล์ที่แตะ: `backend/main.py`, `backend/routes/orders.py`, `backend/services/orders.py`
+- ไฟล์ที่แตะ: `backend/app/main.py`, `backend/app/routes/orders.py`, `backend/app/services/orders.py`, `tests/test_AC_STATUS_01_show_only_user_orders.py`
 - แบบหน้าจอ: ไม่มี
 - ต้องทำหลัง: T-01, T-02
-- เสร็จเมื่อ: `GET /api/orders` ส่งกลับเฉพาะรายการ Order ของผู้ใช้ที่ยืนยันตัวตนแล้ว
-- สถานะ: พร้อมทำ
+- เสร็จเมื่อ: `GET /api/orders` ส่งกลับเฉพาะ Order ของผู้ใช้จาก Mock Authentication ซึ่งเปิดได้เฉพาะ Development/Test และปฏิเสธ Production; test ตรวจการแยก owner ผ่าน
+- สถานะ: เสร็จ รอทีมตรวจ
 
 ### T-04 สร้างหน้ารายการ Order ของผู้ใช้
 - รองรับ: FR-19, FR-23
@@ -240,7 +240,7 @@
 
 #### จุดตรวจเฟส 1
 - test ที่ต้องผ่านทั้งหมด: `test_AC_STATUS_01_show_only_user_orders`, `test_AC_STATUS_02_select_order_and_view_detail`, `test_AC_STATUS_03_display_4_step_status_flow`, `test_AC_STATUS_04_show_order_items_and_latest_status`, `test_AC_STATUS_05_list_orders_sorted_by_latest_created`, `test_AC_STATUS_06_select_order_from_multiple_orders`, `test_AC_STATUS_07_show_retry_when_load_fails`, `test_AC_STATUS_08_show_only_confirmed_status`, `test_AC_STATUS_09_show_only_authorized_orders` และ test ของเฟส 0 ต้องยังผ่าน
-- เปิดระบบ: plan.md ไม่ได้ระบุคำสั่งเปิด backend/frontend; ทีมกำหนดคำสั่งก่อนเริ่มพัฒนา
+- เปิดระบบ: กำหนด `APP_ENV=development` และ `ORDER_DATABASE_PATH` ก่อนเปิด FastAPI; plan.md ไม่ได้ระบุคำสั่งเปิด backend/frontend
 - คนลองเองตาม AC-STATUS-01 ถึง AC-STATUS-09:
   Given มี Order ตัวอย่างหลายรายการของผู้ใช้ และมี Order ของผู้ใช้อื่น รวมถึงสถานะที่บันทึกยืนยันแล้ว
   When เปิดรายการ Order เลือกรายการ และเปิดรายละเอียด โดยทดสอบทั้งกรณีโหลดสำเร็จและโหลดสถานะไม่สำเร็จ
