@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OWL CHA | จัดการเมนูและรายงานยอดขาย</title>
+    <link rel="stylesheet" href="../../shared/styles.css" />
+    <script src="menu.js" defer></script>
+  </head>
+  <body>
+    <main class="page-shell app-shell" data-spec="SPEC-MENU-MANAGEMENT-001 SPEC-SALES-REPORT-001">
+      <nav class="demo-nav" aria-label="นำทางต้นแบบทั้ง 6 กลุ่ม">
+        <a class="brand" href="../menu/index.html">OWL CHA</a>
+        <a href="../menu/index.html">01 เมนู</a>
+        <a href="../account/index.html">02 บัญชี</a>
+        <a href="../ordering-payment/index.html">03 สั่งซื้อ/ชำระ</a>
+        <a href="../tracking-notification/index.html">04 ติดตาม/แจ้งเตือน</a>
+        <a href="../staff-orders/index.html">05 พนักงาน</a>
+        <a href="../admin-menu-reports/index.html" aria-current="page">06 จัดการ/รายงาน</a>
+      </nav>
+
+      <header class="hero page-header">
+        <div>
+          <p class="eyebrow">UC-09 + UC-10 · ADMIN WORKSPACE</p>
+          <h1>จัดการร้าน OWL CHA</h1>
+          <p class="hero-copy">ดูแลเมนูและตรวจสอบภาพรวมยอดขาย</p>
+        </div>
+        <span class="demo-badge">ต้นแบบ · สิทธิ์ Admin/Manager จำลอง</span>
+      </header>
+
+      <div class="tab-bar" role="tablist" aria-label="ส่วนจัดการ">
+        <button id="menu-tab" class="tab-button is-active" type="button" role="tab" aria-selected="true" aria-controls="menu-management">จัดการเมนู <small>UC-09</small></button>
+        <button id="report-tab" class="tab-button" type="button" role="tab" aria-selected="false" aria-controls="sales-report">รายงานยอดขาย <small>UC-10</small></button>
+      </div>
+
+      <section id="menu-management" class="admin-section" role="tabpanel" aria-labelledby="menu-tab">
+        <section class="panel demo-permissions">
+          <label class="demo-select" for="admin-role"><span>สิทธิ์จำลองสำหรับ UC-09</span><select id="admin-role"><option value="admin">Admin ที่ได้รับอนุญาต</option><option value="guest">ไม่มีสิทธิ์ Admin</option></select></label>
+          <span id="admin-access-message" class="section-note" role="status" aria-live="polite"></span>
+        </section>
+        <div class="admin-layout">
+          <section class="panel admin-list-panel">
+            <div class="section-heading">
+              <div><p class="eyebrow">PRODUCT CATALOG</p><h2>รายการเมนู</h2></div>
+              <button id="new-menu" class="button button-primary" type="button">＋ เพิ่มเมนู</button>
+            </div>
+            <p class="section-note">สถานะสินค้าใช้ได้ 2 แบบ: เปิดขาย / หมด · การเปลี่ยนแปลงนี้เป็นข้อมูลจำลองในหน้านี้</p>
+            <div id="admin-menu-list" class="admin-menu-list" aria-live="polite"></div>
+          </section>
+
+          <section class="panel editor-panel" aria-labelledby="editor-heading">
+            <div class="section-heading">
+              <div><p class="eyebrow">MENU DETAILS</p><h2 id="editor-heading">เพิ่มหรือแก้ไขเมนู</h2></div>
+            </div>
+            <form id="menu-form" novalidate>
+              <input id="menu-id" type="hidden" />
+              <label class="field"><span>ชื่อเมนู <b aria-hidden="true">*</b></span><input id="menu-name" required /></label>
+              <label class="field"><span>ราคา (บาท) <b aria-hidden="true">*</b></span><input id="menu-price" type="number" min="0.01" step="0.01" required /></label>
+              <label class="field"><span>รายละเอียด <b aria-hidden="true">*</b></span><textarea id="menu-description" rows="3" required></textarea></label>
+              <label class="field"><span>รูปภาพเมนู <b aria-hidden="true">*</b></span><input id="menu-image" type="file" accept="image/*" /></label>
+              <p id="image-current" class="section-note">เลือกไฟล์รูปภาพสำหรับเมนูใหม่</p>
+              <label class="field"><span>สถานะสินค้า</span><select id="menu-status"><option value="open">เปิดขาย</option><option value="out_of_stock">หมด</option></select></label>
+              <label class="field"><span>โปรโมชั่นที่เกี่ยวข้อง <small>(ข้อความประกอบ ถ้าไม่มีให้เว้นว่าง)</small></span><input id="menu-promotion" placeholder="เช่น โปรโมชั่นตัวอย่าง" /></label>
+              <label class="field"><span>ผลการบันทึกจำลอง</span><select id="save-scenario"><option value="success">บันทึกสำเร็จ</option><option value="error">บันทึกไม่สำเร็จ</option></select></label>
+              <div id="menu-form-message" class="form-message" role="status" aria-live="polite" hidden></div>
+              <div class="form-actions">
+                <button class="button button-primary" type="submit">บันทึกข้อมูลจำลอง</button>
+                <button id="cancel-edit" class="button button-quiet" type="button">ล้างฟอร์ม</button>
+              </div>
+            </form>
+          </section>
+        </div>
+        <p class="trace-footer">อ้างอิง FR-42 ถึง FR-49 · AC-MENU-MGMT-01 ถึง AC-MENU-MGMT-14 · ไม่เปลี่ยนแปลง Order เดิม</p>
+      </section>
+
+      <section id="sales-report" class="admin-section" role="tabpanel" aria-labelledby="report-tab" hidden>
+        <section class="panel demo-permissions">
+          <label class="demo-select" for="manager-role"><span>สิทธิ์จำลองสำหรับ UC-10</span><select id="manager-role"><option value="manager">Manager ของสาขา</option><option value="guest">ไม่มีสิทธิ์ Manager</option></select></label>
+          <span id="report-access-message" class="section-note" role="status" aria-live="polite"></span>
+        </section>
+        <section class="panel report-filters">
+          <div><p class="eyebrow">SALES OVERVIEW</p><h2>รายงานยอดขายและสถิติ</h2><p class="section-note">คำนวณจาก Order ที่ชำระเงินสำเร็จเท่านั้น</p></div>
+          <div class="report-filter-controls">
+            <label class="field"><span>สาขา</span><select id="report-branch"><option value="main">OWL CHA · สาขาหลัก (ตัวอย่าง)</option><option value="campus">OWL CHA · สาขามหาวิทยาลัย (ตัวอย่าง)</option></select></label>
+            <label class="field"><span>วันที่เริ่ม</span><input id="report-start" type="date" /></label>
+            <label class="field"><span>วันที่สิ้นสุด</span><input id="report-end" type="date" /></label>
+            <button id="apply-report" class="button button-primary" type="button">แสดงรายงาน</button>
+            <label class="demo-select" for="report-scenario"><span>สถานการณ์จำลอง</span><select id="report-scenario"><option value="normal">มีข้อมูล</option><option value="empty">ไม่มีข้อมูล</option><option value="error">ประมวลผลไม่สำเร็จ</option></select></label>
+          </div>
+        </section>
+        <div id="report-message" class="state-card" role="status" hidden></div>
+        <div id="report-error" class="state-card error-state" role="alert" hidden>
+          <h3>ไม่สามารถประมวลผลรายงานได้</h3>
+          <p>ข้อมูลรายงานไม่สมบูรณ์ จึงไม่แสดงตัวเลขในขณะนี้</p>
+          <button id="retry-report" class="button button-primary" type="button">ลองใหม่</button>
+        </div>
+        <div id="report-content">
+          <div class="report-metrics" aria-live="polite">
+            <article class="panel metric-card"><span>ยอดขายรวม</span><strong id="revenue-total">฿0</strong><small>เฉพาะรายการชำระเงินสำเร็จ</small></article>
+            <article class="panel metric-card"><span>จำนวน Order</span><strong id="order-total">0</strong><small>Order ที่สำเร็จ</small></article>
+            <article class="panel metric-card"><span>ช่วงวันที่</span><strong id="report-range">—</strong><small id="report-branch-name"></small></article>
+          </div>
+          <section class="panel best-sellers">
+            <div class="section-heading"><div><p class="eyebrow">TOP ITEMS</p><h2>เมนูขายดี</h2></div><span class="section-note">เรียงตามจำนวนชิ้นที่ขาย</span></div>
+            <div id="best-seller-list" class="best-seller-list"></div>
+          </section>
+        </div>
+        <p class="trace-footer">อ้างอิง FR-50 ถึง FR-56 · AC-REPORT-01 ถึง AC-REPORT-12 · ข้อมูลรายงานเป็นข้อมูลตัวอย่าง</p>
+      </section>
+    </main>
+  </body>
+</html>
