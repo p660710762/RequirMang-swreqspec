@@ -27,8 +27,8 @@ def _validate_menu_fields(payload: dict[str, Any]) -> None:
         payload["price"] = float(payload["price"])
     except (TypeError, ValueError) as exc:
         raise ValueError("Menu price must be numeric") from exc
-    if payload["price"] < 0:
-        raise ValueError("Menu price must not be negative")
+    if payload["price"] <= 0:
+        raise ValueError("Menu price must be greater than 0")
     promotion = payload.get("promotion")
     if promotion is not None:
         if not isinstance(promotion, dict):

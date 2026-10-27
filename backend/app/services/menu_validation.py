@@ -65,6 +65,8 @@ def validate_menu_payload(payload: dict[str, Any], *, partial: bool = False) -> 
             raise ValueError("Menu price must be numeric") from exc
         if not math.isfinite(validated["price"]):
             raise ValueError("Menu price must be numeric")
+        if validated["price"] <= 0:
+            raise ValueError("Menu price must be greater than 0")
 
     if "status" in validated and validated["status"] is not None:
         if validated["status"] not in {MENU_STATUS_OPEN, MENU_STATUS_SOLD_OUT}:

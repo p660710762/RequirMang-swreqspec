@@ -52,6 +52,18 @@ describe('MenuForm', () => {
     expect(onSubmit).not.toHaveBeenCalled();
   });
 
+  it('test_AC_MENU_MGMT_05_price_must_be_positive', () => {
+    const onSubmit = vi.fn();
+    render(<MenuForm onSubmit={onSubmit} />);
+
+    fireEvent.change(screen.getByLabelText(/ชื่อเมนู/), { target: { value: 'ชาไทย' } });
+    fireEvent.change(screen.getByLabelText(/ราคา \(บาท\)/), { target: { value: '0' } });
+    fireEvent.click(screen.getByRole('button', { name: 'บันทึกเมนู' }));
+
+    expect(screen.getByRole('alert')).toHaveTextContent('กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วน');
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
   it('test_AC_MENU_MGMT_02_accepts_image_browse_file', async () => {
     const onSubmit = vi.fn().mockResolvedValue({ menu_id: 9 });
     vi.stubGlobal('FileReader', class {

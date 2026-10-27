@@ -58,7 +58,7 @@ export default function MenuForm({ onSubmit, onCancel }) {
     const name = formValues.name.trim();
     const price = Number(formValues.price);
     const status = formValues.status;
-    if (!name || formValues.price === '' || !Number.isFinite(price) || !status) {
+    if (!name || formValues.price === '' || !Number.isFinite(price) || price <= 0 || !status) {
       setFormState('error');
       setMessage('กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วน');
       return;

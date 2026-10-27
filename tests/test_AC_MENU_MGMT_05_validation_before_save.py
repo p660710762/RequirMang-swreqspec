@@ -31,6 +31,17 @@ class TestMenuManagementValidation(unittest.TestCase):
         self.assertEqual(response.status_code, 400)
         self.assertEqual(len(MENU_STORE), before_count)
 
+    def test_AC_MENU_MGMT_05_price_must_be_positive(self):
+        before_count = len(MENU_STORE)
+        response = self.client.post(
+            "/api/admin/menu",
+            json={"name": "ราคา 0", "price": 0, "status": "open"},
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("greater than 0", response.json()["detail"])
+        self.assertEqual(len(MENU_STORE), before_count)
+
 
 if __name__ == "__main__":
     unittest.main()

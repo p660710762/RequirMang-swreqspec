@@ -5,8 +5,9 @@ References: FR-42, FR-43, FR-45, FR-46, FR-47.
 
 from fastapi import FastAPI
 
-from backend.app.routes.menu import router as menu_router
+from backend.app.routes.menu import public_router, router as menu_router
 
 
 app = FastAPI(title="Menu Management API")
+app.include_router(public_router)
 app.include_router(menu_router)
