@@ -2,8 +2,6 @@
 
 บันทึกทุกครั้งที่ใช้ AI กับ repo นี้ เขียนต่อท้ายเรื่อย ๆ ไม่ต้องลบของเก่า
 
----
-
 ## 2569-09-18 10:00 คำสั่ง: /clarify
 
 - เครื่องมือ: Copilot in VS Code
@@ -652,3 +650,225 @@
 - ปรับ plan.md เฉพาะข้อความที่ไม่ตรงกับ Spec v7/CR-MENU-004: เมื่อไม่มีโปรโมชั่นยังแสดงเมนูหมดสต็อกพร้อม “หมด” และปุ่มสั่งซื้อกดไม่ได้; แก้ข้อความที่ระบุว่าไม่มี Constraints และปรับ API/แผนทดสอบที่กล่าวถึงเมนูเปิดขายอย่างเดียวให้ครอบคลุมเมนูหมดสต็อกด้วย
 - ปรับ test-cases.md ให้อ้างอิง SPEC-MENU-001 Draft v7 และเปลี่ยนเครื่องมือทุกแถวจาก vitest (หน้าจอ) เป็น node:test ตาม runner ที่ใช้จริง
 - คง Task และสถานะ Task เดิม; ไม่แก้โค้ดหรือเพิ่ม Automated Tests; ไม่ติดตั้งเครื่องมือ; ไม่ commit หรือ push
+
+---
+
+## 2569-10-26 12:23 คำสั่ง: /tasks specs/002-Register/spec.md
+
+- เครื่องมือ: Copilot in VS Code
+- ผลลัพธ์: สร้าง `specs/002-Register/tasks.md` สำหรับ UC-02 โดยแตก Release 1 React + Vite/Mock Data เป็น 6 เฟส 12 tasks ครอบคลุม FR-01 ถึง FR-06, NFR-SEC-01, NFR-REL-01, NFR-USE-01 และ AC-ACCOUNT-01 ถึง AC-ACCOUNT-06
+- สถานะ Open Questions: Q-01 ปิดด้วย Mock LINE Connection; Q-02 และ Q-03 เลื่อนไป Release 2 จึงไม่มี task ที่รอคำตอบ
+- ขอบเขต: ยังไม่เขียนโค้ด และไม่สร้าง task สำหรับ Backend, API, Database, JWT/session หรือ LINE API จริง
+
+## 2569-10-26 12:33 คำสั่ง: /implement T-00 specs/002-Register/tasks.md
+
+- ไฟล์ที่สร้าง: `frontend/package.json`, `frontend/package-lock.json`, `frontend/index.html`, `frontend/src/main.jsx`, `frontend/src/App.jsx`, `frontend/vite.config.js`
+- ผลการตรวจ: `npm run build` ผ่าน และ Vite dev server ตอบหน้าเริ่มต้นผ่าน `curl`
+- สถานะ Task: T-00 เปลี่ยนเป็น `เสร็จ รอทีมตรวจ`
+- สิ่งที่เกือบต้องเดา: ไม่มี; ใช้โครงสร้างและเทคโนโลยี React + Vite ตาม `plan.md` และยังไม่เพิ่ม Logic ของ Task อื่น
+
+## 2569-10-26 12:36 คำสั่ง: /implement T-01 specs/002-Register/tasks.md
+
+- ไฟล์ที่แก้: `frontend/src/App.jsx`
+- ผลการตรวจ: `npm run build` ผ่าน และ Vite dev server เสิร์ฟ `App.jsx` ที่มี Mock Account State, current account state และ Mock LINE link state
+- สถานะ Task: T-01 เปลี่ยนเป็น `เสร็จ รอทีมตรวจ`
+- สิ่งที่เกือบต้องเดา: ไม่มี; ไม่เพิ่ม Register/Login/LINE flow และไม่มีฟิลด์ LINE Password ตามขอบเขต T-01
+
+## 2569-10-26 12:38 คำสั่ง: /implement T-02 specs/002-Register/tasks.md
+
+- ไฟล์ที่แก้: `frontend/src/App.jsx`
+- ผลการตรวจ: `npm run build` ผ่าน และ Vite dev server เสิร์ฟโครง Login ด้านบนกับ Register ด้านล่างครบถ้วน
+- สถานะ Task: T-02 เปลี่ยนเป็น `เสร็จ รอทีมตรวจ`
+- สิ่งที่เกือบต้องเดา: ไม่มี; สร้างเฉพาะโครงฟอร์มตาม FR-02 และยังไม่เพิ่ม submit, validation หรือ flow ของ Task อื่น
+
+## 2569-10-26 12:41 คำสั่ง: /implement T-03 specs/002-Register/tasks.md
+
+- ไฟล์ที่แก้: `frontend/src/App.jsx`
+- ผลการตรวจ: `npm run build` ผ่าน; เพิ่ม validation, duplicate check และ Register Mock Flow ตาม FR-01/FR-02
+- สถานะ Task: T-03 เปลี่ยนเป็น `เสร็จ รอทีมตรวจ`
+- สิ่งที่เกือบต้องเดา: ไม่เพิ่มข้อความหรือพฤติกรรม Auto-login ของ T-04; ใช้ข้อความ error ที่มีใน FR-04 สำหรับกรณีข้อมูลซ้ำ และยังไม่เพิ่มไฟล์ test เพราะ T-03 ระบุไฟล์ที่แตะเฉพาะ `frontend/src/`
+
+## 2569-10-26 12:42 คำสั่ง: /implement T-04 specs/002-Register/tasks.md
+
+- ไฟล์ที่แก้: `frontend/src/App.jsx`
+- ผลการตรวจ: `npm run build` ผ่าน และ Vite dev server เสิร์ฟข้อความสมัครสมาชิกสำเร็จพร้อมสถานะ Auto-login
+- สถานะ Task: T-04 เปลี่ยนเป็น `เสร็จ รอทีมตรวจ`
+- สิ่งที่เกือบต้องเดา: ไม่มี; Auto-login ใช้ `currentAccount` ใน React State ตาม Prototype และไม่สร้าง session/token จริง
+
+## 2569-10-26 12:44 คำสั่ง: /implement T-05 specs/002-Register/tasks.md
+
+- ไฟล์ที่แก้: `frontend/src/App.jsx`
+- ผลการตรวจ: `npm run build` ผ่าน และ Vite dev server เสิร์ฟ `loginMockAccount` กับ Login handler ที่ตั้งผู้ใช้ปัจจุบันเมื่อข้อมูลถูกต้อง
+- สถานะ Task: T-05 เปลี่ยนเป็น `เสร็จ รอทีมตรวจ`
+- สิ่งที่เกือบต้องเดา: ไม่มี; ใช้ Email หรือเบอร์โทรศัพท์ช่องเดียวตาม FR-03 และยังไม่เพิ่มข้อความแจ้งเตือนของ T-07
+
+## 2569-10-26 12:45 คำสั่ง: /implement T-06 specs/002-Register/tasks.md
+
+- ไฟล์ที่แก้: `frontend/src/App.jsx`
+- ผลการตรวจ: `npm run build` ผ่าน และ Vite dev server เสิร์ฟข้อความ `เข้าสู่ระบบสำเร็จ` เมื่อ Login สำเร็จ
+- สถานะ Task: T-06 เปลี่ยนเป็น `เสร็จ รอทีมตรวจ`
+- สิ่งที่เกือบต้องเดา: ไม่มี; ใช้ข้อความสถานะภาษาไทยที่สื่อผลตาม AC-ACCOUNT-02 และยังไม่เพิ่ม Error Message ของ T-07/T-08
+
+## 2569-10-26 12:46 คำสั่ง: /implement T-07 specs/002-Register/tasks.md
+
+- ไฟล์ที่แก้: `frontend/src/App.jsx`
+- ผลการตรวจ: `npm run build` ผ่าน และ Vite dev server เสิร์ฟสถานะ `loginError` เมื่อข้อมูล Login ไม่ถูกต้อง
+- สถานะ Task: T-07 เปลี่ยนเป็น `เสร็จ รอทีมตรวจ`
+- สิ่งที่เกือบต้องเดา: ไม่มี; เก็บ Error State ไว้ให้ T-08 แสดงผล และยังไม่เพิ่ม UI แจ้งเตือนใน Task นี้
+
+## 2569-10-26 12:47 คำสั่ง: /implement T-08 specs/002-Register/tasks.md
+
+- ไฟล์ที่แก้: `frontend/src/App.jsx`, `specs/002-Register/tasks.md`
+- ผลการตรวจ: `npm run build`, Vite dev server และ `git diff --check` ผ่าน; เพิ่มข้อความแจ้งเตือน Login ไม่สำเร็จตาม FR-04
+- สถานะ Task: T-08 เปลี่ยนเป็น `เสร็จ รอทีมตรวจ`
+- สิ่งที่เกือบต้องเดา: ไม่มี; ใช้ข้อความตาม FR-04 คือ `กรุณากรอกข้อมูลให้ถูกต้อง` และไม่เพิ่ม Flow อื่น
+
+## 2569-10-26 12:49 คำสั่ง: /implement T-09 specs/002-Register/tasks.md
+
+- ไฟล์ที่แก้: `frontend/src/App.jsx`, `specs/002-Register/tasks.md`
+- ผลการตรวจ: เพิ่ม `connectMockLine()` สำหรับสร้างความสัมพันธ์กับ `mock-line-user-001` เฉพาะเมื่อมีผู้ใช้ที่ Login/Register สำเร็จ และไม่เก็บ LINE Password
+- สถานะ Task: T-09 เปลี่ยนเป็น `เสร็จ รอทีมตรวจ`
+- สิ่งที่เกือบต้องเดา: ไม่มี; ยังไม่เพิ่ม UI แสดงสถานะ เพราะเป็นขอบเขตของ T-10
+
+## 2569-10-26 12:50 คำสั่ง: /implement T-10 specs/002-Register/tasks.md
+
+- ไฟล์ที่แก้: `frontend/src/App.jsx`, `specs/002-Register/tasks.md`
+- ผลการตรวจ: เพิ่มส่วน UI เชื่อมต่อ Mock LINE หลัง Login/Register สำเร็จ และแสดงสถานะสำเร็จพร้อม `mock-line-user-001`
+- สถานะ Task: T-10 เปลี่ยนเป็น `เสร็จ รอทีมตรวจ`
+- สิ่งที่เกือบต้องเดา: ไม่มี; ไม่เพิ่มผลล้มเหลวหรือการข้าม LINE ซึ่งเป็นขอบเขตของ T-11/T-12
+
+## 2569-10-26 12:51 คำสั่ง: /implement T-11 specs/002-Register/tasks.md
+
+- ไฟล์ที่แก้: `frontend/src/App.jsx`, `specs/002-Register/tasks.md`
+- ผลการตรวจ: เพิ่ม `skipMockLine()` และปุ่มข้าม Mock LINE โดยคง `lineLinks` เดิมและแสดงสถานะว่าสามารถใช้งาน Prototype ต่อได้
+- สถานะ Task: T-11 เปลี่ยนเป็น `เสร็จ รอทีมตรวจ`
+- สิ่งที่เกือบต้องเดา: ไม่มี; ไม่สร้างความสัมพันธ์ LINE ใหม่ และไม่เพิ่ม Failure Flow ของ T-12
+
+## 2569-10-26 12:52 คำสั่ง: /implement T-12 specs/002-Register/tasks.md
+
+- ไฟล์ที่แก้: `frontend/src/App.jsx`, `specs/002-Register/tasks.md`
+- ผลการตรวจ: เพิ่ม `failMockLine()` และปุ่มจำลองการเชื่อมต่อล้มเหลว โดยคง `lineLinks` เดิม ไม่บันทึก Mock LINE User ID และแสดงสถานะผิดพลาด
+- สถานะ Task: T-12 เปลี่ยนเป็น `เสร็จ รอทีมตรวจ`
+- สิ่งที่เกือบต้องเดา: ไม่มี; ใช้ข้อความที่ระบุพฤติกรรมใน AC-ACCOUNT-06 และไม่เพิ่ม Backend/API จริง
+
+## 2569-10-26 13:04 คำสั่ง: /testcases AC-ACCOUNT-01 specs/002-Register/
+
+- โหมด: ร่าง
+- ไฟล์ที่สร้าง: `specs/002-Register/test-cases.md`
+- TC ID ที่เสนอ: `TC-ACCOUNT-01-1`, `TC-ACCOUNT-01-2`, `TC-ACCOUNT-01-3`, `TC-ACCOUNT-01-4`
+- ผลการตรวจ: ยังไม่เขียนหรือรันโค้ด test เพราะทุกแถวมีสถานะ `ร่าง`
+- ประเด็นที่ต้องถามทีม: spec ยังไม่ระบุข้อความหรือผลลัพธ์ UI ที่แน่นอนเมื่อสมัครสมาชิกโดยไม่กรอกทั้ง Email/เบอร์โทรศัพท์ หรือไม่กรอก Password
+
+## 2569-10-26 13:07 คำสั่ง: /testcases AC-ACCOUNT-01 specs/002-Register/
+
+- โหมด: เขียน test
+- ไฟล์ที่สร้าง: `frontend/src/__tests__/AC-ACCOUNT-01.test.jsx`
+- Test ที่เขียน: `test_AC_ACCOUNT_01_register_success`, `test_AC_ACCOUNT_01_register_phone_only`, `test_AC_ACCOUNT_01_register_without_identifier`, `test_AC_ACCOUNT_01_register_without_password`
+- ผลการตรวจ: `git diff --check` ผ่าน; `cd frontend && npm test` รันไม่ได้เพราะ `package.json` ไม่มี script `test`
+- ข้อจำกัดสภาพแวดล้อม: ไม่มี Vitest หรือ Testing Library ใน `frontend/package.json`/lockfile จึงยังไม่สามารถรัน test ได้
+
+## 2569-10-26 13:16 คำสั่ง: /testcases AC-ACCOUNT-02 specs/002-Register/
+
+- โหมด: ร่าง
+- TC ID ที่เสนอ: `TC-ACCOUNT-02-1`, `TC-ACCOUNT-02-2`, `TC-ACCOUNT-02-3`, `TC-ACCOUNT-02-4`
+- ผลการตรวจ: ยังไม่เขียนหรือรันโค้ด test เพราะแถว AC-ACCOUNT-02 มีสถานะ `ร่าง`
+- อ้างอิงผลลัพธ์: FR-03 สำหรับ Login สำเร็จ และ FR-04 สำหรับ Password/ตัวระบุบัญชีไม่ถูกต้อง
+
+## 2569-10-26 13:17 คำสั่ง: /testcases AC-ACCOUNT-03 specs/002-Register/
+
+- โหมด: ร่าง
+- TC ID ที่เสนอ: `TC-ACCOUNT-03-1`, `TC-ACCOUNT-03-2`, `TC-ACCOUNT-03-3`, `TC-ACCOUNT-03-4`
+- ผลการตรวจ: ยังไม่เขียนหรือรันโค้ด test เพราะแถว AC-ACCOUNT-03 มีสถานะ `ร่าง`
+- อ้างอิงผลลัพธ์: FR-04 และ UC-02 Exception Flow 4a กำหนดให้ปฏิเสธ Login และแสดงข้อความ `กรุณากรอกข้อมูลให้ถูกต้อง`
+
+## 2569-10-26 13:25 คำสั่ง: /testcases AC-ACCOUNT-02 specs/002-Register/
+
+- โหมด: เขียน test
+- ไฟล์ที่แก้: `frontend/src/__tests__/AC-ACCOUNT-01.test.jsx`, `prompt-log.md`
+- Test ที่เพิ่ม: `test_AC_ACCOUNT_02_login_with_email`, `test_AC_ACCOUNT_02_login_with_phone`, `test_AC_ACCOUNT_02_login_with_invalid_password`, `test_AC_ACCOUNT_02_login_with_unknown_identifier`
+- ผลการตรวจ: เพิ่ม test ตามแถวสถานะ `ใช้ได้` ครบ 4 แถว และ `git diff --check` ผ่าน; `cd frontend && npm test` รันไม่ได้เพราะ `package.json` ไม่มี script `test`
+- ข้อจำกัดสภาพแวดล้อม: ไม่มี Vitest ใน `frontend/package.json`/lockfile จึงยังไม่สามารถรัน test ได้
+
+## 2569-10-26 13:19 คำสั่ง: /testcases AC-ACCOUNT-04 specs/002-Register/
+
+- โหมด: ร่าง
+- TC ID ที่เสนอ: `TC-ACCOUNT-04-1`, `TC-ACCOUNT-04-2`, `TC-ACCOUNT-04-3`
+- ผลการตรวจ: ยังไม่เขียนหรือรันโค้ด test เพราะแถว AC-ACCOUNT-04 มีสถานะ `ร่าง`
+- ประเด็นที่ต้องถามทีม: Spec ไม่ได้ระบุผลลัพธ์เมื่อเลือกเชื่อมต่อ LINE โดยไม่มี Login/Register สำเร็จ
+
+## 2569-10-27 13:06 คำสั่ง: /testcases AC-ACCOUNT-04 specs/002-Register/
+
+- โหมด: เขียน test
+- ไฟล์ที่แก้: `frontend/src/__tests__/AC-ACCOUNT-01.test.jsx`, `prompt-log.md`
+- Test ที่เพิ่ม: `test_AC_ACCOUNT_04_line_connect_after_register`, `test_AC_ACCOUNT_04_line_connect_after_login`, `test_AC_ACCOUNT_04_line_connect_without_account`
+- ผลการตรวจ: เพิ่ม test ตามแถวสถานะ `ใช้ได้` ครบ 3 แถว จากเดิม 12 เป็น 15 ตัว; `git diff --check` ผ่าน
+- ผลการรัน: `cd frontend && npm test` รันไม่ได้เพราะ `frontend/package.json` ไม่มี script `test`; ไม่พบ Vitest ติดตั้งใน frontend
+
+## 2569-10-26 13:31 คำสั่ง: /testcases AC-ACCOUNT-03 specs/002-Register/
+
+- โหมด: เขียน test
+- ไฟล์ที่แก้: `frontend/src/__tests__/AC-ACCOUNT-01.test.jsx`, `prompt-log.md`
+- Test ที่เพิ่ม: `test_AC_ACCOUNT_03_login_invalid_password`, `test_AC_ACCOUNT_03_login_unknown_identifier`, `test_AC_ACCOUNT_03_login_without_identifier`, `test_AC_ACCOUNT_03_login_without_password`
+- ผลการตรวจ: เพิ่ม test ตามแถวสถานะ `ใช้ได้` ครบ 4 แถว; `git diff --check` ผ่าน; `cd frontend && npm test` รันไม่ได้เพราะ `package.json` ไม่มี script `test`
+- ข้อจำกัดสภาพแวดล้อม: ไม่มี Vitest/Testing Library จึงตรวจผลการปฏิเสธ Login ผ่าน `loginMockAccount()` ได้ แต่ยังตรวจข้อความแจ้งเตือนบน UI ไม่ได้
+
+## 2569-10-27 13:08 คำสั่ง: /testcases AC-ACCOUNT-05 specs/002-Register/
+
+- โหมด: ร่าง
+- TC ID ที่เสนอ: `TC-ACCOUNT-05-1`, `TC-ACCOUNT-05-2`, `TC-ACCOUNT-05-3`
+- ผลการตรวจ: เพิ่มแถวสถานะ `ร่าง` 3 แถวต่อท้ายตาราง; ยังไม่เขียนหรือรันโค้ด test
+- ประเด็นที่ต้องถามทีม: ผลลัพธ์กรณีลูกค้าเลือกเชื่อมต่อ LINE แทนการข้ามขั้นตอนใน `TC-ACCOUNT-05-3` spec ไม่ได้บอก
+
+## 2569-10-27 13:12 คำสั่ง: /testcases AC-ACCOUNT-05 specs/002-Register/
+
+- โหมด: เขียน test
+- ไฟล์ที่แก้: `frontend/src/__tests__/AC-ACCOUNT-01.test.jsx`, `prompt-log.md`
+- Test ที่เพิ่ม: `test_AC_ACCOUNT_05_skip_line_after_login`, `test_AC_ACCOUNT_05_skip_line_after_register`
+- ผลการตรวจ: เพิ่ม test ตามแถวสถานะ `ใช้ได้` ครบ 2 แถว จากเดิม 15 เป็น 17 ตัว; `git diff --check` ผ่าน
+- ผลการรัน: `cd frontend && npm test` รันไม่ได้เพราะ `frontend/package.json` ไม่มี script `test`
+
+## 2569-10-27 13:13 คำสั่ง: /testcases AC-ACCOUNT-06 specs/002-Register/
+
+- โหมด: ร่าง
+- TC ID ที่เสนอ: `TC-ACCOUNT-06-1`, `TC-ACCOUNT-06-2`, `TC-ACCOUNT-06-3`
+- ผลการตรวจ: เพิ่มแถวสถานะ `ร่าง` 3 แถวต่อท้ายตาราง; ยังไม่เขียนหรือรันโค้ด test
+- ประเด็นที่ต้องถามทีม: ผลลัพธ์กรณีผู้ใช้ยังไม่ได้ Login/Register แล้วเลือกเชื่อมต่อ LINE แต่การเชื่อมต่อล้มเหลว ใน `TC-ACCOUNT-06-3` spec ไม่ได้บอกว่าผู้ใช้ยังคงใช้งานระบบต่อได้หรือไม่
+
+## 2569-10-27 13:16 การทบทวน AC-ACCOUNT-06
+
+- เปลี่ยนสถานะ `TC-ACCOUNT-06-1` และ `TC-ACCOUNT-06-2` จาก `ร่าง` เป็น `ใช้ได้`
+- ลบ `TC-ACCOUNT-06-3` เนื่องจากเป็นกรณีซ้ำกับ `TC-ACCOUNT-04-3` ซึ่งครอบคลุมการปฏิเสธการเชื่อมต่อ LINE ก่อน Login/Register แล้ว
+- ไม่สร้าง Automated Test และไม่แก้ `spec.md`
+
+## 2569-10-27 13:19 คำสั่ง: /testcases AC-ACCOUNT-06 specs/002-Register/
+
+- โหมด: เขียน test
+- ไฟล์ที่แก้: `frontend/src/__tests__/AC-ACCOUNT-01.test.jsx`, `prompt-log.md`
+- Test ที่เพิ่ม: `test_AC_ACCOUNT_06_line_connect_failure_after_login`, `test_AC_ACCOUNT_06_line_connect_failure_after_register`
+- ผลการตรวจ: เพิ่ม test ตามแถวสถานะ `ใช้ได้` ครบ 2 แถว จากเดิม 17 เป็น 19 ตัว; `git diff --check` ผ่าน
+- ผลการรัน: `cd frontend && npm test` รันไม่ได้เพราะ `frontend/package.json` ไม่มี script `test`
+
+## 2569-10-27 13:20 คำสั่ง: /verify specs/002-Register/
+
+- ผลการรัน: `cd backend && pytest -v` รันไม่ได้เพราะไม่มีโฟลเดอร์ `backend/`; `cd frontend && npm test` รันไม่ได้เพราะ `frontend/package.json` ไม่มี script `test`
+- ผลการตรวจ RTM: เพิ่ม 17 แถวในตามรอยไปข้างหน้า — `ครบ` 0, `ยังไม่ถึง` 0, `รอ Q-xx` 0, `ช่องโหว่` 17
+- ข้อค้นพบใหม่: F-001, F-002, F-003, F-004, F-005, F-006
+- สร้าง [rtm.md](specs/002-Register/rtm.md) โดยไม่แก้โค้ด, test, spec, plan หรือ tasks
+
+## 2569-10-27 คำสั่ง: เสนอ Test Cases สำหรับ duplicate registration
+
+- โหมด: ร่าง
+- ไฟล์ที่แก้: `specs/002-Register/test-cases.md`, `prompt-log.md`
+- Test Cases ที่เสนอ: `TC-ACCOUNT-01-5` สมัครสมาชิกด้วย Email ซ้ำ และ `TC-ACCOUNT-01-6` สมัครสมาชิกด้วยเบอร์โทรศัพท์ซ้ำ
+- การเชื่อมโยง: ใช้ `AC-ACCOUNT-01` เป็น AC ของ flow สมัครสมาชิก และอ้างผลลัพธ์ duplicate ตาม `FR-04`; ไม่สร้าง AC หรือ Requirement ใหม่
+- กรณี Email ซ้ำแต่ใช้ตัวพิมพ์เล็ก/ใหญ่ต่างกัน: ไม่เพิ่ม Test Case เนื่องจาก Spec ปัจจุบันไม่ได้กำหนดว่า Email ต้องแยกหรือไม่แยกตัวพิมพ์
+- ทั้งสองแถวมีสถานะ `ร่าง`; ยังไม่เขียนหรือแก้ Automated Tests, Source Code, Spec หรือ RTM
+
+## 2569-10-27 คำสั่ง: /testcases AC-ACCOUNT-01 specs/002-Register/
+
+- โหมด: เขียน test จากแถวสถานะ `ใช้ได้`
+- Test ที่เพิ่ม: `test_AC_ACCOUNT_01_register_duplicate_email`, `test_AC_ACCOUNT_01_register_duplicate_phone`
+- ไฟล์ที่แก้: `frontend/src/__tests__/AC-ACCOUNT-01.test.jsx`, `prompt-log.md`
+- เพิ่ม test 2 ตัวตาม `TC-ACCOUNT-01-5` และ `TC-ACCOUNT-01-6`; ไม่แก้ Source Code หรือ Test Cases
+- ผลการตรวจ: เพิ่ม assertion การปฏิเสธการสมัคร, ข้อความ “อีเมล/เบอร์โทรศัพท์นี้ถูกใช้งานแล้ว” และไม่สร้างบัญชีซ้ำ
+- ผลการรัน: `cd frontend && npm test` ผ่าน 21/21 Tests
