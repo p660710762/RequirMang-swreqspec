@@ -10,11 +10,15 @@ from ..services.order_service import (
     MenuItemNotFoundError,
     MenuItemUnavailableError,
     DraftOrderReference,
+    InvalidOrderOptionsError,
     MenuRepository,
     OrderDraftService,
     OrderDraftNotFoundError,
     OrderItemRecord,
+    OrderItemUpdateRecord,
     OrderOptionRecord,
+    OrderNotReadyError,
+    OrderOutOfStockError,
     OrderRepository,
     OrderSummaryRecord,
     OrderService,
@@ -114,6 +118,37 @@ class OrderSummaryResponse(BaseModel):
     total_amount: Decimal
 
 
+# รองรับ FR-07 และ FR-09 สำหรับการแก้จำนวนหรือตัวเลือกก่อนยืนยัน Order
+class UpdateOrderItemRequest(BaseModel):
+    quantity: int | None = Field(default=None, ge=0, strict=True)
+    sweetness_level: SweetnessLevel | None = None
+    toppings: list[Topping] | None = None
+    ice_level: IceLevel | None = None
+
+
+# รองรับ FR-08 และ FR-09 โดยคืนรายการที่แก้ไขและยอดรวมใหม่
+class UpdatedOrderItemResponse(BaseModel):
+    order_item_id: int | None
+    quantity: int | None
+    sweetness_level: str | None
+    toppings: list[str] | None
+    ice_level: str | None
+    total_amount: Decimal
+
+
+# รองรับ FR-10 และ FR-11 โดยคืนผลการตรวจ Order ก่อนเข้าสู่การชำระเงิน
+class ConfirmOrderRequest(BaseModel):
+    order_date: date
+    order_id: str = Field(pattern=r"^[0-9]{3}$")
+
+
+# รองรับ FR-11 โดยส่ง Order ที่พร้อมเข้าสู่ขั้นตอนชำระเงิน
+class ConfirmOrderResponse(BaseModel):
+    order_date: date
+    order_id: str
+    payment_status: Literal["pending"]
+
+
 def get_menu_repository() -> MenuRepository:
     # รองรับ FR-06; การติดตั้งระบบจริงต้อง inject repository ของเมนู
     raise HTTPException(
@@ -209,6 +244,37 @@ def get_order_summary(
     )
 
 
+@router.post("/confirm", response_model=ConfirmOrderResponse)
+def confirm_order(
+    request: ConfirmOrderRequest,
+    service: Annotated[OrderService, Depends(get_order_service)],
+) -> ConfirmOrderResponse:
+    # รองรับ FR-10 และ FR-11 โดยไม่เริ่มชำระเงินหาก Order หรือสต็อกไม่พร้อม
+    try:
+        result = service.confirm_order(request.order_date, request.order_id)
+    except OrderDraftNotFoundError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Order draft not found",
+        ) from exc
+    except OrderNotReadyError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=str(exc),
+        ) from exc
+    except OrderOutOfStockError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Menu item is out of stock; choose another menu",
+        ) from exc
+
+    return ConfirmOrderResponse(
+        order_date=result.order_date,
+        order_id=result.order_id,
+        payment_status="pending",
+    )
+
+
 @router.post(
     "/items",
     response_model=AddedOrderItemResponse,
@@ -252,4 +318,44 @@ def add_order_item(
         sweetness_level=options.sweetness_level,
         toppings=options.toppings,
         ice_level=options.ice_level,
+    )
+
+
+@router.patch(
+    "/items/{order_item_id}",
+    response_model=UpdatedOrderItemResponse,
+)
+def update_order_item(
+    order_item_id: int,
+    request: UpdateOrderItemRequest,
+    service: Annotated[OrderService, Depends(get_order_service)],
+) -> UpdatedOrderItemResponse:
+    # รองรับ FR-07 และ FR-09 โดยแก้หรือลบรายการก่อนยืนยันคำสั่งซื้อ
+    try:
+        result: OrderItemUpdateRecord = service.update_item(
+            order_item_id,
+            request.quantity,
+            request.sweetness_level,
+            request.toppings,
+            request.ice_level,
+        )
+    except InvalidOrderOptionsError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=str(exc),
+        ) from exc
+    except OrderDraftNotFoundError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Order item not found",
+        ) from exc
+
+    item = result.item
+    return UpdatedOrderItemResponse(
+        order_item_id=item.order_item_id if item else None,
+        quantity=item.quantity if item else None,
+        sweetness_level=result.sweetness_level,
+        toppings=result.toppings,
+        ice_level=result.ice_level,
+        total_amount=result.total_amount,
     )

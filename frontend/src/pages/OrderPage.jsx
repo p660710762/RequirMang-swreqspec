@@ -2,9 +2,11 @@ import React, { useEffect, useState } from "react";
 
 import {
   addOrderItem,
+  confirmOrder,
   createDraft,
   getMenu,
   getOrderSummary,
+  updateOrderItem,
 } from "../api/client.js";
 
 const SWEETNESS_LEVELS = [
@@ -60,6 +62,9 @@ export default function OrderPage() {
   const [view, setView] = useState("menu");
   const [summary, setSummary] = useState(null);
   const [loadingSummary, setLoadingSummary] = useState(false);
+  const [updatingItemId, setUpdatingItemId] = useState(null);
+  const [confirmingOrder, setConfirmingOrder] = useState(false);
+  const [paymentReady, setPaymentReady] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -147,20 +152,97 @@ export default function OrderPage() {
     } finally {
       setLoadingSummary(false);
     }
+
+  }
+
+  // รองรับ FR-07 และ FR-09 โดยบันทึกการแก้ไขและแสดงยอดรวมล่าสุด
+  async function handleUpdateItem(item, changes) {
+    setError("");
+    setUpdatingItemId(item.order_item_id);
+    try {
+      const updated = await updateOrderItem(item.order_item_id, changes);
+      setSummary((current) => {
+        if (!current) return current;
+        return {
+          ...current,
+          items: updated.order_item_id === null
+            ? current.items.filter((currentItem) => currentItem.order_item_id !== item.order_item_id)
+            : current.items.map((currentItem) =>
+                currentItem.order_item_id === item.order_item_id
+                  ? {
+                      ...currentItem,
+                      quantity: updated.quantity,
+                      line_total: String(Number(currentItem.unit_price) * updated.quantity),
+                    }
+
+                  : currentItem,
+              ),
+          total_amount: updated.total_amount,
+        };
+      });
+      setAddedItems((current) =>
+        updated.order_item_id === null
+          ? current.filter((currentItem) => currentItem.order_item_id !== item.order_item_id)
+          : current.map((currentItem) =>
+              currentItem.order_item_id === item.order_item_id
+                ? { ...currentItem, quantity: updated.quantity, ...changes }
+                : currentItem,
+            ),
+      );
+    } catch (updateError) {
+      setError(updateError instanceof Error ? updateError.message : "แก้ไขรายการไม่สำเร็จ");
+    } finally {
+      setUpdatingItemId(null);
+    }
+  }
+
+  // รองรับ FR-10 และ FR-11 โดยเริ่มขั้นตอนชำระเงินเฉพาะเมื่อ Order ผ่านการตรวจ
+  async function handleConfirmOrder() {
+    if (!draft || !summary?.items.length) return;
+    setError("");
+    setConfirmingOrder(true);
+    try {
+      await confirmOrder(draft);
+      setPaymentReady(true);
+    } catch (confirmError) {
+      setPaymentReady(false);
+      setError(
+        confirmError instanceof Error
+          ? confirmError.message
+          : "ไม่สามารถยืนยัน Order ได้",
+      );
+    } finally {
+      setConfirmingOrder(false);
+    }
   }
 
   if (loading) {
-    return <p role="status">กำลังโหลดเมนู</p>;
+    return (
+      <main className="order-page">
+        <p className="order-state" role="status">กำลังโหลดเมนู</p>
+      </main>
+    );
   }
 
   return (
-    <main>
-      <h1>เลือกเครื่องดื่ม</h1>
-      {error && <p role="alert">{error}</p>}
+    <main className="order-page">
+      <header className="order-page__header">
+        <div>
+          <h1>03 · Ordering &amp; Payment</h1>
+          <p>UC-03 · สั่งซื้อเครื่องดื่ม</p>
+        </div>
+        <span className="order-guest-badge">Guest</span>
+      </header>
+
+      <p className="order-notice">
+        ต้นแบบหน้าชำระเงินนี้เป็นเพียงตัวอย่าง UI และยังไม่ดำเนินการชำระเงินจริง
+      </p>
+      {error && <p className="order-error" role="alert">{error}</p>}
 
       {view === "menu" ? (
-        <>
-          <section aria-label="รายการเมนู">
+        <section className="order-menu-section" aria-label="รายการเมนู">
+          <h2>เลือกเครื่องดื่ม</h2>
+          <div className="order-menu-grid">
             {menuItems.map((menuItem) => {
               const isAvailable = menuItem.status === "open";
               const selection = selectionFor(menuItem.menu_id);
@@ -174,12 +256,20 @@ export default function OrderPage() {
                 savingMenuId !== menuItem.menu_id;
 
               return (
-                <article key={menuItem.menu_id} aria-label={menuItem.name}>
-                  <h2>{menuItem.name}</h2>
-                  <p>{menuItem.status === "open" ? "เปิดขาย" : "หมด"}</p>
+                <article
+                  className="order-menu-card"
+                  key={menuItem.menu_id}
+                  aria-label={menuItem.name}
+                >
+                  <div className="order-menu-card__heading">
+                    <h3>{menuItem.name}</h3>
+                    <span className={isAvailable ? "order-status" : "order-status order-status--sold-out"}>
+                      {isAvailable ? "เปิดขาย" : "หมด"}
+                    </span>
+                  </div>
                   {isAvailable && (
-                    <>
-                      <label>
+                    <div className="order-menu-card__fields">
+                      <label className="order-field">
                         จำนวน
                         <input
                           aria-label="จำนวน"
@@ -193,7 +283,7 @@ export default function OrderPage() {
                         />
                       </label>
 
-                      <label>
+                      <label className="order-field">
                         ระดับความหวาน
                         <select
                           aria-label="ระดับความหวาน"
@@ -212,27 +302,29 @@ export default function OrderPage() {
                         </select>
                       </label>
 
-                      <fieldset>
+                      <fieldset className="order-toppings">
                         <legend>toppings (เลือกได้ตามต้องการ)</legend>
-                        {TOPPINGS.map((topping) => (
-                          <label key={topping}>
-                            <input
-                              type="checkbox"
-                              checked={selection.toppings.includes(topping)}
-                              onChange={(event) =>
-                                toggleTopping(
-                                  menuItem.menu_id,
-                                  topping,
-                                  event.target.checked,
-                                )
-                              }
-                            />
-                            {topping}
-                          </label>
-                        ))}
+                        <div className="order-toppings__options">
+                          {TOPPINGS.map((topping) => (
+                            <label key={topping}>
+                              <input
+                                type="checkbox"
+                                checked={selection.toppings.includes(topping)}
+                                onChange={(event) =>
+                                  toggleTopping(
+                                    menuItem.menu_id,
+                                    topping,
+                                    event.target.checked,
+                                  )
+                                }
+                              />
+                              {topping}
+                            </label>
+                          ))}
+                        </div>
                       </fieldset>
 
-                      <label>
+                      <label className="order-field">
                         น้ำแข็ง (ไม่เลือกใช้ใส่น้ำแข็งปริมาณปกติ)
                         <select
                           aria-label="ระดับน้ำแข็ง"
@@ -249,10 +341,11 @@ export default function OrderPage() {
                           ))}
                         </select>
                       </label>
-                    </>
+                    </div>
                   )}
                   <button
                     type="button"
+                    className="order-primary-button"
                     disabled={!canAdd}
                     onClick={() => handleAddItem(menuItem)}
                   >
@@ -261,10 +354,10 @@ export default function OrderPage() {
                 </article>
               );
             })}
-          </section>
+          </div>
 
           {addedItems.length > 0 && (
-            <section aria-label="รายการใน Order">
+            <section className="order-added-items" aria-label="รายการใน Order">
               <h2>รายการใน Order</h2>
               <ul>
                 {addedItems.map((item) => (
@@ -280,35 +373,115 @@ export default function OrderPage() {
           )}
           <button
             type="button"
+            className="order-primary-button order-summary-button"
             disabled={addedItems.length === 0 || loadingSummary}
             onClick={handleShowSummary}
           >
             {loadingSummary ? "กำลังโหลดสรุป Order" : "ตรวจสอบ Order"}
           </button>
-        </>
+        </section>
       ) : (
-        <section aria-label="สรุป Order">
-          <h2>สรุป Order</h2>
-          {summary?.items.length ? (
-            <>
-              <ul>
-                {summary.items.map((item) => (
-                  <li key={item.order_item_id}>
-                    <h3>{item.name}</h3>
-                    <p>จำนวน {item.quantity}</p>
-                    <p>ราคา {formatPrice(item.unit_price)}</p>
-                    <p>รวม {formatPrice(item.line_total)}</p>
-                  </li>
-                ))}
-              </ul>
-              <p>ยอดรวม {formatPrice(summary.total_amount)}</p>
-            </>
-          ) : (
-            <p>ไม่มีรายการใน Order</p>
-          )}
-          <button type="button" onClick={() => setView("menu")}>
-            เลือกเครื่องดื่มเพิ่ม
-          </button>
+        <section className="order-checkout-layout" aria-label="สรุป Order">
+          <div className="order-panel order-cart-panel">
+            <div className="order-panel__heading">
+              <h2>ตะกร้าสินค้า</h2>
+              <button
+                className="order-secondary-button"
+                type="button"
+                onClick={() => setView("menu")}
+              >
+                + เลือกเครื่องดื่ม
+              </button>
+            </div>
+            {summary?.items.length ? (
+              <>
+                <ul className="order-cart-list">
+                  {summary.items.map((item) => (
+                    <li className="order-cart-item" key={item.order_item_id}>
+                      <div>
+                        <h3>{item.name}</h3>
+                        <p>{formatPrice(item.unit_price)} × {item.quantity}</p>
+                        <label className="order-field">
+                          จำนวน
+                          <input
+                            aria-label={`จำนวน ${item.name}`}
+                            type="number"
+                            min="0"
+                            step="1"
+                            value={item.quantity}
+                            disabled={updatingItemId === item.order_item_id}
+                            onChange={(event) =>
+                              handleUpdateItem(item, { quantity: Number(event.target.value) })
+                            }
+                          />
+                        </label>
+                        <label className="order-field">
+                          ระดับความหวาน
+                          <select
+                            aria-label={`ระดับความหวาน ${item.name}`}
+                            defaultValue={
+                              addedItems.find(
+                                (addedItem) => addedItem.order_item_id === item.order_item_id,
+                              )?.sweetness_level ?? ""
+                            }
+                            disabled={updatingItemId === item.order_item_id}
+                            onChange={(event) =>
+                              handleUpdateItem(item, { sweetness_level: event.target.value })
+                            }
+                          >
+                            {SWEETNESS_LEVELS.map((level) => (
+                              <option key={level} value={level}>{level}</option>
+                            ))}
+                          </select>
+                        </label>
+                      </div>
+                      <strong>{formatPrice(item.line_total)}</strong>
+                    </li>
+                  ))}
+                </ul>
+                <div className="order-total">
+                  <strong>ยอดรวม</strong>
+                  <strong>{formatPrice(summary.total_amount)}</strong>
+                </div>
+              </>
+            ) : (
+              <p className="order-empty">ไม่มีรายการใน Order</p>
+            )}
+          </div>
+
+          <div className="order-panel order-payment-panel">
+            <h2>ยืนยันและชำระเงิน</h2>
+            <p className="order-payment-note">
+              ส่วนนี้เป็นตัวอย่างหน้าจอจาก mockup ยังไม่เชื่อมต่อการชำระเงินจริง
+            </p>
+            <label className="order-field">
+              ชื่อผู้รับเครื่องดื่ม
+              <input aria-label="ชื่อผู้รับเครื่องดื่ม (ตัวอย่าง)" value="Guest" readOnly />
+            </label>
+            <label className="order-field">
+              วิธีชำระเงิน
+              <select aria-label="วิธีชำระเงิน (ตัวอย่าง)" value="qr" disabled>
+                <option value="qr">QR Payment (จำลอง)</option>
+              </select>
+            </label>
+            <button className="order-primary-button" type="button" disabled>
+              {paymentReady ? "เข้าสู่ขั้นตอนชำระเงินแล้ว" : "ยืนยันคำสั่งซื้อ / ชำระสำเร็จ"}
+            </button>
+            <button
+              className="order-primary-button"
+              type="button"
+              disabled={!summary?.items.length || confirmingOrder || paymentReady}
+              onClick={handleConfirmOrder}
+            >
+              {confirmingOrder ? "กำลังตรวจสอบ Order" : "ยืนยัน Order เพื่อชำระเงิน"}
+            </button>
+            {paymentReady && (
+              <p role="status">Order ผ่านการตรวจสอบและเข้าสู่ขั้นตอนชำระเงินแล้ว</p>
+            )}
+            <button className="order-secondary-button" type="button" disabled>
+              จำลองกรณีชำระเงินล้มเหลว
+            </button>
+          </div>
         </section>
       )}
     </main>

@@ -80,6 +80,26 @@ class OrderRepository(Protocol):
         self, order_date: date, order_id: str
     ) -> OrderSummaryRecord | None: ...
 
+    # รองรับ FR-10 โดยอ่านตัวเลือกที่จำเป็นก่อนเริ่มชำระเงิน
+    def get_order_options(
+        self, order_date: date, order_id: str
+    ) -> list[OrderOptionRecord] | None: ...
+
+    # รองรับ FR-11 โดยเริ่มขั้นตอนชำระเงินหลังตรวจ Order และสต็อกแล้ว
+    def prepare_payment(
+        self, order_date: date, order_id: str
+    ) -> PaymentPreparationRecord: ...
+
+    # รองรับ FR-09 โดยแก้รายการหรือลบเมื่อ quantity เป็นศูนย์ พร้อมยอดรวมใหม่
+    def update_item(
+        self,
+        order_item_id: int,
+        quantity: int | None,
+        sweetness_level: str | None,
+        toppings: list[str] | None,
+        ice_level: str | None,
+    ) -> OrderItemUpdateRecord: ...
+
 
 class DraftOrderReference(Protocol):
     # รองรับ FR-06 โดยคืน reference ที่ API ใช้ระบุ draft Order
@@ -119,6 +139,22 @@ class OrderSummaryRecord(Protocol):
     total_amount: Decimal
 
 
+class OrderItemUpdateRecord(Protocol):
+    # รองรับ FR-08 และ FR-09 โดยคืนรายการที่แก้ไขและยอดรวมล่าสุด
+    item: OrderItemRecord | None
+    sweetness_level: str | None
+    toppings: list[str] | None
+    ice_level: str | None
+    total_amount: Decimal
+
+
+class PaymentPreparationRecord(Protocol):
+    # รองรับ FR-11 โดยคืนข้อมูลสำหรับขั้นตอนชำระเงินที่ยังรอดำเนินการ
+    order_date: date
+    order_id: str
+    payment_status: str
+
+
 class MenuItemNotFoundError(Exception):
     """เมนูที่ร้องขอไม่มีอยู่ในรายการเมนู."""
 
@@ -133,6 +169,14 @@ class InvalidOrderOptionsError(ValueError):
 
 class OrderDraftNotFoundError(Exception):
     """ไม่พบ draft Order ที่ร้องขอ."""
+
+
+class OrderNotReadyError(Exception):
+    """Order ยังไม่ครบเงื่อนไขก่อนเข้าสู่การชำระเงิน."""
+
+
+class OrderOutOfStockError(Exception):
+    """มีรายการที่ไม่เปิดขายระหว่างตรวจซ้ำก่อนชำระเงิน."""
 
 
 class OrderService:
@@ -199,6 +243,57 @@ class OrderService:
         if summary is None:
             raise OrderDraftNotFoundError
         return summary
+
+    def update_item(
+        self,
+        order_item_id: int,
+        quantity: int | None = None,
+        sweetness_level: str | None = None,
+        toppings: list[str] | None = None,
+        ice_level: str | None = None,
+    ) -> OrderItemUpdateRecord:
+        # รองรับ FR-07 และ FR-09 โดยตรวจค่าที่แก้ก่อนคำนวณยอดรวมใหม่
+        if quantity is not None and (not isinstance(quantity, int) or quantity < 0):
+            raise ValueError("quantity must be a non-negative integer")
+        if sweetness_level is not None and sweetness_level not in SWEETNESS_LEVELS:
+            raise InvalidOrderOptionsError("A valid sweetness level is required")
+        if toppings is not None and any(topping not in TOPPINGS for topping in toppings):
+            raise InvalidOrderOptionsError("One or more toppings are invalid")
+        if ice_level is not None and ice_level not in ICE_LEVELS:
+            raise InvalidOrderOptionsError("The ice level is invalid")
+
+        return self._order_repository.update_item(
+            order_item_id, quantity, sweetness_level, toppings, ice_level
+        )
+
+    def confirm_order(
+        self, order_date: date, order_id: str
+    ) -> PaymentPreparationRecord:
+        # รองรับ FR-10 และ FR-11 โดยตรวจรายการ ความหวาน และสถานะเมนูก่อนชำระเงิน
+        summary = self._order_repository.get_order_summary(order_date, order_id)
+        if summary is None:
+            raise OrderDraftNotFoundError
+        if not summary.items:
+            raise OrderNotReadyError("Order must contain at least one item")
+
+        options = self._order_repository.get_order_options(order_date, order_id)
+        if options is None or len(options) != len(summary.items):
+            raise OrderNotReadyError("Every order item must have sweetness selected")
+        if any(not option.sweetness_level for option in options):
+            raise OrderNotReadyError("Every order item must have sweetness selected")
+
+        unavailable_menu_ids = [
+            item.menu_item_id
+            for item in summary.items
+            if (
+                self._menu_repository.get_menu_item(item.menu_item_id) is None
+                or self._menu_repository.get_menu_item(item.menu_item_id).status != "open"
+            )
+        ]
+        if unavailable_menu_ids:
+            raise OrderOutOfStockError
+
+        return self._order_repository.prepare_payment(order_date, order_id)
 
 
 class OrderDraftService:

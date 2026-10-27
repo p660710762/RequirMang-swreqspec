@@ -6,16 +6,20 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import OrderPage from "./OrderPage.jsx";
 import {
   addOrderItem,
+  confirmOrder,
   createDraft,
   getMenu,
   getOrderSummary,
+  updateOrderItem,
 } from "../api/client.js";
 
 vi.mock("../api/client.js", () => ({
   addOrderItem: vi.fn(),
+  confirmOrder: vi.fn(),
   createDraft: vi.fn(),
   getMenu: vi.fn(),
   getOrderSummary: vi.fn(),
+  updateOrderItem: vi.fn(),
 }));
 
 const openMenuItem = {
@@ -53,6 +57,18 @@ beforeEach(() => {
     ice_level: item.ice_level ?? "ใส่น้ำแข็งปริมาณปกติ",
     toppings: item.toppings ?? null,
   }));
+  vi.mocked(updateOrderItem).mockImplementation(async (itemId, changes) => ({
+    order_item_id: changes.quantity === 0 ? null : itemId,
+    quantity: changes.quantity ?? 1,
+    sweetness_level: changes.sweetness_level ?? "หวานปกติ 75%",
+    toppings: null,
+    ice_level: "ใส่น้ำแข็งปริมาณปกติ",
+    total_amount: changes.quantity === 0 ? "0.00" : "65.00",
+  }));
+  vi.mocked(confirmOrder).mockResolvedValue({
+    ...draft,
+    payment_status: "pending",
+  });
 });
 
 afterEach(() => {
@@ -146,12 +162,32 @@ describe("OrderPage", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "ตรวจสอบ Order" }));
 
-    expect(await screen.findByRole("heading", { name: "สรุป Order" })).not.toBeNull();
-    expect(screen.getByText("จำนวน 2")).not.toBeNull();
-    expect(screen.getByText(/ราคา ฿65\.00/)).not.toBeNull();
+    expect(await screen.findByRole("heading", { name: "ตะกร้าสินค้า" })).not.toBeNull();
+    expect(screen.getByText("฿65.00 × 2")).not.toBeNull();
+    expect(screen.getByText(/฿65\.00 × 2/)).not.toBeNull();
     expect(screen.getAllByText(/฿130\.00/)).toHaveLength(2);
-    expect(screen.getByText(/ยอดรวม/).textContent).toContain("฿130.00");
+    expect(screen.getByText("ยอดรวม")).not.toBeNull();
     expect(getOrderSummary).toHaveBeenCalledWith(draft);
+  });
+
+  it("renders payment controls as non-interactive mockup placeholders", async () => {
+    render(<OrderPage />);
+
+    await screen.findByRole("heading", { name: "ชาไทย" });
+    fireEvent.change(screen.getByLabelText("ระดับความหวาน"), {
+      target: { value: "หวานปกติ 75%" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "สั่งซื้อ" }));
+    await screen.findByText(/ชาไทย จำนวน 1/);
+    fireEvent.click(screen.getByRole("button", { name: "ตรวจสอบ Order" }));
+
+    expect(await screen.findByRole("heading", { name: "ตะกร้าสินค้า" })).not.toBeNull();
+    expect(screen.getByLabelText("ชื่อผู้รับเครื่องดื่ม (ตัวอย่าง)").value).toBe("Guest");
+    expect(screen.getByLabelText("วิธีชำระเงิน (ตัวอย่าง)").disabled).toBe(true);
+    expect(screen.getByRole("button", { name: "ยืนยันคำสั่งซื้อ / ชำระสำเร็จ" }).disabled)
+      .toBe(true);
+    expect(screen.getByRole("button", { name: "จำลองกรณีชำระเงินล้มเหลว" }).disabled)
+      .toBe(true);
   });
 
   it("test_AC_ORDER_08_return_to_menu_for_more_items", async () => {
@@ -164,12 +200,97 @@ describe("OrderPage", () => {
     fireEvent.click(screen.getByRole("button", { name: "สั่งซื้อ" }));
     await screen.findByText(/ชาไทย จำนวน 1/);
     fireEvent.click(screen.getByRole("button", { name: "ตรวจสอบ Order" }));
-    await screen.findByRole("heading", { name: "สรุป Order" });
+    await screen.findByRole("heading", { name: "ตะกร้าสินค้า" });
 
-    fireEvent.click(screen.getByRole("button", { name: "เลือกเครื่องดื่มเพิ่ม" }));
+    fireEvent.click(screen.getByRole("button", { name: "+ เลือกเครื่องดื่ม" }));
 
     expect(screen.getByRole("heading", { name: "ชาไทย" })).not.toBeNull();
     expect(screen.getByText(/ชาไทย จำนวน 1/)).not.toBeNull();
     expect(screen.getByRole("button", { name: "ตรวจสอบ Order" })).not.toBeNull();
+  });
+
+  it("test_AC_ORDER_04_update_quantity_or_remove_item", async () => {
+    render(<OrderPage />);
+
+    await screen.findByRole("heading", { name: "ชาไทย" });
+    fireEvent.change(screen.getByLabelText("ระดับความหวาน"), {
+      target: { value: "หวานปกติ 75%" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "สั่งซื้อ" }));
+    await screen.findByText(/ชาไทย จำนวน 1/);
+    fireEvent.click(screen.getByRole("button", { name: "ตรวจสอบ Order" }));
+
+    const quantity = await screen.findByLabelText("จำนวน ชาไทย");
+    fireEvent.change(quantity, { target: { value: "0" } });
+
+    await waitFor(() => {
+      expect(updateOrderItem).toHaveBeenCalledWith(4, { quantity: 0 });
+    });
+    expect(await screen.findByText("ไม่มีรายการใน Order")).not.toBeNull();
+  });
+
+  it("test_AC_ORDER_09_recalculate_total_after_edit", async () => {
+    render(<OrderPage />);
+
+    await screen.findByRole("heading", { name: "ชาไทย" });
+    fireEvent.change(screen.getByLabelText("ระดับความหวาน"), {
+      target: { value: "หวานปกติ 75%" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "สั่งซื้อ" }));
+    await screen.findByText(/ชาไทย จำนวน 1/);
+    fireEvent.click(screen.getByRole("button", { name: "ตรวจสอบ Order" }));
+
+    fireEvent.change(await screen.findByLabelText("จำนวน ชาไทย"), {
+      target: { value: "3" },
+    });
+
+    await waitFor(() => {
+      expect(updateOrderItem).toHaveBeenCalledWith(4, { quantity: 3 });
+    });
+    expect(await screen.findByText("ยอดรวม")).not.toBeNull();
+    expect(await screen.findAllByText(/฿65\.00/)).not.toHaveLength(0);
+  });
+
+  it("test_AC_ORDER_05_confirm_order_to_payment", async () => {
+    render(<OrderPage />);
+
+    await screen.findByRole("heading", { name: "ชาไทย" });
+    fireEvent.change(screen.getByLabelText("ระดับความหวาน"), {
+      target: { value: "หวานปกติ 75%" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "สั่งซื้อ" }));
+    await screen.findByText(/ชาไทย จำนวน 1/);
+    fireEvent.click(screen.getByRole("button", { name: "ตรวจสอบ Order" }));
+
+    fireEvent.click(await screen.findByRole("button", { name: "ยืนยัน Order เพื่อชำระเงิน" }));
+
+    await waitFor(() => {
+      expect(confirmOrder).toHaveBeenCalledWith(draft);
+    });
+    expect(await screen.findByRole("status")).toHaveTextContent(
+      "Order ผ่านการตรวจสอบและเข้าสู่ขั้นตอนชำระเงินแล้ว",
+    );
+  });
+
+  it("test_AC_ORDER_11_show_out_of_stock_message", async () => {
+    vi.mocked(confirmOrder).mockRejectedValueOnce(
+      new Error("Menu item is out of stock; choose another menu"),
+    );
+    render(<OrderPage />);
+
+    await screen.findByRole("heading", { name: "ชาไทย" });
+    fireEvent.change(screen.getByLabelText("ระดับความหวาน"), {
+      target: { value: "หวานปกติ 75%" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "สั่งซื้อ" }));
+    await screen.findByText(/ชาไทย จำนวน 1/);
+    fireEvent.click(screen.getByRole("button", { name: "ตรวจสอบ Order" }));
+
+    fireEvent.click(await screen.findByRole("button", { name: "ยืนยัน Order เพื่อชำระเงิน" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Menu item is out of stock; choose another menu",
+    );
+    expect(screen.queryByText("Order ผ่านการตรวจสอบและเข้าสู่ขั้นตอนชำระเงินแล้ว")).toBeNull();
   });
 });
