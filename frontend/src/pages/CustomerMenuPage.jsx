@@ -9,7 +9,7 @@ const SAMPLE_MENU = [
     status: 'open',
     image_url:
       'https://images.unsplash.com/photo-1515823064-d6e0c04616a7?auto=format&fit=crop&w=900&q=80',
-    promotion: { id: 1, title: 'ลด 10%', discountPercent: 10, status: 'active' },
+    promotion: { id: 1, title: 'ลด 10 บาท', discount_value: 10, status: 'active' },
   },
   {
     id: 2,
@@ -19,7 +19,7 @@ const SAMPLE_MENU = [
     status: 'open',
     image_url:
       'https://images.unsplash.com/photo-1572490122747-3968b75cc699?auto=format&fit=crop&w=900&q=80',
-    promotion: { id: 1, title: 'ลด 10%', discountPercent: 10, status: 'active' },
+    promotion: { id: 1, title: 'ลด 10 บาท', discount_value: 10, status: 'active' },
   },
   {
     id: 3,
@@ -42,8 +42,8 @@ const SAMPLE_MENU = [
 ];
 
 const SAMPLE_PROMOTIONS = [
-  { id: 1, title: 'ลด 10% สำหรับเมนูที่มีโปรโมชั่น', discountPercent: 10, status: 'active' },
-  { id: 2, title: 'โปรโมชั่นพิเศษสัปดาห์นี้', discountPercent: 15, status: 'inactive' },
+  { id: 1, title: 'ลด 10 บาท สำหรับเมนูที่มีโปรโมชั่น', discount_value: 10, status: 'active' },
+  { id: 2, title: 'โปรโมชั่นพิเศษสัปดาห์นี้', discount_value: 15, status: 'inactive' },
 ];
 
 function formatPrice(value) {
@@ -57,7 +57,7 @@ function formatPrice(value) {
 function getDiscountedPrice(item) {
   if (!item) return 0;
   if (!item.promotion || item.promotion.status !== 'active') return Number(item.price ?? 0);
-  const discount = Number(item.price ?? 0) * (Number(item.promotion.discountPercent ?? 0) / 100);
+  const discount = Number(item.promotion.discount_value ?? 0);
   return Math.max(0, Number(item.price ?? 0) - discount);
 }
 
@@ -201,7 +201,7 @@ export default function CustomerMenuPage({
               {activePromotions.map((promotion) => (
                 <div key={promotion.id} className="promo-badge">
                   <span>{promotion.title}</span>
-                  <strong>ลด {promotion.discountPercent}%</strong>
+                  <strong>ลด {formatPrice(promotion.discount_value)}</strong>
                 </div>
               ))}
             </div>

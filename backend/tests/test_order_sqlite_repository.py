@@ -80,9 +80,10 @@ def test_AC_MENU_MGMT_02_created_menu_is_visible_in_customer_catalog():
     menu_id = created.json()["menu_id"]
 
     try:
-        admin_items = client.get(
+        admin_payload = client.get(
             "/api/admin/menu", headers={"X-User-Id": "admin"}
         ).json()
+        admin_items = admin_payload["menu_items"]
         customer_items = client.get("/api/menu").json()["items"]
 
         assert any(item["menu_id"] == menu_id for item in admin_items)

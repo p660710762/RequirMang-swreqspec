@@ -7,7 +7,7 @@ const SAMPLE_MENU = [
     price: 45,
     description: 'ชาล้วนเข้มข้น กลิ่นหอมอ่อน ๆ เหมาะสำหรับมื้อเช้าแบบสดชื่น',
     status: 'open',
-    promotion: { id: 1, title: 'ลด 10%', discountPercent: 10, status: 'active' },
+    promotion: { id: 1, title: 'ลด 10 บาท', discount_value: 10, status: 'active' },
   },
   {
     id: 2,
@@ -15,7 +15,7 @@ const SAMPLE_MENU = [
     price: 75,
     description: 'นมข้นหวานผสมมัทฉะสูตรเข้มข้น พร้อมฟองนมเนียนละมุน',
     status: 'open',
-    promotion: { id: 1, title: 'ลด 10%', discountPercent: 10, status: 'active' },
+    promotion: { id: 1, title: 'ลด 10 บาท', discount_value: 10, status: 'active' },
   },
   {
     id: 3,
@@ -34,8 +34,8 @@ const SAMPLE_MENU = [
 ];
 
 const SAMPLE_PROMOTIONS = [
-  { id: 1, title: 'ลด 10% สำหรับเมนูที่มีโปรโมชั่น', discountPercent: 10, status: 'active' },
-  { id: 2, title: 'โปรโมชั่นพิเศษสัปดาห์นี้', discountPercent: 15, status: 'inactive' },
+  { id: 1, title: 'ลด 10 บาท สำหรับเมนูที่มีโปรโมชั่น', discount_value: 10, status: 'active' },
+  { id: 2, title: 'โปรโมชั่นพิเศษสัปดาห์นี้', discount_value: 15, status: 'inactive' },
 ];
 
 function formatPrice(value) {
@@ -49,7 +49,7 @@ function formatPrice(value) {
 function getDiscountedPrice(item) {
   if (!item) return 0;
   if (!item.promotion || item.promotion.status !== 'active') return Number(item.price ?? 0);
-  const discount = Number(item.price ?? 0) * (Number(item.promotion.discountPercent ?? 0) / 100);
+  const discount = Number(item.promotion.discount_value ?? 0);
   return Math.max(0, Number(item.price ?? 0) - discount);
 }
 
@@ -179,7 +179,7 @@ export default function MenuPage() {
               {activePromotions.map((promotion) => (
                 <div key={promotion.id} className="promo-badge">
                   <span>{promotion.title}</span>
-                  <strong>ลด {promotion.discountPercent}%</strong>
+                  <strong>ลด {formatPrice(promotion.discount_value)}</strong>
                 </div>
               ))}
             </div>

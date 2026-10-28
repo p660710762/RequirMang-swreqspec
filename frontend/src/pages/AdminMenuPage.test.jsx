@@ -128,6 +128,42 @@ describe('AdminMenuPage', () => {
     expect(screen.getByText('อัปเดตแล้ว')).toBeInTheDocument();
   });
 
+  it('test_TC_MENU_MGMT_06_1_successful_update_is_persisted', async () => {
+    vi.stubGlobal('fetch', vi.fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => [{
+          menu_id: 10,
+          name: 'เมนูเดิม',
+          description: 'รายละเอียดเดิม',
+          image_url: null,
+          price: 40,
+          status: 'open',
+        }],
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          menu_id: 10,
+          name: 'เมนูเดิม',
+          description: 'รายละเอียดล่าสุด',
+          image_url: null,
+          price: 55,
+          status: 'open',
+        }),
+      }));
+
+    render(<AdminMenuPage />);
+    fireEvent.click(await screen.findByRole('button', { name: 'แก้ไข' }));
+    fireEvent.change(screen.getByLabelText('ราคา (บาท)'), { target: { value: '55' } });
+    fireEvent.change(screen.getByLabelText('รายละเอียด'), { target: { value: 'รายละเอียดล่าสุด' } });
+    fireEvent.click(screen.getByRole('button', { name: 'บันทึกการแก้ไข' }));
+
+    expect(await screen.findByText('บันทึกข้อมูลสำเร็จ')).toBeInTheDocument();
+    expect(screen.getByText('รายละเอียดล่าสุด')).toBeInTheDocument();
+    expect(screen.getByText(/55/)).toBeInTheDocument();
+  });
+
   it('test_AC_MENU_MGMT_08_admin_can_delete_menu_with_archive_kept', async () => {
     vi.stubGlobal('fetch', vi.fn()
       .mockResolvedValueOnce({
@@ -182,5 +218,60 @@ describe('AdminMenuPage', () => {
 
     expect((await screen.findAllByText('ไม่สามารถบันทึกข้อมูลได้')).length).toBeGreaterThan(0);
     expect(screen.queryByText('อัปเดตแล้ว')).not.toBeInTheDocument();
+  });
+
+  it('test_TC_MENU_MGMT_11_1_invalid_menu_data_is_rejected', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValueOnce({
+      ok: true,
+      json: async () => [],
+    }));
+
+    render(<AdminMenuPage />);
+    fireEvent.click(await screen.findByRole('button', { name: '+ เพิ่มเมนูตัวอย่าง' }));
+    fireEvent.click(screen.getByRole('button', { name: 'บันทึกเมนู' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วน');
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('test_TC_MENU_MGMT_11_2_required_fields_without_optional_fields_are_accepted', async () => {
+    vi.stubGlobal('fetch', vi.fn()
+      .mockResolvedValueOnce({ ok: true, json: async () => [] })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          menu_id: 11,
+          name: 'เมนู AC-11 ขั้นต่ำ',
+          description: null,
+          image_url: null,
+          price: 40,
+          status: 'open',
+        }),
+      }));
+
+    render(<AdminMenuPage />);
+    fireEvent.click(await screen.findByRole('button', { name: '+ เพิ่มเมนูตัวอย่าง' }));
+    fireEvent.change(screen.getByLabelText(/ชื่อเมนู/), { target: { value: 'เมนู AC-11 ขั้นต่ำ' } });
+    fireEvent.change(screen.getByLabelText(/ราคา \(บาท\)/), { target: { value: '40' } });
+    fireEvent.click(screen.getByRole('button', { name: 'บันทึกเมนู' }));
+
+    expect(await screen.findByRole('heading', { name: 'เมนู AC-11 ขั้นต่ำ' })).toBeInTheDocument();
+    expect(screen.getByText('เปิดขาย', { selector: '.status-badge' })).toBeInTheDocument();
+  });
+
+  it('test_TC_MENU_MGMT_11_3_invalid_price_or_status_is_rejected', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValueOnce({
+      ok: true,
+      json: async () => [],
+    }));
+
+    render(<AdminMenuPage />);
+    fireEvent.click(await screen.findByRole('button', { name: '+ เพิ่มเมนูตัวอย่าง' }));
+    fireEvent.change(screen.getByLabelText(/ชื่อเมนู/), { target: { value: 'เมนูราคาไม่ถูกต้อง' } });
+    fireEvent.change(screen.getByLabelText(/ราคา \(บาท\)/), { target: { value: '0' } });
+    fireEvent.click(screen.getByRole('button', { name: 'บันทึกเมนู' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วน');
+    expect(fetch).toHaveBeenCalledTimes(1);
   });
 });

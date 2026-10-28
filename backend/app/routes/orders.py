@@ -45,6 +45,7 @@ from ..services.order_service import (
     OrderSummaryRecord,
     OrderService,
 )
+from ..services.history_service import create_order_snapshot
 
 
 # รองรับ FR-06, FR-10 และ FR-11; endpoint behavior อยู่ใน tasks ที่ตามมา
@@ -224,7 +225,7 @@ def list_menu_items(
         promotion["menu_id"]: {
             "id": promotion["promotion_id"],
             "title": promotion["promotion_name"],
-            "discountPercent": float(promotion["discount_value"]),
+            "discount_value": float(promotion["discount_value"]),
             "status": "active",
         }
         for promotion in seed_menu_data()["promotions"]
@@ -364,6 +365,15 @@ def add_order_item(
             request.toppings,
             request.ice_level,
         )
+        menu_item = service.get_menu_item(request.menu_item_id)
+        if menu_item is not None:
+            create_order_snapshot(
+                order_id=f"{request.order_date}:{request.order_id}:{item.order_item_id}",
+                menu_id=menu_item.menu_id,
+                snapshot_name=menu_item.name,
+                snapshot_price=menu_item.price,
+                snapshot_status_at_order=menu_item.status,
+            )
     except MenuItemNotFoundError as exc:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

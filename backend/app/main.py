@@ -5,6 +5,10 @@ References: FR-06, FR-10, FR-11, FR-42, FR-43, FR-45, FR-46, FR-47.
 
 from fastapi import FastAPI
 
+# Register all ORM classes before route imports configure SQLAlchemy mappers.
+from .models.order import Order
+from .models.order_item import OrderItem, OrderOption
+from .models.payment_transaction import PaymentTransaction
 from .routes.staff_orders import router as staff_orders_router
 from .routes.menu import public_router as menu_public_router
 from .routes.menu import router as menu_management_router

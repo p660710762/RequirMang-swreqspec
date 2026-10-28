@@ -36,6 +36,7 @@
 ## 4. API / หน้าจอ
 
 - `GET /api/admin/menu` — Input: authenticated admin; Output: รายการเมนู พร้อมราคา, status, และ promotion ที่ใช้ได้ — รองรับ FR-42, AC-MENU-MGMT-01
+- `GET /api/promotions/active` — Output: โปรโมชั่นที่ active สำหรับการแสดงเมนู — รองรับ FR-44
 - `POST /api/admin/menu` — Input: `name`, `price`, `description`, `image_url`, `status`; Output: menu item ที่สร้างใหม่ — รองรับ FR-43, AC-MENU-MGMT-02
 - `PATCH /api/admin/menu/{menu_id}` — Input: price / description / image / promotion / status; Output: menu item ที่อัปเดตและ latest snapshot — รองรับ FR-44, FR-45, FR-47, AC-MENU-MGMT-03, AC-MENU-MGMT-04, AC-MENU-MGMT-06
 - `POST /api/admin/menu/validate` — Input: payload ของเมนู/โปรโมชั่น; Output: validation result และ error list รวมการตรวจ required promotion datetime, ISO 8601 พร้อม timezone, และ end >= start — รองรับ FR-44, FR-46, Exception Flow 6a, AC-MENU-MGMT-05, AC-MENU-MGMT-11, AC-MENU-MGMT-15

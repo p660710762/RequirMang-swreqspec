@@ -25,13 +25,13 @@ router = APIRouter(prefix="/api/admin", dependencies=[Depends(require_admin)])
 
 @public_router.get("/api/promotions/active")
 def get_active_promotions():
-    """FR-05: expose the currently active promotions for the customer menu page."""
+    """FR-44: expose active promotions used with the customer menu."""
     promotions = seed_menu_data()["promotions"]
     return [
         {
             "id": promo["promotion_id"],
             "title": promo["promotion_name"],
-            "discountPercent": float(promo["discount_value"]),
+            "discount_value": float(promo["discount_value"]),
             "status": "active",
         }
         for promo in promotions
