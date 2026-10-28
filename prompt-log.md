@@ -928,3 +928,226 @@
 - RTM: 18 แถว — ครบ 1, ยังไม่ถึง 4, รอ 0, ช่องโหว่ 13
 - ข้อค้นพบใหม่: F-10 ถึง F-19 (10 ข้อ); ข้อค้นพบเดิม F-03 คงไว้
 - รายงาน RTM: `specs/001-Menu/rtm.md`
+## 2569-10-27 คำสั่ง: เพิ่ม route สำหรับเปิดหน้า Order แยก
+
+- เพิ่ม T-17 ใน `specs/003-Order/tasks.md` หลังผู้ใช้ยืนยันแนวทางให้คงหน้า Admin ที่ `/` และเปิดหน้า Order ที่ `/order`
+- ไฟล์ที่แก้: `frontend/src/main.jsx`, `frontend/src/main.test.jsx`, `specs/003-Order/tasks.md`; เพิ่มบันทึกนี้ท้าย `prompt-log.md`
+- `main.jsx` เลือกแสดง `OrderPage` ที่ `/order` และคง `AdminMenuPage` ที่ `/`; เพิ่ม tests สำหรับทั้งสอง route
+- ผลทดสอบ `npm test -- --run src/main.test.jsx src/pages/OrderPage.test.jsx src/pages/AdminMenuPage.test.jsx`: ผ่าน 10/10; `npm run build`: สำเร็จ; `git diff --check` และ `git diff --cached --check`: ผ่าน
+- คืน build artifacts ที่ build สร้าง/เปลี่ยนให้ตรงกับ staged state เดิม; ไม่แตะไฟล์อื่นและไม่ commit หรือ push
+
+---
+
+## 2569-10-27 คำสั่ง: ปรับ UI Order ตาม mockup
+
+- ไฟล์ที่แก้: `frontend/src/pages/OrderPage.jsx`, `frontend/src/pages/OrderPage.test.jsx`, `frontend/src/styles.css`, `specs/003-Order/tasks.md`; เพิ่มบันทึกนี้ท้าย `prompt-log.md`
+- จัดหน้า Order ให้มี header, notice, menu cards และหน้า summary แบบตะกร้ากับแผงชำระเงินสองคอลัมน์ พร้อม responsive layout; เพิ่ม Guest/QR/ปุ่มชำระเงินเป็น placeholder disabled ตามที่ทีมเลือก
+- ปุ่มยืนยัน/สำเร็จและจำลองล้มเหลวไม่ทำงาน; ไม่มีการเพิ่ม API, ข้อมูลผู้ใช้จริง หรือ payment flow
+- เพิ่ม T-18 หลังทีมยืนยันให้ทำเฉพาะ placeholder UI
+- ผล `npm test -- --run src/pages/OrderPage.test.jsx`: ผ่าน 6/6; `npm run build`: สำเร็จ; `git diff --check` และ `git diff --cached --check`: ผ่าน
+- คืน build artifacts ที่ build สร้าง/เปลี่ยนให้ตรงกับ staged state เดิม
+- ไม่แก้ไฟล์อื่นและไม่ commit หรือ push
+
+---
+
+## 2569-10-27 คำสั่ง: /testcases AC-ORDER-01 specs/003-Order/
+
+- โหมด: เขียน test จากแถวสถานะ “ใช้ได้”
+- เพิ่ม test ตามตาราง: `test_TC_ORDER_01_1_add_open_menu_item`, `test_TC_ORDER_01_3_add_only_open_menu_item`, `test_TC_ORDER_01_4_reject_unavailable_menu_item` ใน `backend/tests/test_order_flow.py`; เพิ่ม `frontend/src/__tests__/TC-ORDER-01-2.test.jsx`
+- TC-ORDER-01-5 เป็นการตรวจด้วยคน เพราะ spec ไม่ได้ระบุผลเมื่อเลือกเครื่องดื่มโดยยังไม่ได้เปิดรายการเมนู จึงไม่ได้เขียนโค้ด test
+- ผล frontend `npm test`: ผ่าน 8 test files, 30 tests
+- ผล backend: รันไม่สำเร็จระหว่าง collection จาก import conflict `backend/app/models.py` กับ package `backend/app/models/` (`app.models` ถูกโหลดเป็น module จึงหา `app.models.order` ไม่ได้); ไม่แก้โค้ดระบบตามข้อกำหนดของ `/testcases`
+
+---
+
+## 2569-10-27 คำสั่ง: ลบ TC-ORDER-01-5
+
+- ลบแถว `TC-ORDER-01-5` จาก `specs/003-Order/test-cases.md` ตามคำขอของทีม
+- ไม่แก้โค้ดระบบหรือ test อื่น และไม่ต้องรัน test เนื่องจากเป็นการปรับเอกสาร test case เท่านั้น
+
+---
+
+## 2569-10-27 คำสั่ง: /testcases AC-ORDER-01 specs/003-Order/
+
+- โหมด: ร่าง (ยังไม่มี `specs/003-Order/test-cases.md`)
+- ไฟล์ที่สร้าง/แก้: `specs/003-Order/test-cases.md`; เพิ่มบันทึกนี้ท้าย `prompt-log.md`
+- เสนอ TC-ORDER-01-1 ถึง TC-ORDER-01-5 ครอบคลุมการบันทึกรายการปกติ, การแสดงรายการบนหน้าจอ, ขอบเขตเมนูเปิดขาย, การปฏิเสธเมนูที่ไม่เปิดขาย และกรณีผู้ใช้ยังไม่เปิดรายการเมนู
+- ไม่เขียนหรือรันโค้ด test ในโหมดร่าง
+- ประเด็นที่ spec ไม่ได้บอก: ผลที่ระบบต้องแสดง/ดำเนินการเมื่อผู้ใช้พยายามเลือกเครื่องดื่มโดยยังไม่ได้เปิดรายการเมนู
+
+---
+
+## 2569-10-27 คำสั่ง: /testcases AC-ORDER-02 specs/003-Order/
+
+- โหมด: ร่าง (ยังไม่มีแถว AC-ORDER-02 ใน `specs/003-Order/test-cases.md`)
+- เสนอ TC-ORDER-02-1 ถึง TC-ORDER-02-4 ครอบคลุมตัวเลือกครบ, จำนวนขั้นต่ำพร้อมไม่เลือกตัวเลือกเสริม, เลือก toppings พร้อมค่าเริ่มต้นน้ำแข็ง และไม่เลือกระดับความหวาน
+- ไม่เขียนหรือรันโค้ด test ในโหมดร่าง
+- ประเด็นที่ spec ไม่ได้บอก: ข้อความหรือรูปแบบการแจ้งเตือนเมื่อไม่เลือกระดับความหวาน แม้ spec ระบุว่าต้องเลือกทุกครั้ง
+
+---
+
+## 2569-10-27 คำสั่ง: /testcases AC-ORDER-03 specs/003-Order/
+
+- โหมด: ร่าง
+- เสนอ TC-ORDER-03-1 ถึง TC-ORDER-03-3 ครอบคลุมสรุป Order หลายรายการ, ขอบเขตมีรายการเดียว และกรณีไม่มีรายการ
+- ระบุราคาโปรโมชั่นเป็น `(รอ Q-04)` ตาม Open Question ที่ขัดแย้งกับ FR-08/ASM-10
+- ประเด็นที่ spec ไม่ได้บอก: ผลที่ต้องแสดงหรือดำเนินการเมื่อเปิดหน้าตรวจสอบโดยไม่มีรายการใน Order
+- ไม่เขียนหรือรันโค้ด test ในโหมดร่าง
+
+---
+
+## 2569-10-27 คำสั่ง: /testcases AC-ORDER-04 specs/003-Order/
+
+- โหมด: ร่าง (ยังไม่มีแถว AC-ORDER-04 ใน `specs/003-Order/test-cases.md`)
+- เสนอ TC-ORDER-04-1 ถึง TC-ORDER-04-3 ครอบคลุมการแก้จำนวนเป็นค่ามากกว่า 0, การตั้งจำนวนเป็น 0 เพื่อลบรายการ และการลบรายการโดยตรงพร้อมคำนวณยอดรวมใหม่
+- ไม่เขียนหรือรันโค้ด test ในโหมดร่าง
+- ไม่พบผลลัพธ์ที่ spec ไม่ได้บอกใน 3 แถวที่เสนอ
+
+---
+
+## 2569-10-27 คำสั่ง: /testcases AC-ORDER-05 specs/003-Order/
+
+- โหมด: ร่าง (ยังไม่มีแถว AC-ORDER-05 ใน `specs/003-Order/test-cases.md`)
+- เสนอ TC-ORDER-05-1 ถึง TC-ORDER-05-4 ครอบคลุมข้อมูลครบถ้วน, ขอบเขตมีรายการ 1 รายการ, ไม่มีรายการ และไม่เลือกระดับความหวาน
+- ไม่เขียนหรือรันโค้ด test ในโหมดร่าง
+- ประเด็นที่ spec ไม่ได้บอก: ผลการนำผู้ใช้เข้าสู่การชำระเงินหรือข้อความแจ้งเตือนเมื่อยืนยัน Order ที่ไม่มีรายการหรือไม่เลือกระดับความหวาน
+
+---
+
+## 2569-10-27 คำสั่ง: /implement T-08 specs/003-Order/tasks.md
+
+- ไฟล์ที่แก้: `backend/app/routes/orders.py`, `backend/app/services/order_service.py`, `backend/tests/test_order_flow.py`
+- เพิ่ม `POST /api/orders/confirm` สำหรับตรวจ Order ก่อนเข้าสู่การชำระเงินตาม FR-10/FR-11
+- ตรวจว่ามีรายการอย่างน้อย 1 รายการ, ทุก OrderItem มีระดับความหวาน และเมนูยังมีสถานะ `open`
+- หากเมนูไม่พร้อม ระบบตอบ `409` พร้อมข้อความให้เปลี่ยนเมนูและไม่เรียก `prepare_payment`
+- เพิ่ม tests: `test_AC_ORDER_05_confirm_order_to_payment`, `test_AC_ORDER_11_show_out_of_stock_message`
+- `py_compile` และ `git diff --check` ผ่าน
+- `pytest -v` ยังเริ่ม collection ไม่ได้จาก import conflict เดิมของโปรเจกต์: ไม่พบ `app` เมื่อรันจาก `backend`
+- ไม่ได้แก้ไฟล์นอกช่อง `ไฟล์ที่แตะ` ของ T-08 และไม่ได้เดาพฤติกรรม payment จริงนอกขอบเขต; endpoint ส่งสถานะ `pending` เพื่อเข้าสู่ขั้นตอนชำระเงินตาม plan.md
+
+---
+
+## 2569-10-27 คำสั่ง: /implement T-09 specs/003-Order/tasks.md
+
+- ไฟล์ที่แก้: `frontend/src/pages/OrderPage.jsx`, `frontend/src/api/client.js`, `frontend/src/pages/OrderPage.test.jsx`
+- เพิ่ม `updateOrderItem()` สำหรับ `PATCH /api/orders/items/{order_item_id}`
+- หน้า Order เพิ่มการแก้จำนวนและระดับความหวานจากตะกร้า และอัปเดตรายการ/ยอดรวมจาก response
+- จำนวน 0 จะนำรายการออกจากตะกร้าตาม FR-09
+- เพิ่ม tests: `test_AC_ORDER_04_update_quantity_or_remove_item`, `test_AC_ORDER_09_recalculate_total_after_edit`
+- ผลทดสอบ: OrderPage 8/8 ผ่าน; frontend suite 32/32 ผ่าน; `npm run build` ผ่าน
+- ไม่ได้เดาพฤติกรรมใหม่ของ payment หรือแก้ไฟล์นอกช่อง T-09
+
+---
+
+## 2569-10-27 คำสั่ง: /implement T-10 specs/003-Order/tasks.md
+
+- ไฟล์ที่แก้: `frontend/src/pages/OrderPage.jsx`, `frontend/src/api/client.js`, `frontend/src/pages/OrderPage.test.jsx`
+- เพิ่ม `confirmOrder()` สำหรับ `POST /api/orders/confirm`
+- หน้า Order ตรวจสอบและส่ง Order ที่มีรายการไปยังขั้นตอนชำระเงินเมื่อ backend ตอบสำเร็จ
+- เมื่อ backend แจ้งสินค้าไม่พร้อม หน้าจอแสดงข้อผิดพลาดและไม่แสดงสถานะเข้าสู่การชำระเงิน
+- เพิ่ม tests: `test_AC_ORDER_05_confirm_order_to_payment`, `test_AC_ORDER_11_show_out_of_stock_message`
+- ผลทดสอบ: OrderPage 10/10 ผ่าน; frontend suite 34/34 ผ่าน; `npm run build` ผ่าน
+- ยังไม่สร้าง QR หรือ payment gateway จริง เพราะอยู่นอกขอบเขต T-10 และยังมีงานเฟสถัดไป
+
+---
+
+## 2569-10-27 คำสั่ง: /verify specs/003-Order/
+
+- อ่าน `spec.md`, `plan.md`, `tasks.md`, `test-cases.md`, `AGENTS.md`, source ใต้ `backend/app/` และ `frontend/src/` รวมถึง tests ที่มีอยู่
+- ผล test: frontend `34 passed`; backend `pytest -v` รันไม่ได้ตั้งแต่ collection ด้วย `ModuleNotFoundError: No module named 'app'`
+- RTM: สถานะ `ครบ` 0, `ยังไม่ถึง` 11, `รอ Q-xx` 0, `ช่องโหว่` 8 แถวในตารางตามรอยไปข้างหน้า (รวม 19 แถว)
+- ข้อค้นพบใหม่: F-01 ถึง F-08 ใน `specs/003-Order/rtm.md`
+- ไม่แก้โค้ด, test, spec, plan หรือ tasks ตามข้อจำกัดของ `/verify`
+
+---
+
+## 2569-10-27 คำสั่ง: /implement T-07 specs/003-Order/tasks.md
+
+- ไฟล์ที่แก้: `backend/app/routes/orders.py`, `backend/app/services/order_service.py`, `backend/tests/test_order_flow.py`
+- เพิ่ม `PATCH /api/orders/items/{order_item_id}` สำหรับแก้จำนวน/ตัวเลือก และลบรายการเมื่อจำนวนเป็น 0 ตาม FR-07/FR-09
+- เพิ่ม tests: `test_AC_ORDER_04_update_quantity_or_remove_item`, `test_AC_ORDER_09_recalculate_total_after_edit`, `test_AC_ORDER_09_update_item_options_without_changing_total`
+- `python -m py_compile ...` และ service smoke test ผ่าน
+- `pytest` ยังรัน collection ไม่ได้จากปัญหาเดิมของโปรเจกต์: `app.models.py` ชนกับ `app/models/` และ import path ของ `backend/app`
+- ไม่ได้เดาข้อกำหนดเพิ่มเติมนอกสัญญา PATCH ใน `plan.md`; กรณี repository จริงยังต้อง implement `update_item` ให้สอดคล้องกับ protocol
+
+---
+
+## 2569-10-27 คำสั่ง: แก้ Conflict จาก `git merge origin/order`
+
+- คง `specs/001-Menu/spec.md` ตาม branch `sunita` ตามคำสั่ง; รวมเนื้อหา prompt-log จากทั้งสอง branch
+- รวม API Menu Management กับ Order และหน้า Customer/Account กับ Order โดยคงหน้าเดิมเป็นค่าเริ่มต้น และเพิ่ม route `/order`
+- ย้าย Menu schemas เป็น package `backend/app/models/` เพื่อให้ import models ของ UC-03 ใช้ร่วมกับ Menu ได้; เพิ่ม SQLAlchemy dependency ที่ Order ORM ใช้ โดย SQLAlchemy เป็นเทคโนโลยีที่ทีมเลือกเอง ไม่ได้มาจาก spec
+- สร้าง `frontend/dist` ใหม่จาก source ที่รวมแล้ว
+- ผลตรวจ: Frontend 59/59 tests ผ่าน; Backend 41/41 tests ผ่าน (`PYTHONPATH=.:backend pytest -q`); `npm run build --prefix frontend` ผ่าน; Python compile และ `git diff --check` ผ่าน
+- ไม่ได้ commit หรือ push
+
+---
+
+## 2569-10-27 คำสั่ง: `/implement T-13 specs/001-Menu/tasks.md`
+
+- ทีมตัดสินให้ใช้ `sessionStorage` ในแท็บเดิมเก็บและส่งต่อเมนูที่เลือกระหว่าง UC-01, UC-02 และ UC-03
+- บันทึกคำตัดสินใน `specs/001-Menu/spec.md` และปรับแนวทางที่เกี่ยวข้องใน `specs/001-Menu/plan.md`; เปลี่ยนสถานะ T-13 เป็น `เสร็จ รอทีมตรวจ`
+- ไม่มีการแก้โค้ดหรือรัน tests เพราะ T-13 เป็น task ตัดสินใจและบันทึกเอกสาร
+- T-14 และ T-15 ไม่ได้ทำในรอบนี้; ต้องสั่งแยกหลังตรวจคำตัดสิน T-13
+
+---
+
+## 2569-10-27 คำสั่ง: `/implement T-14 specs/001-Menu/tasks.md`
+
+- ยืนยัน flow ใหม่: Guest ที่คลิก “สั่งซื้อ” ไป UC-02; เมื่อ Login สำเร็จไป `/order` และเลือกเมนู/รายละเอียดใหม่ใน UC-03 โดยไม่เก็บหรือส่งเมนูเดิม
+- ปรับ `specs/001-Menu/spec.md` และ `plan.md` ให้ตัดข้อความส่งเมนู/ราคาเดิมไป UC-03 ซึ่งขัดกับคำตัดสินล่าสุด; อัปเดต traceability และเวอร์ชันเป็น Draft v11
+- เชื่อม route ใน `frontend/src/main.jsx` และ `frontend/src/AppShell.jsx`; ปรับ `frontend/src/pages/CustomerMenuPage.jsx` ให้ปุ่มเมนูและปุ่มดำเนินการต่อไป UC-03 ผ่าน Login gate โดยไม่สร้างรายการ Order ใน UC-01 และไม่ให้ guest เปิด `/order` โดยตรง
+- ปรับ `frontend/src/__tests__/AC-MENU-08-09.test.jsx` และ `frontend/src/main.test.jsx` ให้ทดสอบ Guest → Login → `/order`, การเลือกเมนูใหม่, การไม่ส่งเมนูเดิม และการป้องกัน guest route; อัปเดต T-14 ใน `tasks.md` เป็น `เสร็จ รอทีมตรวจ`
+- ผลตรวจ: Frontend 61/61 tests ผ่าน (`npm test --prefix frontend`); `npm run build --prefix frontend` ผ่าน; `git diff --check` ผ่าน
+- Order API client contract ไม่เปลี่ยน; ไฟล์ `frontend/dist` ที่ build สร้างถูกคืนสู่สถานะก่อนทดสอบและไม่รวมในงาน
+- ไม่มีจุดที่ต้องเดา; ใช้คำตัดสิน flow ที่ทีมยืนยันแล้ว และไม่ได้ commit หรือ push
+
+---
+
+## 2569-10-28 คำสั่ง: เชื่อม Order เป็น Popup บนหน้าเมนู
+
+- คำขอ: ให้หน้า `OrderPage.jsx` เปิดเป็น Popup บนหน้าเมนู และให้ผู้ใช้สั่งเครื่องดื่มผ่าน Popup ได้
+- เชื่อม flow ใน `frontend/src/AppShell.jsx` ให้เปิด UC-03 เป็น dialog ทับหน้า Customer Menu; Login gate และการไม่ส่งเมนูที่คลิกก่อน Login ยังคงเดิมตาม FR-02
+- ปรับ `frontend/src/pages/CustomerMenuPage.jsx` ให้กดเมนูเปิด Popup และตรวจสถานะสินค้าหมดจากข้อมูล API; รายการใน Popup ยังคงเรียก Order API เดิมตาม FR-06/FR-07
+- เพิ่มสไตล์ Popup ที่รองรับหน้าจอเล็ก ปุ่มปิด การคลิกพื้นหลัง และปุ่ม Escape
+- เพิ่ม/ปรับการทดสอบการ Login, เปิด-ปิด Popup และเพิ่มเมนูผ่าน API ใน `frontend/src/__tests__/AC-MENU-08-09.test.jsx`
+- ผลตรวจ: Frontend tests ที่เกี่ยวข้องผ่าน 17/17; Vite production build ผ่านโดยส่ง output ไป `/tmp` เพื่อไม่เขียนทับ `frontend/dist` ที่มีการแก้ไขอยู่แล้ว
+- ไม่เปลี่ยน spec เพราะ Popup เป็นการนำเสนอ UC-03 ที่ยังคงพฤติกรรม FR-02/FR-06/FR-07; ไม่ได้ commit หรือ push
+
+---
+
+## 2569-10-28 คำสั่ง: ให้ Popup Order แสดงเฉพาะเมนูที่คลิก
+
+- คำขอ: เมื่อคลิก “สั่งซื้อ” จากหน้าเมนู ให้ Popup `03 · Ordering & Payment` แสดงเฉพาะเมนูนั้น แทนการแสดงเมนูทุกตัว
+- ปรับ `frontend/src/pages/CustomerMenuPage.jsx` ให้ส่ง `menu_id` ของรายการที่ Login แล้วคลิกไปยัง AppShell
+- ปรับ `frontend/src/AppShell.jsx` และ `frontend/src/pages/OrderPage.jsx` ให้กรองเมนูแรกใน Popup ตาม `menu_id` ที่เลือก โดยยังไม่เพิ่ม OrderItem จนกว่าผู้ใช้กำหนดตัวเลือกและกดสั่งซื้อ
+- เมื่อผู้ใช้กด “+ เลือกเครื่องดื่ม” ในหน้าสรุป จะกลับไปแสดงเมนูทั้งหมดเพื่อรองรับการเพิ่มรายการตาม AC-ORDER-08
+- กรณี Guest ยังคงไม่ส่งเมนูที่คลิกก่อน Login ไป UC-03 ตาม Constraint/AC-MENU-02; ผู้ใช้เลือกใหม่หลัง Login
+- เพิ่ม tests ใน `frontend/src/pages/OrderPage.test.jsx` และ `frontend/src/__tests__/AC-MENU-08-09.test.jsx` ครอบคลุมการกรองรายการและการเปิดรายการทั้งหมดเพื่อเพิ่มเมนู
+- ผลตรวจ: เทสต์ที่เกี่ยวข้องผ่าน 19/19; `git diff --check` ผ่าน; ไม่ได้เปลี่ยน spec เพราะไม่เปลี่ยน flow ตาม FR-02/FR-06 และไม่ commit หรือ push
+
+---
+
+## 2569-10-28 คำสั่ง: หลัง Login ให้กลับหน้าเมนูโดยไม่เปิด Popup
+
+- คำขอ: หลัง Login สำเร็จให้กลับหน้า “เมนูเครื่องดื่ม” และไม่เปิด Popup จนกว่าผู้ใช้จะคลิกสั่งซื้อเอง
+- ถามยืนยันเนื่องจากคำขอขัดกับ FR-02/AC-MENU-02 เดิม; ทีมยืนยันให้ปรับข้อกำหนดเดิมภายใต้ ID เดิมด้วย
+- ปรับ `specs/001-Menu/spec.md` เป็น Draft v12: หลัง Login กลับ UC-01 โดยไม่เปิด Popup อัตโนมัติ; คลิก “สั่งซื้อ” อีกครั้งจึงเปิด UC-03 และเลือกเมนูใหม่; เมนูที่คลิกก่อน Login ยังคงไม่ถูกเก็บหรือส่งต่อ
+- ปรับ `frontend/src/AppShell.jsx` ให้ปิดหน้า Login และแสดงหน้าเมนูหลังยืนยันตัวตน โดยไม่สร้าง Order draft/Popup อัตโนมัติ
+- ปรับ tests ใน `frontend/src/__tests__/AC-MENU-08-09.test.jsx` ให้ตรวจ flow ใหม่ และยังทดสอบการเปิด Popup เมื่อคลิกเมนูหลัง Login
+- ผลตรวจ: Frontend tests ที่เกี่ยวข้องผ่าน 20/20; ไม่ได้ commit หรือ push
+
+---
+
+## 2569-10-28 คำสั่ง: แก้ `POST /api/orders/drafts` ตอบ 503
+
+- คำขอ: แก้ปัญหา Backend log แจ้ง `POST /api/orders/drafts` ได้ HTTP 503; ผู้ใช้เลือก SQLite สำหรับเก็บ Order draft
+- สาเหตุ: `get_order_repository()` ใน `backend/app/routes/orders.py` เป็น placeholder ที่ตอบ 503 ทุกครั้ง จึงไม่มี API Order ใช้งานจริง
+- เพิ่ม `backend/app/services/order_repository.py` เป็น SQLite repository รองรับการสร้าง draft และเลขลำดับรายวัน, เพิ่ม/แก้ไข/ลบรายการ, เก็บตัวเลือก, โหลดสรุป และเตรียมสถานะชำระเงิน ตาม FR-06 ถึง FR-10 และ FR-12
+- เชื่อม repository จริงเข้ากับ dependency; ตอบ 404 เมื่ออ้าง draft ที่ไม่มี และ 409 เมื่อเลข Order รายวันครบ 999
+- ฐานข้อมูลเริ่มต้นอยู่ที่ `backend/orders.sqlite3`; ตั้งตำแหน่งอื่นผ่าน `ORDER_DATABASE_PATH`; เพิ่มไฟล์ฐานข้อมูลเริ่มต้นใน `.gitignore`
+- ปรับ `specs/003-Order/plan.md` ให้บันทึกการเลือก SQLite ของผู้ใช้ โดยระบุว่าเป็นการเลือกทีม ไม่ได้มาจาก spec
+- เพิ่มผลติดตาม F-01 ที่แก้แล้วใน `specs/003-Order/rtm.md` โดยคงข้อมูลผลตรวจเดิมเป็นประวัติ
+- เพิ่ม `backend/tests/test_order_repository.py` ทดสอบ API จริงตั้งแต่สร้าง draft → เพิ่มรายการ → preview → แก้/ลบ → สร้าง draft ถัดไป → ยืนยัน
+- ผลตรวจ: `PYTHONPATH=.:backend python -m pytest -q backend/tests/test_order_repository.py backend/tests/test_order_flow.py` ผ่าน 23 tests; ชุด Python ทั้งหมด `PYTHONPATH=.:backend python -m pytest -q backend/tests tests` ผ่าน 42 tests; `py_compile` และ `git diff --check` สำหรับไฟล์ที่แก้ผ่าน
+- ไม่ได้ commit หรือ push

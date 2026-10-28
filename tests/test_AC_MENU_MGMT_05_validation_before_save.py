@@ -42,6 +42,5 @@ class TestMenuManagementValidation(unittest.TestCase):
         self.assertIn("greater than 0", response.json()["detail"])
         self.assertEqual(len(MENU_STORE), before_count)
 
-
 if __name__ == "__main__":
     unittest.main()

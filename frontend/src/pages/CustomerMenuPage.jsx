@@ -69,18 +69,17 @@ function sortMenuItems(items) {
   });
 }
 
+// รองรับ FR-02: เริ่ม UC-03 หลัง Login โดยไม่เพิ่มเมนูจาก UC-01 เข้า Order
 export default function CustomerMenuPage({
   isLoggedIn,
-  pendingSelection,
   onLoginRequired,
+  onContinueToOrder,
   onOpenLogin,
-  onPendingSelectionConsumed,
 }) {
   const [menuItems, setMenuItems] = useState(SAMPLE_MENU);
   const [promotions, setPromotions] = useState(SAMPLE_PROMOTIONS);
   const [query, setQuery] = useState('');
   const [loadState, setLoadState] = useState('ready');
-  const [orderItems, setOrderItems] = useState([]);
 
   const activePromotions = useMemo(
     () => promotions.filter((promotion) => promotion.status === 'active'),
@@ -135,17 +134,6 @@ export default function CustomerMenuPage({
     loadMenu();
   }, []);
 
-  useEffect(() => {
-    if (!isLoggedIn || !pendingSelection) return;
-
-    setOrderItems((current) => {
-      const exists = current.find((entry) => entry.id === pendingSelection.id);
-      if (exists) return current;
-      return [...current, { ...pendingSelection, price: getDiscountedPrice(pendingSelection) }];
-    });
-    onPendingSelectionConsumed();
-  }, [isLoggedIn, onPendingSelectionConsumed, pendingSelection]);
-
   const filteredItems = useMemo(() => {
     const keyword = query.trim().toLowerCase();
     const items = sortMenuItems(menuItems);
@@ -153,19 +141,19 @@ export default function CustomerMenuPage({
     return items.filter((item) => item.name.toLowerCase().includes(keyword));
   }, [menuItems, query]);
 
-  const handleOrderClick = (item) => {
-    if (item.status === 'sold_out') return;
-
+  const handleContinueToOrder = (menuId = null) => {
     if (!isLoggedIn) {
-      onLoginRequired(item);
+      onLoginRequired();
       return;
     }
 
-    setOrderItems((current) => {
-      const exists = current.find((entry) => entry.id === item.id);
-      if (exists) return current;
-      return [...current, { ...item, price: getDiscountedPrice(item) }];
-    });
+    onContinueToOrder(menuId);
+  };
+
+  const handleOrderClick = (item) => {
+    if (item.status === 'sold_out' || item.status === 'out_of_stock') return;
+
+    handleContinueToOrder(item.menu_id ?? item.id);
   };
 
   return (
@@ -229,13 +217,13 @@ export default function CustomerMenuPage({
           <div className="customer-page__content">
             <div className="customer-page__grid">
               {filteredItems.map((item) => {
-                const isSoldOut = item.status === 'sold_out';
+                const isSoldOut = item.status === 'sold_out' || item.status === 'out_of_stock';
                 const discountedPrice = getDiscountedPrice(item);
                 const hasPromotion = item.promotion && item.promotion.status === 'active';
                 const cardImage = item.image_url || item.imageUrl || item.image || null;
 
                 return (
-                  <article key={item.id} className="menu-card">
+                  <article key={item.menu_id ?? item.id} className="menu-card">
                     {cardImage ? (
                       <img className="menu-card__image" src={cardImage} alt={item.name} />
                     ) : (
@@ -277,19 +265,7 @@ export default function CustomerMenuPage({
 
             <aside className="customer-page__order">
               <h3>Order</h3>
-              {orderItems.length === 0 ? (
-                <p className="customer-page__empty-order">ยังไม่มีเมนูใน Order</p>
-              ) : (
-                <ul className="customer-page__order-list">
-                  {orderItems.map((item) => (
-                    <li key={item.id}>
-                      <span>{item.name}</span>
-                      <strong>{formatPrice(item.price)}</strong>
-                    </li>
-                  ))}
-                </ul>
-              )}
-              <button type="button" className="primary-button customer-page__checkout-button" disabled={orderItems.length === 0}>
+              <button type="button" className="primary-button customer-page__checkout-button" onClick={handleContinueToOrder}>
                 ดำเนินการต่อไปยัง UC-03
               </button>
             </aside>
