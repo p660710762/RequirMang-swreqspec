@@ -163,7 +163,7 @@
 - แบบหน้าจอ: ไม่มี
 - ต้องทำหลัง: T-10
 - เสร็จเมื่อ: เมื่อมี Order เก่าหรือเมนูถูกลบ จะมี snapshot/history ที่จำเป็นอยู่และไม่ถูกเปลี่ยนเมื่อแก้ไขเมนูปัจจุบัน
-- สถานะ: พร้อมทำ
+- สถานะ: ทำบางส่วน — มี in-memory snapshot/history helper และทดสอบการคงข้อมูลเมื่อแก้ไข/ลบ; ยังไม่มี Order API ตาม Out of scope
 
 ### T-12 สร้างหน้าจอและ flow สำหรับลบเมนูถาวรพร้อม history
 - รองรับ: FR-42, FR-49, ASM-09, ASM-12
@@ -172,7 +172,7 @@
 - แบบหน้าจอ: UI-MENU-01, ไม่มี mockup ทีมออกแบบเอง
 - ต้องทำหลัง: T-11
 - เสร็จเมื่อ: Admin สามารถลบเมนูจริงจาก catalog ปัจจุบัน แต่ history/order snapshot ยังคงอยู่และลูกค้าไม่เห็นเมนูนั้น
-- สถานะ: พร้อมทำ
+- สถานะ: ทำบางส่วน — มี DELETE Admin API และลบออกจาก catalog พร้อมคง snapshot/history; ยังไม่มี UI delete flow
 
 #### จุดตรวจเฟส 4
 - test ที่ต้องผ่านทั้งหมด: test_AC_MENU_MGMT_07_sold_out_menu_blocked_for_customer, test_AC_MENU_MGMT_08_old_orders_remain_valid, test_AC_MENU_MGMT_10_sold_out_status_blocks_purchase, test_AC_MENU_MGMT_13_non_admin_is_blocked, test_AC_MENU_MGMT_14_old_order_keeps_snapshot

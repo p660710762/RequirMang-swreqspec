@@ -544,6 +544,35 @@
 - ตรวจเลขคำถามใน specs/001-Menu/spec.md: มี Q-03 ซึ่งปิดแล้ว และไม่มี Q ที่เปิดอยู่ จึงกำหนด Q-04 สำหรับ F-02 ใน RTM เพื่อถามผลเมื่อคลิกปุ่ม “สั่งซื้อ”; ยังไม่กำหนดคำตอบ และยังไม่ได้บันทึก Q-04 ลง Spec
 - จัดประเภทให้สอดคล้องกับคำตัดสิน: F-01 แก้โค้ด; F-02 รอ Q-04; F-03 AC ไม่มี test (เพิ่ม Automated Test โดยไม่เปลี่ยนพฤติกรรมระบบ); F-04/F-05 test อ่อนและ NFR กับ AC ไม่สอดคล้องกัน (แก้ Spec ผ่าน CR); F-06 เป็นข้อมูลตัวอย่าง ไม่ใช่บั๊ก พร้อมข้อพิจารณาเรื่องแหล่งข้อมูล/รูปแบบราคาใน Spec
 - รายการดำเนินการต่อ: แก้โค้ด F-01; ให้ทีมตอบ Q-04 ก่อนตัดสินพฤติกรรมปุ่ม; เพิ่ม Automated Test สำหรับ read-only constraint ของ F-03; ดำเนิน CR เพื่อปรับ NFR-26/AC-MENU-07 และ NFR-22/AC-MENU-06 ของ F-04/F-05; ให้ทีมพิจารณาความจำเป็นต้องระบุแหล่งข้อมูลและรูปแบบราคาใน Spec สำหรับ F-06
+
+---
+
+## 2569-10-27 09:44 คำสั่ง: /testcases AC-MENU-MGMT-05 specs/009-MenuManagement/
+
+- โหมด: ร่าง
+- ตรวจพบแถวที่มีอยู่แล้ว: TC-MENU-MGMT-05-1, TC-MENU-MGMT-05-2, TC-MENU-MGMT-05-3
+- ผล test: ยังไม่เขียนโค้ด test และยังไม่ได้รัน เนื่องจากทุกแถวอยู่สถานะ "ร่าง"
+- การดำเนินการ: ตรวจสอบ spec.md, plan.md, tasks.md, test-cases.md และ AGENTS.md แล้ว; ไม่มีการแก้ไข test-cases.md หรือโค้ดระบบ
+
+---
+
+## 2569-10-27 09:45 คำสั่ง: /testcases AC-MENU-MGMT-05 specs/009-MenuManagement/
+
+- โหมด: เขียน test
+- TC ID ที่เขียน: TC-MENU-MGMT-05-1, TC-MENU-MGMT-05-2, TC-MENU-MGMT-05-3
+- ไฟล์ test ที่แก้: frontend/src/components/MenuForm.test.jsx
+- ผล frontend test: ผ่าน 33/33 tests
+- ผล backend test: ผ่าน 21/21 tests
+- หมายเหตุ: เพิ่ม test ต่อท้าย test เดิมใน `MenuForm.test.jsx` ครบ 1 ตัวต่อ 1 แถว; ไม่แก้โค้ดระบบและไม่แก้ test เดิม
+
+---
+
+## 2569-10-27 10:00 คำสั่ง: /verify specs/009-MenuManagement/
+
+- ผล test: backend ผ่าน 21/21; frontend ผ่าน 33/33; รวมผ่าน 54 ตัว ไม่ผ่าน 0 ตัว
+- ผลการตรวจ: สร้าง [rtm.md](specs/009-MenuManagement/rtm.md) โดยอ่าน spec.md, plan.md, tasks.md, test-cases.md, AGENTS.md, โค้ดใน backend/app และ frontend/src และ test ทั้งหมดที่มีอยู่จริง
+- ตารางตามรอยไปข้างหน้า: ครบ 10 แถว, ยังไม่ถึง 13 แถว, รอ 0 แถว, ช่องโหว่ 3 แถว
+- ข้อค้นพบใหม่: F-01 test AC-MENU-MGMT-15 ตรวจไม่ครบทุกส่วนของ Then และไม่ยืนยันว่าไม่บันทึก; F-02 seed promotion อาจอยู่ในอดีตขัด Constraint; F-03 ยังไม่มี customer ordering guard สำหรับเมนูหมด; F-04 ยังไม่มี delete/history/order snapshot flow
 - ไม่แก้ code, Automated Tests หรือ Spec; ไม่ commit หรือ push
 
 ---
@@ -862,3 +891,90 @@
 - เพิ่ม validation ให้โปรโมชั่นต้องมีชื่อก่อนจึงจะใช้ส่วนลดได้ ทั้ง frontend และ backend
 - เพิ่มปุ่ม `ยกเลิก` ในฟอร์มเพิ่มเมนู โดยยกเลิกจะปิดฟอร์มและไม่ส่งข้อมูลบันทึก
 - จัดปุ่ม `ยกเลิก` ให้อยู่ข้างปุ่ม `บันทึกเมนู` ในส่วนท้ายฟอร์ม
+
+---
+
+## 2569-10-27 09:16 คำสั่ง: /testcases AC-MENU-MGMT-01 specs/009-MenuManagement/
+
+- โหมด: ร่าง
+- TC ID ที่เสนอ: TC-MENU-MGMT-01-1, TC-MENU-MGMT-01-2, TC-MENU-MGMT-01-3
+- ผล test: ยังไม่เขียนโค้ด test และยังไม่ได้รัน เนื่องจากแถวอยู่สถานะ "ร่าง"
+- ข้อสังเกต: กรณีไม่มีรายการเมนูใน TC-MENU-MGMT-01-2 ไม่มีผลลัพธ์เฉพาะกรณีระบุไว้ใน spec
+
+---
+
+## 2569-10-27 09:23 คำสั่ง: /testcases AC-MENU-MGMT-01 specs/009-MenuManagement/
+
+- โหมด: เขียน Automated Tests จากแถวสถานะ "ใช้ได้"
+- TC ที่เขียน: TC-MENU-MGMT-01-1, TC-MENU-MGMT-01-2, TC-MENU-MGMT-01-3
+- ไฟล์ที่แก้: frontend/src/pages/AdminMenuPage.test.jsx, tests/test_AC_MENU_MGMT_13_non_admin_is_blocked.py
+- ผล `npm --prefix frontend test`: ผ่าน 23/23 tests
+- ผล `PYTHONPATH=. pytest -v`: ผ่าน 19/19 tests; มี StarletteDeprecationWarning เรื่อง `httpx` แต่ไม่กระทบผล test
+- หมายเหตุ: คำสั่ง `npm test` จาก root ใช้ไม่ได้เนื่องจากไม่มี `package.json` ที่ root; รันด้วยคำสั่งตามโครงสร้างจริงของโปรเจกต์แทน
+
+---
+
+## 2569-10-27 09:26 คำสั่ง: /testcases AC-MENU-MGMT-02 specs/009-MenuManagement/
+
+- โหมด: ร่าง
+- TC ID ที่เสนอ: TC-MENU-MGMT-02-1, TC-MENU-MGMT-02-2, TC-MENU-MGMT-02-3
+- ผล test: ยังไม่เขียนโค้ด test และยังไม่ได้รัน เนื่องจากแถวอยู่สถานะ "ร่าง"
+- ข้อสังเกต: กรณีข้อมูลจำเป็นไม่ครบใน TC-MENU-MGMT-02-3 มีผลลัพธ์เฉพาะอยู่ใน FR-46 และ AC-MENU-MGMT-05 ไม่ได้ระบุซ้ำโดยตรงใน AC-MENU-MGMT-02
+
+---
+
+## 2569-10-27 09:28 คำสั่ง: /testcases AC-MENU-MGMT-02 specs/009-MenuManagement/
+
+- โหมด: เขียน Automated Tests จากแถวสถานะ "ใช้ได้"
+- TC ที่เขียน: TC-MENU-MGMT-02-1, TC-MENU-MGMT-02-2, TC-MENU-MGMT-02-3
+- ไฟล์ที่แก้: frontend/src/pages/AdminMenuPage.test.jsx
+- ผล `npm --prefix frontend test`: ผ่าน 26/26 tests
+
+---
+
+## 2569-10-27 09:30 คำสั่ง: /testcases AC-MENU-MGMT-03 specs/009-MenuManagement/
+
+- โหมด: ร่าง
+- TC ID ที่เสนอ: TC-MENU-MGMT-03-1, TC-MENU-MGMT-03-2, TC-MENU-MGMT-03-3
+- ผล test: ยังไม่เขียนโค้ด test และยังไม่ได้รัน เนื่องจากแถวอยู่สถานะ "ร่าง"
+- ข้อสังเกต: spec ไม่ได้ระบุผลลัพธ์เฉพาะเมื่อแก้ไขเพียงรายการเดียวหรือเมื่อไม่มีเมนูให้แก้ไข
+
+---
+
+## 2569-10-27 09:33 คำสั่ง: /testcases AC-MENU-MGMT-03 specs/009-MenuManagement/
+
+- โหมด: เขียน Automated Tests จากแถวสถานะ "ใช้ได้"
+- TC ที่เขียน: TC-MENU-MGMT-03-1, TC-MENU-MGMT-03-2, TC-MENU-MGMT-03-3
+- ไฟล์ที่แก้: frontend/src/pages/AdminMenuPage.test.jsx, tests/test_AC_MENU_MGMT_03_admin_can_edit_menu_details.py
+- ผล `npm --prefix frontend test`: ผ่าน 28/28 tests
+- ผล `PYTHONPATH=. pytest -v`: ผ่าน 20/20 tests; มี StarletteDeprecationWarning เรื่อง `httpx` แต่ไม่กระทบผล test
+- หมายเหตุ: TC-MENU-MGMT-03-3 ไม่มี assert เนื่องจาก spec ไม่ได้กำหนดผลลัพธ์ของการแก้ไขเมนูที่ไม่มีอยู่
+
+---
+
+## 2569-10-27 09:37 คำสั่ง: /testcases AC-MENU-MGMT-04 specs/009-MenuManagement/
+
+- โหมด: ร่าง
+- TC ID ที่เสนอ: TC-MENU-MGMT-04-1, TC-MENU-MGMT-04-2, TC-MENU-MGMT-04-3
+- ผล test: ยังไม่เขียนโค้ด test และยังไม่ได้รัน เนื่องจากแถวอยู่สถานะ "ร่าง"
+- ข้อสังเกต: spec ไม่ได้ระบุผลลัพธ์เฉพาะเมื่อไม่มีเมนูให้เปลี่ยนสถานะ
+
+---
+
+## 2569-10-27 09:41 คำสั่ง: /testcases AC-MENU-MGMT-05 specs/009-MenuManagement/
+
+- โหมด: ร่าง
+- TC ID ที่เสนอ: TC-MENU-MGMT-05-1, TC-MENU-MGMT-05-2, TC-MENU-MGMT-05-3
+- ผล test: ยังไม่เขียนโค้ด test และยังไม่ได้รัน เนื่องจากแถวอยู่สถานะ "ร่าง"
+- ข้อสังเกต: ผลลัพธ์กรณีข้อมูลถูกต้องใน TC-MENU-MGMT-05-2 อ้างอิง AC-MENU-MGMT-06 และ FR-43 เนื่องจาก AC-MENU-MGMT-05 ระบุผลลัพธ์เมื่อข้อมูลไม่ถูกต้องเป็นหลัก
+
+---
+
+## 2569-10-27 09:39 คำสั่ง: /testcases AC-MENU-MGMT-04 specs/009-MenuManagement/
+
+- โหมด: เขียน Automated Tests จากแถวสถานะ "ใช้ได้"
+- TC ที่เขียน: TC-MENU-MGMT-04-1, TC-MENU-MGMT-04-2, TC-MENU-MGMT-04-3
+- ไฟล์ที่แก้: frontend/src/components/StatusToggle.test.jsx, tests/test_AC_MENU_MGMT_04_admin_can_change_status.py
+- ผล `npm --prefix frontend test`: ผ่าน 30/30 tests
+- ผล `PYTHONPATH=. pytest -v`: ผ่าน 21/21 tests; มี StarletteDeprecationWarning เรื่อง `httpx` แต่ไม่กระทบผล test
+- หมายเหตุ: TC-MENU-MGMT-04-3 ไม่มี assert เนื่องจาก spec ไม่ได้กำหนดผลลัพธ์ของการเปลี่ยนสถานะเมนูที่ไม่มีอยู่
