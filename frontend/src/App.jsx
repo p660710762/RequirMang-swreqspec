@@ -223,7 +223,6 @@ export default function App({
     setLineError(result.error);
   };
 
-
   return (
     <main className="account-page">
       <div className="account-container">

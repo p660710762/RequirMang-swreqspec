@@ -6,11 +6,13 @@ import CustomerMenuPage from './pages/CustomerMenuPage.jsx';
 import OrderDetailPage from './pages/OrderDetail.jsx';
 import OrderListPage from './pages/OrderList.jsx';
 import OrderPage from './pages/OrderPage.jsx';
+import StaffOrdersPage from './pages/StaffOrdersPage.jsx';
 
 // รองรับ FR-02: เชื่อม Customer/Login ไป UC-03 โดยไม่ส่งเมนูที่เลือกก่อน Login
 export default function AppShell() {
   const [page, setPage] = useState(() => {
     const path = window.location.pathname;
+    if (path === '/staff/orders') return 'staffOrders';
     return path === '/order' || path === '/orders/status'
       || /^\/orders\/[^/]+\/details$/.test(path)
       ? 'account'
@@ -28,6 +30,15 @@ export default function AppShell() {
       const path = window.location.pathname;
       const orderDate = new URLSearchParams(window.location.search).get('order_date');
       const detailMatch = path.match(/^\/orders\/([^/]+)\/details$/);
+
+      if (path === '/staff/orders') {
+        setIsOrderModalOpen(false);
+        setSelectedOrderMenuId(null);
+        setSelectedTrackingOrderId(null);
+        setSelectedTrackingOrderDate(null);
+        setPage('staffOrders');
+        return;
+      }
 
       if (path === '/order' && !isLoggedIn) {
         setPage('account');
@@ -67,6 +78,18 @@ export default function AppShell() {
   }, [isLoggedIn]);
 
   const handleNavigate = (nextPage) => {
+    if (nextPage === 'staffOrders') {
+      if (window.location.pathname !== '/staff/orders') {
+        window.history.pushState({}, '', '/staff/orders');
+      }
+      setIsOrderModalOpen(false);
+      setSelectedOrderMenuId(null);
+      setSelectedTrackingOrderId(null);
+      setSelectedTrackingOrderDate(null);
+      setPage('staffOrders');
+      return;
+    }
+
     if (nextPage === 'status' && isLoggedIn) {
       if (window.location.pathname !== '/orders/status') {
         window.history.pushState({}, '', '/orders/status');
@@ -182,6 +205,13 @@ export default function AppShell() {
         >
           Admin Menu
         </button>
+        <button
+          type="button"
+          className={page === 'staffOrders' ? 'app-switcher__button active' : 'app-switcher__button'}
+          onClick={() => handleNavigate('staffOrders')}
+        >
+          Staff Orders
+        </button>
         {/* FR-19, AC-STATUS-01: expose order tracking after login. */}
         {isLoggedIn && (
           <button
@@ -213,6 +243,7 @@ export default function AppShell() {
         />
       </div>
       {page === 'admin' && <AdminMenuPage />}
+      {page === 'staffOrders' && <StaffOrdersPage />}
       {page === 'status' && (
         <OrderListPage userId={mockUserId} onSelectOrder={handleSelectOrder} />
       )}

@@ -2,6 +2,8 @@ const ADMIN_MENU_PATH = '/api/admin/menu';
 const MOCK_ADMIN_HEADERS = { 'X-User-Id': 'admin' };
 const ORDER_LIST_PATH = '/api/orders';
 const DEFAULT_MOCK_ORDER_USER = 'customer-a';
+const STAFF_ORDERS_PATH = '/api/staff/orders';
+const MOCK_STAFF_HEADERS = { 'X-User-Id': 'staff' };
 
 function orderHeaders(userId = DEFAULT_MOCK_ORDER_USER) {
   return userId ? { 'X-Test-User': userId } : {};
@@ -12,6 +14,15 @@ export async function getOrders(userId = DEFAULT_MOCK_ORDER_USER) {
   const response = await fetch(ORDER_LIST_PATH, { headers: orderHeaders(userId) });
   if (!response.ok) {
     throw new Error(`Order request failed (${response.status})`);
+  }
+  return response.json();
+}
+
+// FR-29, AC-STAFF-ORDER-07: surface load failures so the Staff page can offer retry.
+export async function getStaffOrders() {
+  const response = await fetch(STAFF_ORDERS_PATH, { headers: MOCK_STAFF_HEADERS });
+  if (!response.ok) {
+    throw new Error(`Staff orders request failed (${response.status})`);
   }
   return response.json();
 }
@@ -63,6 +74,45 @@ export async function refreshOrderStatus(
   );
   if (!response.ok) {
     throw new Error(`Order status refresh failed (${response.status})`);
+  }
+  return response.json();
+}
+
+// FR-31: load the drink items, quantities, and selected options for one order.
+export async function getStaffOrderDetails(orderId, orderDate) {
+  const query = orderDate ? `?order_date=${encodeURIComponent(orderDate)}` : '';
+  const response = await fetch(
+    `${STAFF_ORDERS_PATH}/${encodeURIComponent(orderId)}${query}`,
+    { headers: MOCK_STAFF_HEADERS },
+  );
+  if (!response.ok) {
+    throw new Error(`Staff order details request failed (${response.status})`);
+  }
+  return response.json();
+}
+
+// FR-25, FR-26, FR-27: submit the next status for an authorized Staff update.
+export async function updateStaffOrderStatus(orderId, orderDate, newStatus) {
+  const query = `?order_date=${encodeURIComponent(orderDate)}`;
+  const response = await fetch(
+    `${STAFF_ORDERS_PATH}/${encodeURIComponent(orderId)}/status${query}`,
+    {
+      method: 'PATCH',
+      headers: { ...MOCK_STAFF_HEADERS, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ new_status: newStatus }),
+    },
+  );
+  if (!response.ok) {
+    let message = `Staff order status update failed (${response.status})`;
+    try {
+      const errorBody = await response.json();
+      if (typeof errorBody.detail === 'string') {
+        message = errorBody.detail;
+      }
+    } catch {
+      // Retain the HTTP status when the server does not return JSON.
+    }
+    throw new Error(message);
   }
   return response.json();
 }

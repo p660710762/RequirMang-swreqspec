@@ -1,4 +1,4 @@
-import { cleanup, render, screen, within } from '@testing-library/react';
+import { act, cleanup, render, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import OrderStatusTimeline from './OrderStatusTimeline.jsx';
@@ -6,6 +6,7 @@ import OrderStatusTimeline from './OrderStatusTimeline.jsx';
 afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();
+  vi.useRealTimers();
 });
 
 describe('OrderStatusTimeline', () => {
@@ -71,5 +72,46 @@ describe('OrderStatusTimeline', () => {
 
     expect(await screen.findByRole('alert')).toHaveTextContent('ไม่สามารถโหลดสถานะได้');
     expect(screen.queryByRole('list', { name: 'ลำดับสถานะ Order' })).not.toBeInTheDocument();
+  });
+
+  it('refreshes the confirmed customer status every five seconds', async () => {
+    vi.useFakeTimers();
+    vi.stubGlobal('fetch', vi.fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          order_id: 'order-123',
+          current_status: 'PREPARING',
+          status_history: [
+            { status_code: 'PREPARING', status_name: 'กำลังเตรียม' },
+          ],
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          order_id: 'order-123',
+          current_status: 'READY_FOR_PICKUP',
+          status_history: [
+            { status_code: 'READY_FOR_PICKUP', status_name: 'พร้อมรับสินค้า' },
+          ],
+        }),
+      }));
+
+    render(<OrderStatusTimeline orderId="order-123" />);
+
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    expect(screen.getByText('กำลังเตรียม')).toBeInTheDocument();
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(5000);
+    });
+
+    expect(screen.getByText('พร้อมรับสินค้า')).toBeInTheDocument();
+    expect(fetch).toHaveBeenCalledTimes(2);
   });
 });

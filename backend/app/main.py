@@ -5,6 +5,7 @@ References: FR-06, FR-10, FR-11, FR-42, FR-43, FR-45, FR-46, FR-47.
 
 from fastapi import FastAPI
 
+from .routes.staff_orders import router as staff_orders_router
 from .routes.menu import public_router as menu_public_router
 from .routes.menu import router as menu_management_router
 from .routes.orders import menu_router as public_menu_router
@@ -20,3 +21,4 @@ app.include_router(public_menu_router)
 app.include_router(menu_public_router)
 app.include_router(orders_router)
 app.include_router(tracking_router)
+app.include_router(staff_orders_router)

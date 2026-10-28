@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OWL CHA | จัดการ Order สำหรับพนักงาน</title>
+    <link rel="stylesheet" href="../../shared/styles.css" />
+    <script src="menu.js" defer></script>
+  </head>
+  <body>
+    <main class="page-shell app-shell" data-spec="SPEC-STAFF-ORDER-001 SPEC-STAFF-ORDER-STATUS-001">
+      <nav class="demo-nav" aria-label="นำทางต้นแบบทั้ง 6 กลุ่ม">
+        <a class="brand" href="../menu/index.html">OWL CHA</a>
+        <a href="../menu/index.html">01 เมนู</a>
+        <a href="../account/index.html">02 บัญชี</a>
+        <a href="../ordering-payment/index.html">03 สั่งซื้อ/ชำระ</a>
+        <a href="../tracking-notification/index.html">04 ติดตาม/แจ้งเตือน</a>
+        <a href="../staff-orders/index.html" aria-current="page">05 พนักงาน</a>
+        <a href="../admin-menu-reports/index.html">06 จัดการ/รายงาน</a>
+      </nav>
+
+      <header class="hero page-header">
+        <div>
+          <p class="eyebrow">UC-07 + UC-08 · STAFF WORKSPACE</p>
+          <h1>รายการ Order</h1>
+          <p class="hero-copy">ตรวจสอบคิวและอัปเดตสถานะการเตรียมเครื่องดื่ม</p>
+        </div>
+        <span class="demo-badge">ต้นแบบ · สิทธิ์พนักงานจำลอง</span>
+      </header>
+
+      <section class="toolbar panel">
+        <div class="queue-summary">
+          <p class="eyebrow">ORDER QUEUE</p>
+          <h2><span id="active-count">0</span> รายการที่กำลังดำเนินการ</h2>
+          <p class="section-note">รายการเรียงตามเวลาสั่งล่าสุดก่อน และรายการสิ้นสุดอยู่ท้ายรายการ</p>
+        </div>
+        <div class="toolbar-actions">
+          <label class="demo-select" for="staff-scenario">
+            <span>สถานการณ์จำลอง</span>
+            <select id="staff-scenario">
+              <option value="normal">รายการ Order</option>
+              <option value="empty">ไม่มี Order ใหม่</option>
+              <option value="error">โหลดรายการไม่สำเร็จ</option>
+            </select>
+          </label>
+          <button id="refresh-staff" class="button button-quiet" type="button">↻ โหลดรายการ</button>
+          <button id="add-demo-order" class="button button-primary" type="button">＋ จำลอง Order ใหม่</button>
+        </div>
+      </section>
+
+      <section class="panel staff-settings" aria-label="การจำลองแจ้งเตือน">
+        <span class="section-note">เมื่อเปลี่ยนสถานะเป็น “พร้อมรับสินค้า” ระบบจะจำลองการเรียก UC-06</span>
+        <label class="inline-select" for="staff-line-state">
+          LINE ลูกค้า
+          <select id="staff-line-state">
+            <option value="connected">เชื่อมต่อแล้ว</option>
+            <option value="not-connected">ยังไม่เชื่อมต่อ</option>
+          </select>
+        </label>
+        <label class="inline-select" for="staff-line-result">
+          ผลการส่ง
+          <select id="staff-line-result">
+            <option value="success">สำเร็จ</option>
+            <option value="failure">ไม่สำเร็จ</option>
+          </select>
+        </label>
+        <label class="inline-select" for="status-save-result">
+          ผลการบันทึกสถานะ
+          <select id="status-save-result">
+            <option value="success">บันทึกสำเร็จ</option>
+            <option value="failure">บันทึกไม่สำเร็จ</option>
+          </select>
+        </label>
+      </section>
+
+      <div id="staff-error" class="state-card error-state" role="alert" hidden>
+        <h3>ไม่สามารถโหลดรายการ Order ได้</h3>
+        <p>ลองเรียกข้อมูลรายการใหม่อีกครั้ง</p>
+        <button id="retry-staff" class="button button-primary" type="button">ลองใหม่</button>
+      </div>
+      <div id="staff-empty" class="state-card" role="status" hidden>
+        <span class="state-icon" aria-hidden="true">✓</span>
+        <h3>ไม่มีรายการ Order ใหม่</h3>
+        <p>เมื่อมี Order ใหม่ รายการจะแสดงที่นี่</p>
+      </div>
+      <div id="staff-list" class="staff-list" aria-live="polite"></div>
+
+      <section class="panel notification-log-panel" aria-labelledby="staff-notifications-heading">
+        <div class="section-heading">
+          <div><p class="eyebrow">UC-06</p><h2 id="staff-notifications-heading">ผลการแจ้งเตือนจำลอง</h2></div>
+          <span class="section-note">ไม่ส่งข้อความ LINE จริง · ไม่ retry อัตโนมัติ</span>
+        </div>
+        <div id="staff-notification-log" class="notification-log" aria-live="polite"></div>
+      </section>
+
+      <footer class="trace-footer">อ้างอิง FR-24 ถึง FR-33 · AC-STAFF-ORDER-01 ถึง AC-STAFF-ORDER-09 · AC-STATUS-01 ถึง AC-STATUS-05</footer>
+    </main>
+  </body>
+</html>

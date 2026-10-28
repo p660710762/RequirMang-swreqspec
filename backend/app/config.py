@@ -7,6 +7,10 @@ NFR-REL-08, NFR-REL-09.
 from typing import Final
 
 
+# Constraint: staff order history is available for up to 7 days.
+STAFF_ORDER_RETENTION_DAYS: Final[int] = 7
+
+
 MENU_STATUS_OPEN: Final[str] = "open"
 MENU_STATUS_SOLD_OUT: Final[str] = "sold_out"
 VALID_MENU_STATUSES: Final[tuple[str, ...]] = (MENU_STATUS_OPEN, MENU_STATUS_SOLD_OUT)

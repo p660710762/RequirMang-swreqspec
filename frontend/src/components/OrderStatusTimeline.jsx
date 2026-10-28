@@ -23,27 +23,34 @@ export default function OrderStatusTimeline({
   const requestGeneration = useRef(0);
 
   useEffect(() => {
-    const generation = ++requestGeneration.current;
+    let isActive = true;
 
-    getOrderStatus(orderId, userId, orderDate)
-      .then((result) => {
-        if (generation === requestGeneration.current) {
+    async function loadCurrentStatus() {
+      const generation = ++requestGeneration.current;
+      try {
+        const result = await getOrderStatus(orderId, userId, orderDate);
+        if (isActive && generation === requestGeneration.current) {
           setStatus(result);
           onStatusChange?.(
             result.status_history[result.status_history.length - 1] ?? null,
           );
           setLoadState('ready');
         }
-      })
-      .catch(() => {
-        if (generation === requestGeneration.current) {
+      } catch {
+        if (isActive && generation === requestGeneration.current) {
           setStatus(null);
           onStatusChange?.(null);
           setLoadState('error');
         }
-      });
+      }
+    }
+
+    loadCurrentStatus();
+    const refreshTimer = window.setInterval(loadCurrentStatus, 5000);
 
     return () => {
+      isActive = false;
+      window.clearInterval(refreshTimer);
       requestGeneration.current += 1;
     };
   }, [onStatusChange, orderDate, orderId, userId]);
