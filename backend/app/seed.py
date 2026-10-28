@@ -5,8 +5,8 @@ References: FR-42, FR-43, FR-44, FR-49, NFR-REL-08, NFR-REL-09.
 
 from datetime import datetime, timezone
 
-from backend.app.config import MENU_STATUS_OPEN, MENU_STATUS_SOLD_OUT
-from backend.app.models import MenuHistory, MenuItem, OrderSnapshot, Promotion
+from .config import MENU_STATUS_OPEN, MENU_STATUS_SOLD_OUT
+from .models import MenuHistory, MenuItem, OrderSnapshot, Promotion
 
 
 def seed_menu_data() -> dict[str, list[dict]]:

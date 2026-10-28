@@ -7,10 +7,10 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
 from ..middleware.auth_guard import require_admin
-from backend.app.seed import seed_menu_data
-from backend.app.services.menu_service import create_menu_item, list_menu_items, update_menu_item
-from backend.app.services.menu_status_service import update_menu_status
-from backend.app.services.menu_validation import validate_menu_payload
+from ..seed import seed_menu_data
+from ..services.menu_service import create_menu_item, list_menu_items, update_menu_item
+from ..services.menu_status_service import update_menu_status
+from ..services.menu_validation import validate_menu_payload
 
 
 public_router = APIRouter()

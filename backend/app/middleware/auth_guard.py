@@ -5,7 +5,7 @@ References: NFR-SEC-05, AC-MENU-MGMT-13.
 
 from fastapi import Depends, HTTPException
 
-from backend.app.auth import get_current_user
+from ..auth import get_current_user
 
 
 def require_admin(user: dict[str, str] = Depends(get_current_user)) -> dict[str, str]:

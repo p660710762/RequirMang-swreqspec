@@ -372,6 +372,8 @@ def test_AC_ORDER_03_show_order_summary():
                 "quantity": 2,
                 "unit_price": "65.00",
                 "line_total": "130.00",
+                "regular_price": "65.00",
+                "promotion_price": None,
             }
         ],
         "total_amount": "130.00",
@@ -567,6 +569,8 @@ def test_T05_lists_menu_items_for_order_page():
                 "name": "เครื่องดื่มทดสอบ",
                 "status": "open",
                 "price": "65.00",
+                "promotion_price": None,
+                "effective_price": "65.00",
             }
         ]
     }
@@ -608,6 +612,7 @@ def test_AC_ORDER_02_persists_options_for_each_order_item():
         "menu_items",
         Base.metadata,
         Column("menu_id", Integer, primary_key=True),
+        extend_existing=True,
     )
     engine = create_engine("sqlite:///:memory:")
 
@@ -618,7 +623,14 @@ def test_AC_ORDER_02_persists_options_for_each_order_item():
     Base.metadata.create_all(engine)
 
     with Session(engine) as session:
-        session.execute(Base.metadata.tables["menu_items"].insert().values(menu_id=17))
+        session.execute(
+            Base.metadata.tables["menu_items"].insert().values(
+                menu_id=17,
+                name="เมนูทดสอบ",
+                price=Decimal("65.00"),
+                status="open",
+            )
+        )
         order = Order(
             order_date=date(2026, 10, 27),
             order_id="001",
@@ -733,3 +745,63 @@ def test_TC_ORDER_01_4_reject_unavailable_menu_item():
     # Then ระบบไม่เพิ่มเครื่องดื่มที่ไม่เปิดขายเข้าสู่ Order
     assert response.status_code == 409
     assert order_repository.added_items == []
+
+
+def test_TC_ORDER_02_1_save_all_item_options():
+    repository = FakeOrderRepository()
+    service = OrderService(
+        FakeMenuRepository(FakeMenuItem(17, "open", Decimal("65.00"))),
+        repository,
+    )
+    item = service.add_item(date(2026, 10, 27), "001", 17, 1)
+
+    saved = service.save_item_options(
+        item.order_item_id,
+        "หวานน้อย 50%",
+        ["ไข่มุก"],
+        "ไม่ใส่น้ำแข็ง",
+    )
+
+    assert saved.sweetness_level == "หวานน้อย 50%"
+    assert saved.toppings == ["ไข่มุก"]
+    assert saved.ice_level == "ไม่ใส่น้ำแข็ง"
+
+
+def test_TC_ORDER_02_2_save_minimum_quantity_without_optional_options():
+    repository = FakeOrderRepository()
+    service = OrderService(
+        FakeMenuRepository(FakeMenuItem(17, "open", Decimal("65.00"))),
+        repository,
+    )
+    item = service.add_item(date(2026, 10, 27), "001", 17, 1)
+
+    saved = service.save_item_options(item.order_item_id, "ไม่หวาน")
+
+    assert saved.toppings is None
+    assert saved.ice_level == "ใส่น้ำแข็งปริมาณปกติ"
+
+
+def test_TC_ORDER_02_3_save_toppings_with_default_ice():
+    repository = FakeOrderRepository()
+    service = OrderService(
+        FakeMenuRepository(FakeMenuItem(17, "open", Decimal("65.00"))),
+        repository,
+    )
+    item = service.add_item(date(2026, 10, 27), "001", 17, 1)
+
+    saved = service.save_item_options(item.order_item_id, "หวานปกติ 75%", ["ชีส"])
+
+    assert saved.toppings == ["ชีส"]
+    assert saved.ice_level == "ใส่น้ำแข็งปริมาณปกติ"
+
+
+def test_TC_ORDER_02_4_reject_missing_sweetness():
+    repository = FakeOrderRepository()
+    service = OrderService(
+        FakeMenuRepository(FakeMenuItem(17, "open", Decimal("65.00"))),
+        repository,
+    )
+    item = service.add_item(date(2026, 10, 27), "001", 17, 1)
+
+    with pytest.raises(InvalidOrderOptionsError):
+        service.save_item_options(item.order_item_id, None)

@@ -1,14 +1,18 @@
 from datetime import date
 from decimal import Decimal
-from types import SimpleNamespace
 from typing import Annotated, Literal
 
 from fastapi import APIRouter
 from fastapi import Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field, field_validator
 
-from backend.app.seed import seed_menu_data
-from backend.app.services.menu_service import list_menu_items as list_managed_menu_items
+from ..database import configure_database
+from ..repositories.order_repository import (
+    OrderNumberExhaustedError,
+    menu_repository,
+    order_repository,
+)
+from ..seed import seed_menu_data
 from ..services.order_service import (
     MenuItemNotFoundError,
     MenuItemUnavailableError,
@@ -26,7 +30,6 @@ from ..services.order_service import (
     OrderSummaryRecord,
     OrderService,
 )
-from ..services.order_repository import OrderNumberExhaustedError, SqliteOrderRepository
 
 
 # รองรับ FR-06, FR-10 และ FR-11; endpoint behavior อยู่ใน tasks ที่ตามมา
@@ -100,6 +103,8 @@ class MenuItemResponse(BaseModel):
     description: str | None = None
     image_url: str | None = None
     promotion: dict | None = None
+    promotion_price: Decimal | None = None
+    effective_price: Decimal
 
 
 # รองรับ FR-06 ด้วย contract รายการเมนูของ SPEC-MENU-001
@@ -115,6 +120,8 @@ class OrderSummaryItemResponse(BaseModel):
     quantity: int
     unit_price: Decimal
     line_total: Decimal
+    regular_price: Decimal
+    promotion_price: Decimal | None
 
 
 # รองรับ FR-08 และ AC-ORDER-03 โดยคืนรายการและยอดรวมของ draft
@@ -157,33 +164,15 @@ class ConfirmOrderResponse(BaseModel):
 
 
 def get_menu_repository() -> MenuRepository:
-    return MenuManagementRepository()
-
-
-class MenuManagementRepository:
-    def _items(self) -> list[SimpleNamespace]:
-        return [
-            SimpleNamespace(
-                menu_id=item["menu_id"],
-                name=item["name"],
-                status=item["status"],
-                price=Decimal(str(item["price"])),
-                description=item.get("description"),
-                image_url=item.get("image_url"),
-            )
-            for item in list_managed_menu_items()
-        ]
-
-    def get_menu_item(self, menu_id: int) -> SimpleNamespace | None:
-        return next((item for item in self._items() if item.menu_id == menu_id), None)
-
-    def list_menu_items(self) -> list[SimpleNamespace]:
-        return self._items()
+    configure_database()
+    # รองรับ FR-06 โดยใช้ repository เมนูร่วมกับ Menu API
+    return menu_repository
 
 
 def get_order_repository() -> OrderRepository:
-    # รองรับ FR-06 โดยเก็บ draft และรายการ Order ใน SQLite
-    return SqliteOrderRepository()
+    configure_database()
+    # รองรับ FR-06, FR-07, FR-08 และ FR-09 สำหรับ draft Order ของ release นี้
+    return order_repository
 
 
 def get_order_service(
@@ -204,7 +193,7 @@ def get_order_draft_service(
 @menu_router.get(
     "/api/menu",
     response_model=MenuResponse,
-    response_model_exclude_none=True,
+    response_model_exclude_unset=True,
 )
 def list_menu_items(
     menu_repository: Annotated[MenuRepository, Depends(get_menu_repository)],
@@ -219,19 +208,25 @@ def list_menu_items(
         for promotion in seed_menu_data()["promotions"]
         if promotion.get("is_active")
     }
+
+    def to_response(item) -> MenuItemResponse:
+        values = {
+            "menu_id": item.menu_id,
+            "name": item.name,
+            "status": item.status,
+            "price": item.price,
+            "promotion_price": getattr(item, "promotion_price", None),
+            "effective_price": getattr(item, "effective_price", item.price),
+        }
+        for field in ("description", "image_url"):
+            if hasattr(item, field):
+                values[field] = getattr(item, field)
+        if item.menu_id in promotions:
+            values["promotion"] = promotions[item.menu_id]
+        return MenuItemResponse(**values)
+
     return MenuResponse(
-        items=[
-            MenuItemResponse(
-                menu_id=item.menu_id,
-                name=item.name,
-                status=item.status,
-                price=item.price,
-                description=getattr(item, "description", None),
-                image_url=getattr(item, "image_url", None),
-                promotion=promotions.get(item.menu_id),
-            )
-            for item in menu_repository.list_menu_items()
-        ]
+        items=[to_response(item) for item in menu_repository.list_menu_items()]
     )
 
 
@@ -280,6 +275,8 @@ def get_order_summary(
                 quantity=item.quantity,
                 unit_price=item.unit_price,
                 line_total=item.line_total,
+                regular_price=getattr(item, "regular_price", item.unit_price),
+                promotion_price=getattr(item, "promotion_price", None),
             )
             for item in summary.items
         ],

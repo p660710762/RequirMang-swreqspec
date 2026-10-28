@@ -1,4 +1,4 @@
-"""In-memory menu service for the Menu Management API.
+"""SQLite-backed menu service shared by the Menu Management and customer APIs.
 
 References: FR-42, FR-43, FR-44, FR-45, FR-46, FR-47.
 """
@@ -6,14 +6,11 @@ References: FR-42, FR-43, FR-44, FR-45, FR-46, FR-47.
 from datetime import datetime, timezone
 from typing import Any
 
-from backend.app.config import MENU_STATUS_OPEN, MENU_STATUS_SOLD_OUT, required_menu_fields
-from backend.app.models import MenuItem
-from backend.app.seed import seed_menu_data
+from sqlalchemy import select
 
-
-MENU_STORE: list[dict[str, Any]] = [
-    dict(item) for item in seed_menu_data()["menu_items"]
-]
+from ..config import MENU_STATUS_OPEN, MENU_STATUS_SOLD_OUT, required_menu_fields
+from ..database import SessionLocal, configure_database
+from ..models.menu import MenuItemEntity
 
 
 def _validate_menu_fields(payload: dict[str, Any]) -> None:
@@ -47,42 +44,83 @@ def _validate_menu_fields(payload: dict[str, Any]) -> None:
 
 def list_menu_items() -> list[dict[str, Any]]:
     """FR-42: return current menu records for the admin list."""
-    return [dict(item) for item in MENU_STORE]
+    configure_database()
+    with SessionLocal() as session:
+        items = session.scalars(
+            select(MenuItemEntity).order_by(MenuItemEntity.menu_id)
+        ).all()
+        return [_to_dict(item) for item in items]
 
 
 def create_menu_item(payload: dict[str, Any]) -> dict[str, Any]:
     """FR-43, FR-46, FR-47: validate and save a new menu record."""
     _validate_menu_fields(payload)
+    configure_database()
     now = datetime.now(timezone.utc)
-    menu_id = max((item["menu_id"] for item in MENU_STORE), default=0) + 1
-    item = MenuItem(
-        menu_id=menu_id,
-        name=payload["name"],
-        price=payload["price"],
-        status=payload["status"],
-        description=payload.get("description"),
-        image_url=payload.get("image_url"),
-        created_at=now,
-        updated_at=now,
-    ).to_dict()
-    MENU_STORE.append(item)
-    return dict(item)
+    with SessionLocal.begin() as session:
+        item = MenuItemEntity(
+            name=payload["name"],
+            price=payload["price"],
+            status=payload["status"],
+            description=payload.get("description"),
+            image_url=payload.get("image_url"),
+            created_at=now,
+            updated_at=now,
+        )
+        session.add(item)
+        session.flush()
+        return _to_dict(item)
 
 
 def update_menu_item(menu_id: int, changes: dict[str, Any]) -> dict[str, Any]:
     """FR-44, FR-47: validate and persist menu and promotion updates."""
-    for item in MENU_STORE:
-        if item["menu_id"] == menu_id:
-            updated = dict(item)
-            updated.update(changes)
-            _validate_menu_fields(updated)
-            if "promotion" in changes:
-                if changes["promotion"] is not None and not isinstance(changes["promotion"], dict):
-                    raise ValueError("Menu promotion must be an object")
-                updated["promotion"] = (
-                    dict(changes["promotion"]) if changes["promotion"] is not None else None
-                )
-            updated["updated_at"] = datetime.now(timezone.utc)
-            item.update(updated)
-            return dict(item)
-    raise ValueError(f"Menu item {menu_id} not found")
+    configure_database()
+    with SessionLocal.begin() as session:
+        item = session.get(MenuItemEntity, menu_id)
+        if item is None:
+            raise ValueError(f"Menu item {menu_id} not found")
+
+        updated = _to_dict(item)
+        updated.update(changes)
+        _validate_menu_fields(updated)
+        if "promotion" in changes and changes["promotion"] is not None:
+            if not isinstance(changes["promotion"], dict):
+                raise ValueError("Menu promotion must be an object")
+
+        for field in ("name", "price", "status", "description", "image_url"):
+            if field in changes:
+                setattr(item, field, changes[field])
+        if "promotion" in changes:
+            item.promotion = (
+                dict(changes["promotion"]) if changes["promotion"] is not None else None
+            )
+            item.promotion_price = None
+        item.updated_at = datetime.now(timezone.utc)
+        session.flush()
+        return _to_dict(item)
+
+
+def set_menu_status(menu_id: int, status: str) -> dict[str, Any]:
+    configure_database()
+    with SessionLocal.begin() as session:
+        item = session.get(MenuItemEntity, menu_id)
+        if item is None:
+            raise ValueError(f"Menu item {menu_id} not found")
+        item.status = status
+        item.updated_at = datetime.now(timezone.utc)
+        session.flush()
+        return _to_dict(item)
+
+
+def _to_dict(item: MenuItemEntity) -> dict[str, Any]:
+    return {
+        "menu_id": item.menu_id,
+        "name": item.name,
+        "price": float(item.price),
+        "status": item.status,
+        "description": item.description,
+        "image_url": item.image_url,
+        "promotion": dict(item.promotion) if item.promotion is not None else None,
+        "created_at": item.created_at,
+        "updated_at": item.updated_at,
+    }

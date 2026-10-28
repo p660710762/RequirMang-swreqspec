@@ -1,10 +1,13 @@
-"""Data schemas for the Menu Management feature.
-
-References: FR-42, FR-43, FR-44, FR-45, FR-49, NFR-REL-08, NFR-REL-09.
-"""
+"""Data schemas shared by Menu Management and Order features."""
 
 from dataclasses import asdict, dataclass
 from datetime import datetime
+from decimal import Decimal
+
+from sqlalchemy import DateTime, Integer, JSON, Numeric, String
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from .order import Base
 
 
 @dataclass
@@ -21,7 +24,6 @@ class MenuItem:
     updated_at: datetime | None = None
 
     def to_dict(self) -> dict:
-        """FR-42: return menu fields for the admin view and API layer."""
         return asdict(self)
 
 
@@ -38,7 +40,6 @@ class Promotion:
     end_at: datetime
 
     def to_dict(self) -> dict:
-        """FR-44: return promotion fields for menu management."""
         return asdict(self)
 
 
@@ -56,7 +57,6 @@ class MenuHistory:
     updated_at: datetime
 
     def to_dict(self) -> dict:
-        """FR-49: return historical menu data without changing order snapshots."""
         return asdict(self)
 
 
@@ -71,5 +71,23 @@ class OrderSnapshot:
     snapshot_status_at_order: str
 
     def to_dict(self) -> dict:
-        """FR-49: return the original menu values attached to an order."""
         return asdict(self)
+
+
+class MenuItemEntity(Base):
+    """Persisted menu record used by Order APIs (FR-06 and FR-08)."""
+
+    __tablename__ = "menu_items"
+
+    menu_id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(String, nullable=False)
+    price: Mapped[Decimal] = mapped_column(Numeric, nullable=False)
+    promotion_price: Mapped[Decimal | None] = mapped_column(Numeric, nullable=True)
+    promotion: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    status: Mapped[str] = mapped_column(String, nullable=False)
+    description: Mapped[str | None] = mapped_column(String, nullable=True)
+    image_url: Mapped[str | None] = mapped_column(String, nullable=True)
+    created_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    updated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+    order_items: Mapped[list["OrderItem"]] = relationship(back_populates="menu_item")
