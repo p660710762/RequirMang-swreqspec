@@ -14,16 +14,23 @@
 ขอบเขตทุก task: ใช้เฉพาะ HTML, CSS, Vanilla JavaScript และ Mock Data ใน browser
 ไม่สร้าง React, Vite, FastAPI, Backend, API, session/token จริง หรือฐานข้อมูลจริง
 
-## เฟส 0: ตรวจฐานของหน้า account (FR-02, NFR-USE-01)
-
-### T-01 ตรวจโครงหน้า account และ shared style
-- รองรับ: FR-02, NFR-USE-01
-- ตรวจด้วย: ไม่มี AC ตรง ๆ เป็นงานพื้นฐานของ T-02
-- ไฟล์ที่แตะ: `features/account/index.html`, `shared/styles.css`, `tests/AC-ACCOUNT-01.test.cjs`, `specs/002-Register/tasks.md`, `prompt-log.md`
-- แบบหน้าจอ: ไม่มี mockup หรือ UI ID ใน spec
+### T-00 เตรียมโครงสร้าง React + Vite
+- รองรับ: งานพื้นฐานทางเทคนิคของ UC-02 ตาม plan.md และ FR-02, NFR-USE-01
+- ตรวจด้วย: ไม่มี AC ตรง ๆ เป็นงานพื้นฐานของ T-01 และ T-02
+- ไฟล์ที่แตะ: `frontend/package.json`, `frontend/index.html`, `frontend/src/main.jsx`, `frontend/src/App.jsx` และไฟล์ตั้งค่าที่จำเป็นสำหรับ React + Vite
+- แบบหน้าจอ: ไม่มี
 - ต้องทำหลัง: ไม่มี
-- เสร็จเมื่อ: ตรวจพบหน้าเดียวที่มี `#login-form`, `#register-form`, ส่วน `#line-panel`, script `account.js` และ link `../../shared/styles.css` โดยไม่มีการอ้าง React/Vite
-- สถานะ: เสร็จ รอทีมตรวจ
+- เสร็จเมื่อ: มีโครงสร้าง Frontend ที่รัน `npm run dev` ได้และแสดงหน้า React เริ่มต้นได้
+- สถานะ: เสร็จ (ทีมยืนยันแล้ว)
+
+### T-01 กำหนด Mock Data และ React State ของบัญชี
+- รองรับ: FR-01, FR-03, FR-05, FR-06, NFR-SEC-01
+- ตรวจด้วย: ไม่มี AC ตรง ๆ เป็นงานพื้นฐานของ T-03, T-05 และ T-09
+- ไฟล์ที่แตะ: `frontend/src/App.jsx` หรือไฟล์ State/Mock Data ภายใต้ `frontend/src/`
+- แบบหน้าจอ: ไม่มี
+- ต้องทำหลัง: T-00
+- เสร็จเมื่อ: มีโครงสร้าง Mock Account, สถานะผู้ใช้ปัจจุบัน และความสัมพันธ์ Mock LINE ในหน่วยความจำ โดยไม่มี Password ของ LINE
+- สถานะ: เสร็จ (ทีมยืนยันแล้ว)
 
 ### T-02 จัดชุดทดสอบ account และวิธีเปิด prototype
 - รองรับ: FR-02, NFR-USE-01
@@ -31,8 +38,8 @@
 - ไฟล์ที่แตะ: `tests/AC-ACCOUNT-01.test.cjs`, `tests/AC-ACCOUNT-02.test.cjs`, `tests/AC-ACCOUNT-03.test.cjs`, `tests/AC-ACCOUNT-04.test.cjs`, `tests/AC-ACCOUNT-05.test.cjs`, `tests/AC-ACCOUNT-06.test.cjs`, `specs/002-Register/tasks.md`, `prompt-log.md`
 - แบบหน้าจอ: ไม่มี mockup หรือ UI ID ใน spec
 - ต้องทำหลัง: T-01
-- เสร็จเมื่อ: Node.js test ที่ตั้งชื่อ `test_AC_ACCOUNT_01` ถึง `test_AC_ACCOUNT_06` ถูกค้นพบและระบุการเปิด `features/account/index.html` ได้ โดยไม่แก้ test ของ feature อื่น
-- สถานะ: เสร็จ รอทีมตรวจ
+- เสร็จเมื่อ: หน้าเดียวแสดงฟอร์ม Login ด้านบน ปุ่มเข้าสู่ระบบ และส่วนสมัครสมาชิกด้านล่างตาม FR-02
+- สถานะ: เสร็จ (ทีมยืนยันแล้ว)
 
 #### จุดตรวจเฟส 0
 - test ที่ต้องผ่านทั้งหมด: test ของ account ที่มีอยู่และ test ของ Repo เดิมต้องยังผ่าน
@@ -51,8 +58,17 @@
 - ไฟล์ที่แตะ: `features/account/account.js`, `features/account/index.html`, `tests/AC-ACCOUNT-01.test.cjs`, `specs/002-Register/tasks.md`, `prompt-log.md`
 - แบบหน้าจอ: ไม่มี mockup หรือ UI ID ใน spec
 - ต้องทำหลัง: T-01
-- เสร็จเมื่อ: `test_AC_ACCOUNT_01_register_success` ผ่าน โดยการกรอก Email หรือเบอร์โทรศัพท์อย่างน้อยหนึ่งช่องกับ password ที่ไม่ว่างเพิ่มบัญชีใน memory และแสดงว่าสามารถเข้าสู่ระบบต่อได้ทันที
-- สถานะ: เสร็จ รอทีมตรวจ
+- เสร็จเมื่อ: การยืนยันข้อมูลที่มี Email หรือเบอร์โทรศัพท์อย่างน้อยหนึ่งช่องและ Password ไม่ว่างสร้าง Mock Account ได้ และปฏิเสธข้อมูลไม่ครบถ้วน/ซ้ำ
+- สถานะ: เสร็จ (ทีมยืนยันแล้ว)
+
+### T-04 แสดงผลสมัครสมาชิกสำเร็จและ Auto-login
+- รองรับ: FR-01, FR-02, FR-06, NFR-USE-01
+- ตรวจด้วย: AC-ACCOUNT-01
+- ไฟล์ที่แตะ: `frontend/src/App.jsx` และไฟล์ UI ภายใต้ `frontend/src/`
+- แบบหน้าจอ: ไม่มี Mockup ที่ระบุใน spec
+- ต้องทำหลัง: T-02, T-03
+- เสร็จเมื่อ: หลังสมัครสำเร็จ UI แสดงสถานะสำเร็จและสถานะผู้ใช้เป็น Auto-login ใน React State โดยไม่ต้องกรอก Login ซ้ำ
+- สถานะ: เสร็จ (ทีมยืนยันแล้ว)
 
 #### จุดตรวจเฟส 1
 - test ที่ต้องผ่านทั้งหมด: `test_AC_ACCOUNT_01_register_success` และ test ของเฟส 0
@@ -68,11 +84,20 @@
 ### T-04 ตรวจ Mock Login Flow ด้วยบัญชีตัวอย่างและบัญชีที่สมัคร
 - รองรับ: FR-02, FR-03, NFR-USE-01
 - ตรวจด้วย: AC-ACCOUNT-02
-- ไฟล์ที่แตะ: `features/account/account.js`, `features/account/index.html`, `tests/AC-ACCOUNT-02.test.cjs`, `specs/002-Register/tasks.md`, `prompt-log.md`
-- แบบหน้าจอ: ไม่มี mockup หรือ UI ID ใน spec
-- ต้องทำหลัง: T-03
-- เสร็จเมื่อ: `test_AC_ACCOUNT_02_login_success` ผ่าน โดยใช้ Email หรือเบอร์โทรศัพท์กับ password ที่ตรงกับ Mock Data แล้วแสดงสถานะ login สำเร็จใน prototype
-- สถานะ: เสร็จ รอทีมตรวจ
+- ไฟล์ที่แตะ: `frontend/src/App.jsx` และไฟล์ Logic/Mock Data ภายใต้ `frontend/src/`
+- แบบหน้าจอ: ไม่มี
+- ต้องทำหลัง: T-01, T-03
+- เสร็จเมื่อ: ผู้ใช้ที่มี Mock Account กรอก Email หรือเบอร์โทรศัพท์กับ Password ถูกต้องแล้วถูกตั้งเป็นผู้ใช้ปัจจุบันใน React State
+- สถานะ: เสร็จ (ทีมยืนยันแล้ว)
+
+### T-06 แสดงผล Login สำเร็จ
+- รองรับ: FR-03, NFR-USE-01
+- ตรวจด้วย: AC-ACCOUNT-02
+- ไฟล์ที่แตะ: `frontend/src/App.jsx` และไฟล์ UI ภายใต้ `frontend/src/`
+- แบบหน้าจอ: ไม่มี Mockup ที่ระบุใน spec
+- ต้องทำหลัง: T-02, T-05
+- เสร็จเมื่อ: UI แสดงสถานะว่าผู้ใช้เข้าสู่ระบบแล้วเมื่อข้อมูลบัญชีถูกต้อง
+- สถานะ: เสร็จ (ทีมยืนยันแล้ว)
 
 #### จุดตรวจเฟส 2
 - test ที่ต้องผ่านทั้งหมด: `test_AC_ACCOUNT_02_login_success` และ test ของเฟส 0-1
@@ -88,11 +113,20 @@
 ### T-05 ตรวจ validation และ duplicate message
 - รองรับ: FR-01, FR-02, FR-04
 - ตรวจด้วย: AC-ACCOUNT-03
-- ไฟล์ที่แตะ: `features/account/account.js`, `features/account/index.html`, `tests/AC-ACCOUNT-03.test.cjs`, `specs/002-Register/tasks.md`, `prompt-log.md`
-- แบบหน้าจอ: ไม่มี mockup หรือ UI ID ใน spec
-- ต้องทำหลัง: T-04
-- เสร็จเมื่อ: `test_AC_ACCOUNT_03_login_invalid_input` ผ่าน โดย login ที่ว่าง/ไม่ตรงไม่เปิดสถานะสำเร็จและแสดง “กรุณากรอกข้อมูลให้ถูกต้อง”; register ที่ซ้ำแสดง “อีเมล/เบอร์โทรศัพท์นี้ถูกใช้งานแล้ว” และไม่เพิ่มบัญชี
-- สถานะ: เสร็จ รอทีมตรวจ
+- ไฟล์ที่แตะ: `frontend/src/App.jsx` และไฟล์ Logic/Mock Data ภายใต้ `frontend/src/`
+- แบบหน้าจอ: ไม่มี
+- ต้องทำหลัง: T-05
+- เสร็จเมื่อ: ข้อมูล Login ไม่ถูกต้องหรือไม่ครบถ้วนไม่เปลี่ยนสถานะผู้ใช้เป็น Logged-in และส่งสถานะผิดพลาดให้ UI
+- สถานะ: เสร็จ (ทีมยืนยันแล้ว)
+
+### T-08 แสดงข้อความแจ้งเตือน Login ไม่สำเร็จ
+- รองรับ: FR-04, NFR-USE-01
+- ตรวจด้วย: AC-ACCOUNT-03
+- ไฟล์ที่แตะ: `frontend/src/App.jsx` และไฟล์ UI ภายใต้ `frontend/src/`
+- แบบหน้าจอ: ไม่มี Mockup ที่ระบุใน spec
+- ต้องทำหลัง: T-02, T-07
+- เสร็จเมื่อ: UI ปฏิเสธการเข้าสู่ระบบและแสดงข้อความแจ้งเตือนตาม FR-04
+- สถานะ: เสร็จ (ทีมยืนยันแล้ว)
 
 #### จุดตรวจเฟส 3
 - test ที่ต้องผ่านทั้งหมด: `test_AC_ACCOUNT_03_login_invalid_input` และ test ของเฟส 0-2
@@ -105,14 +139,23 @@
 
 ## เฟส 4: ข้าม LINE และรองรับความล้มเหลวแบบจำลอง (AC-ACCOUNT-05, AC-ACCOUNT-06)
 
-### T-06 ตรวจปุ่มข้าม LINE และ failure fallback
-- รองรับ: FR-05, NFR-REL-01
-- ตรวจด้วย: AC-ACCOUNT-05, AC-ACCOUNT-06
-- ไฟล์ที่แตะ: `features/account/index.html`, `features/account/account.js`, `tests/AC-ACCOUNT-05.test.cjs`, `tests/AC-ACCOUNT-06.test.cjs`, `specs/002-Register/tasks.md`, `prompt-log.md`
-- แบบหน้าจอ: ไม่มี mockup หรือ UI ID ใน spec
-- ต้องทำหลัง: T-04
-- เสร็จเมื่อ: `test_AC_ACCOUNT_05_skip_line_connection` และ `test_AC_ACCOUNT_06_line_connect_failure` ผ่าน โดยการข้ามหรือการจำลอง failure ไม่ขัดขวางการใช้ prototype ต่อ และไม่มี LINE password หรือการเชื่อมต่อบริการจริง
-- สถานะ: เสร็จ รอทีมตรวจ
+### T-09 จำลองการเชื่อมต่อ Mock LINE สำเร็จ
+- รองรับ: FR-05, FR-06, NFR-SEC-01
+- ตรวจด้วย: AC-ACCOUNT-04
+- ไฟล์ที่แตะ: `frontend/src/App.jsx` และไฟล์ Logic/Mock Data ภายใต้ `frontend/src/`
+- แบบหน้าจอ: ไม่มี
+- ต้องทำหลัง: T-04, T-06
+- เสร็จเมื่อ: เฉพาะผู้ใช้ที่ Login/Register สำเร็จเท่านั้นที่สร้างความสัมพันธ์กับ `mock-line-user-001` ใน React State ได้ และไม่มี LINE Password ในข้อมูล
+- สถานะ: เสร็จ (ทีมยืนยันแล้ว)
+
+### T-10 แสดงสถานะ Mock LINE เชื่อมต่อสำเร็จ
+- รองรับ: FR-05, FR-06, NFR-USE-01
+- ตรวจด้วย: AC-ACCOUNT-04
+- ไฟล์ที่แตะ: `frontend/src/App.jsx` และไฟล์ UI ภายใต้ `frontend/src/`
+- แบบหน้าจอ: ไม่มี Mockup ที่ระบุใน spec
+- ต้องทำหลัง: T-09
+- เสร็จเมื่อ: UI แสดงสถานะเชื่อมต่อสำเร็จและใช้ Mock LINE User ID ที่กำหนด โดยไม่เรียก LINE API จริง
+- สถานะ: เสร็จ (ทีมยืนยันแล้ว)
 
 #### จุดตรวจเฟส 4
 - test ที่ต้องผ่านทั้งหมด: `test_AC_ACCOUNT_05_skip_line_connection`, `test_AC_ACCOUNT_06_line_connect_failure` และ test ของเฟส 0-3
@@ -125,23 +168,23 @@
 
 ## เฟส 5: Mock LINE Connection และงานที่เลื่อนไป Release ถัดไป
 
-### T-07 Implement Mock LINE Connection สำเร็จ
-- รองรับ: FR-05, FR-06, NFR-REL-01
-- ตรวจด้วย: AC-ACCOUNT-04
-- ไฟล์ที่แตะ: `features/account/index.html`, `features/account/account.js`, `tests/AC-ACCOUNT-04.test.cjs`, `specs/002-Register/tasks.md`, `prompt-log.md`
-- แบบหน้าจอ: ไม่มี mockup หรือ UI ID ใน spec
-- ต้องทำหลัง: T-06
-- เสร็จเมื่อ: `test_AC_ACCOUNT_04_line_connect_success` ผ่าน โดยผู้ใช้ที่ Login/Register สำเร็จเท่านั้นจึงกดเชื่อมต่อได้, Prototype แสดงสถานะสำเร็จใน UI และเก็บ Mock LINE User ID `mock-line-user-001` ใน Browser Memory โดยไม่เรียก LINE API จริง
-- สถานะ: เสร็จ รอทีมตรวจ
+### T-11 สร้าง Mock LINE Skip Flow
+- รองรับ: FR-05, FR-05 / UC-02 Alternative Flow 7b
+- ตรวจด้วย: AC-ACCOUNT-05
+- ไฟล์ที่แตะ: `frontend/src/App.jsx` และไฟล์ Logic/Mock Data ภายใต้ `frontend/src/`
+- แบบหน้าจอ: ไม่มี
+- ต้องทำหลัง: T-09
+- เสร็จเมื่อ: ผู้ใช้เลือกข้าม LINE ได้โดยไม่สร้างความสัมพันธ์ใหม่และยังอยู่ใน flow การใช้งานต่อได้
+- สถานะ: เสร็จ (ทีมยืนยันแล้ว)
 
 ### T-08 ตรวจ Mock LINE Connection ล้มเหลว
 - รองรับ: FR-05, FR-06, NFR-REL-01
 - ตรวจด้วย: AC-ACCOUNT-06
-- ไฟล์ที่แตะ: `features/account/index.html`, `features/account/account.js`, `tests/AC-ACCOUNT-06.test.cjs`, `specs/002-Register/tasks.md`, `prompt-log.md`
-- แบบหน้าจอ: ไม่มี mockup หรือ UI ID ใน spec
-- ต้องทำหลัง: T-07
-- เสร็จเมื่อ: `test_AC_ACCOUNT_06_line_connect_failure` ผ่าน โดย failure ไม่สร้างความสัมพันธ์ใหม่กับ LINE, ไม่บันทึก Mock LINE User ID ใหม่ และยังใช้งาน Prototype ต่อได้ ห้ามเพิ่ม OAuth/callback
-- สถานะ: เสร็จ รอทีมตรวจ
+- ไฟล์ที่แตะ: `frontend/src/App.jsx` และไฟล์ UI ภายใต้ `frontend/src/`
+- แบบหน้าจอ: ไม่มี Mockup ที่ระบุใน spec
+- ต้องทำหลัง: T-09
+- เสร็จเมื่อ: เมื่อจำลองการเชื่อมต่อล้มเหลว ระบบไม่บันทึก Mock LINE User ID แสดงสถานะผิดพลาด และยังใช้งาน Prototype ต่อได้
+- สถานะ: เสร็จ (ทีมยืนยันแล้ว)
 
 ### T-09 เลื่อนการยกเลิกการเชื่อมต่อ LINE
 - รองรับ: FR-05, FR-06
