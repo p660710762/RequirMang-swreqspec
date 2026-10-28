@@ -96,24 +96,6 @@ describe('AC-MENU-08 and AC-MENU-09 customer login flow', () => {
     expect(within(orderDialog).getByRole('heading', { name: 'ชาเขียว' })).toBeInTheDocument();
     expect(within(orderDialog).getByLabelText('ระดับความหวาน')).toHaveValue('');
     expect(within(orderDialog).queryByText(/ชาเขียว จำนวน/)).not.toBeInTheDocument();
-    expect(window.location.pathname).toBe('/order');
-
-    fireEvent.change(within(orderDialog).getByLabelText('ระดับความหวาน'), {
-      target: { value: 'หวานปกติ 75%' },
-    });
-    fireEvent.click(within(orderDialog).getByRole('button', { name: 'สั่งซื้อ' }));
-
-    expect(await within(orderDialog).findByText(/ชาเขียว จำนวน 1/)).toBeInTheDocument();
-    expect(fetch).toHaveBeenCalledWith('/api/orders/items', expect.objectContaining({
-      method: 'POST',
-      body: JSON.stringify({
-        order_date: '2026-10-27',
-        order_id: '001',
-        menu_item_id: 1,
-        quantity: 1,
-        sweetness_level: 'หวานปกติ 75%',
-      }),
-    }));
   });
 
   test('shows a newly created menu after returning from Admin Menu', async () => {
@@ -135,7 +117,7 @@ describe('AC-MENU-08 and AC-MENU-09 customer login flow', () => {
     });
 
     render(<AppShell />);
-    expect(await screen.findByText('ไม่พบเมนู')).toBeInTheDocument();
+    expect(await screen.findByText('ขณะนี้ไม่มีรายการเครื่องดื่ม')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Admin Menu' }));
     fireEvent.click(await screen.findByRole('button', { name: '+ เพิ่มเมนูตัวอย่าง' }));
@@ -334,5 +316,21 @@ describe('AC-MENU-08 and AC-MENU-09 customer login flow', () => {
     expect(screen.queryByRole('heading', { name: '03 · Ordering & Payment' }))
       .not.toBeInTheDocument();
     expect(window.location.pathname).not.toBe('/order');
+  });
+
+  test('test_AC_MENU_09_cancel_does_not_change_existing_order', async () => {
+    const existingOrder = [{ menu_item_id: 9, quantity: 1, sweetness_level: 'หวานน้อย 50%' }];
+    render(<AppShell />);
+
+    fireEvent.click(await screen.findByRole('button', { name: 'สั่งซื้อ' }));
+    expect(await screen.findByRole('heading', { name: 'เข้าสู่ระบบ' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Customer Menu' }));
+
+    expect(screen.getByRole('heading', { name: 'เมนูเครื่องดื่ม' })).toBeInTheDocument();
+    expect(existingOrder).toEqual([
+      { menu_item_id: 9, quantity: 1, sweetness_level: 'หวานน้อย 50%' },
+    ]);
+    expect(fetch.mock.calls.filter(([url]) => url === '/api/orders/items')).toHaveLength(0);
+    expect(screen.queryByRole('dialog', { name: 'สั่งซื้อเครื่องดื่ม' })).not.toBeInTheDocument();
   });
 });

@@ -2551,3 +2551,19 @@
 - สถานะ: สร้าง `specs/001-Menu/rtm.md` เรียบร้อย โดยระบุว่า FR-01, FR-02, Constraint: public menu access, login-required flow, และ no-selected-menu-after-login มีหลักฐานในโค้ดและ test ที่ผ่าน; FR-03, FR-05, NFR-22, NFR-26 และบาง constraint still unproven หรือยังไม่มี test จริง
 - ข้อค้นพบ: มี 3 ข้อค้นพบใหม่ใน RTM: F-01 ของแถมจาก fallback `/api/admin/menu`, F-02 AC-MENU-09 ไม่มี test สำหรับ existing order, F-03 test อ่อนสำหรับ AC-MENU-03
 - รายงาน: ผล test,จำนวนแถวสถานะ,ข้อค้นพบใหม่, และคำเตือนให้ทีมเปิด spec + code ยืนยันช่อง "ทีมตัดสิน" เอง
+
+## 2569-10-28 16:37 คำสั่ง: /verify specs/001-Menu/spec.md
+- โหมด: ตรวจ requirement โดยไม่แก้โค้ด, test, spec, plan หรือ tasks
+- ผล test: `cd backend && pytest -v` เกิด collection error 10 ไฟล์จาก `ModuleNotFoundError: No module named 'backend'` จึงผ่าน 0 ไม่ผ่าน 0 และไม่สามารถ collect test ได้; `cd frontend && npm test -- --run` ผ่าน 123 ไม่ผ่าน 0
+- RTM: เขียนตารางตามรอยไปข้างหน้า 18 แถว (ครบ 4, ยังไม่ถึง 2, รอ 0, ช่องโหว่ 12) และตารางตามรอยย้อนกลับสำหรับ endpoint/ฟังก์ชันหลัก
+- ข้อค้นพบใหม่: F-04, F-05, F-06, F-07; คง F-01, F-02, F-03 ตามเดิมเพราะยังตรวจพบ
+- ข้อสังเกต: ไม่พบ `specs/000-shared/` หรือ mockup HTML ของฟีเจอร์นี้
+
+## 2569-10-28 16:50 คำสั่ง: แก้ F-01 ถึง F-07 ตาม RTM Draft v12
+- ไฟล์ที่แก้: `frontend/src/pages/CustomerMenuPage.jsx`, `frontend/src/pages/MenuPage.jsx`, `frontend/src/pages/CustomerMenuPage.test.jsx`, `frontend/src/__tests__/AC-MENU-08-09.test.jsx`, `backend/pytest.ini`, `backend/app/database.py`, `specs/001-Menu/rtm.md`
+- ผลก่อนแก้: Frontend 123 ผ่าน; Backend collection error 10 ไฟล์จาก `ModuleNotFoundError: backend`
+- ผลหลังแก้: targeted frontend 16 ผ่าน 0 ไม่ผ่าน; frontend full suite 130 ผ่าน 0 ไม่ผ่าน; backend collection ผ่าน 62 tests โดย 61 ผ่าน 1 ไม่ผ่าน
+- F-01: เอา fallback `/api/admin/menu` และ sample-success fallback ออก
+- F-02: เพิ่ม test ยกเลิก Login โดยมี fixture Order เดิม และตรวจว่าไม่มี POST รายการใหม่
+- F-03 ถึง F-06: เพิ่ม automated tests สำหรับ search, empty state, promotion, retry, menu details และ sold-out button
+- F-07: ตั้ง `pythonpath = . ..` ใน `backend/pytest.ini` และเพิ่ม migration สำหรับ `description`/`image_url` ใน `backend/app/database.py`; เหลือ regression เดิมที่คาด payload admin เป็น list

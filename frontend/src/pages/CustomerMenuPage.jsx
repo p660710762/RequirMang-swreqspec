@@ -77,8 +77,8 @@ export default function CustomerMenuPage({
   onOpenLogin,
   isActive = true,
 }) {
-  const [menuItems, setMenuItems] = useState(SAMPLE_MENU);
-  const [promotions, setPromotions] = useState(SAMPLE_PROMOTIONS);
+  const [menuItems, setMenuItems] = useState([]);
+  const [promotions, setPromotions] = useState([]);
   const [query, setQuery] = useState('');
   const [loadState, setLoadState] = useState('ready');
   const requestGeneration = useRef(0);
@@ -92,52 +92,33 @@ export default function CustomerMenuPage({
     const generation = ++requestGeneration.current;
     setLoadState('loading');
 
-    const endpoints = [
-      { menu: '/api/menu', promotions: '/api/promotions/active' },
-      { menu: '/api/admin/menu', promotions: '/api/promotions/active' },
-    ];
+    try {
+      const menuResponse = await fetch('/api/menu');
+      if (generation !== requestGeneration.current) return;
+      if (!menuResponse.ok) throw new Error('Menu request failed');
+      const menuPayload = await menuResponse.json();
+      if (generation !== requestGeneration.current) return;
+      const loadedMenu = Array.isArray(menuPayload)
+        ? menuPayload
+        : menuPayload.items;
+      if (!Array.isArray(loadedMenu)) throw new Error('Invalid menu response');
 
-    let loadedMenu = SAMPLE_MENU;
-    let loadedPromotions = SAMPLE_PROMOTIONS;
+      const promoResponse = await fetch('/api/promotions/active');
+      if (generation !== requestGeneration.current) return;
+      if (!promoResponse.ok) throw new Error('Promotion request failed');
+      const promoPayload = await promoResponse.json();
+      if (generation !== requestGeneration.current) return;
+      if (!Array.isArray(promoPayload)) throw new Error('Invalid promotion response');
 
-    for (const routeSet of endpoints) {
-      try {
-        const menuResponse = await fetch(routeSet.menu);
-        if (generation !== requestGeneration.current) return;
-        if (!menuResponse.ok) throw new Error('Menu request failed');
-        const menuPayload = await menuResponse.json();
-        if (generation !== requestGeneration.current) return;
-        if (Array.isArray(menuPayload)) {
-          loadedMenu = menuPayload;
-        } else if (Array.isArray(menuPayload.items)) {
-          loadedMenu = menuPayload.items;
-        }
-
-        const promoResponse = await fetch(routeSet.promotions);
-        if (generation !== requestGeneration.current) return;
-        if (promoResponse.ok) {
-          const promoPayload = await promoResponse.json();
-          if (generation !== requestGeneration.current) return;
-          if (Array.isArray(promoPayload)) {
-            loadedPromotions = promoPayload;
-          }
-        }
-
-        if (generation !== requestGeneration.current) return;
-        setMenuItems(loadedMenu);
-        setPromotions(loadedPromotions);
-        setLoadState('ready');
-        return;
-      } catch {
-        if (generation !== requestGeneration.current) return;
-        // Try the next endpoint; if all fail, keep the sample fallback below.
-      }
+      setMenuItems(loadedMenu);
+      setPromotions(promoPayload);
+      setLoadState('ready');
+    } catch {
+      if (generation !== requestGeneration.current) return;
+      setMenuItems([]);
+      setPromotions([]);
+      setLoadState('error');
     }
-
-    if (generation !== requestGeneration.current) return;
-    setMenuItems(SAMPLE_MENU);
-    setPromotions(SAMPLE_PROMOTIONS);
-    setLoadState('error');
   }, []);
 
   useEffect(() => {
@@ -228,7 +209,9 @@ export default function CustomerMenuPage({
         )}
 
         {loadState === 'ready' && filteredItems.length === 0 && (
-          <p className="customer-page__state">ไม่พบเมนู</p>
+          <p className="customer-page__state">
+            {query.trim() ? 'ไม่พบเมนู' : 'ขณะนี้ไม่มีรายการเครื่องดื่ม'}
+          </p>
         )}
 
         {loadState === 'ready' && filteredItems.length > 0 && (

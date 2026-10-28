@@ -75,6 +75,8 @@ def init_database() -> None:
         missing_columns = {
             "promotion_price": "NUMERIC",
             "promotion": "JSON",
+            "description": "VARCHAR",
+            "image_url": "VARCHAR",
             "created_at": "DATETIME",
             "updated_at": "DATETIME",
         }

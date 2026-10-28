@@ -67,7 +67,6 @@ export default function MenuPage() {
   const [query, setQuery] = useState('');
   const [loadState, setLoadState] = useState('ready');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [pendingSelection, setPendingSelection] = useState(null);
   const [orderItems, setOrderItems] = useState([]);
 
   const activePromotions = useMemo(
@@ -121,7 +120,6 @@ export default function MenuPage() {
     if (item.status === 'sold_out') return;
 
     if (!isLoggedIn) {
-      setPendingSelection(item);
       return;
     }
 
@@ -134,18 +132,9 @@ export default function MenuPage() {
 
   const handleLoginSuccess = () => {
     setIsLoggedIn(true);
-    if (pendingSelection) {
-      setOrderItems((current) => {
-        const exists = current.find((entry) => entry.id === pendingSelection.id);
-        if (exists) return current;
-        return [...current, { ...pendingSelection, price: getDiscountedPrice(pendingSelection) }];
-      });
-      setPendingSelection(null);
-    }
   };
 
   const handleCancelLogin = () => {
-    setPendingSelection(null);
   };
 
   return (
@@ -163,19 +152,6 @@ export default function MenuPage() {
             </button>
           </div>
         </header>
-
-        {pendingSelection && (
-          <div className="customer-page__banner" role="alert">
-            <div>
-              <strong>กรุณาเข้าสู่ระบบก่อนเพิ่ม {pendingSelection.name} เข้า Order</strong>
-              <p>ระบบจะเก็บเมนูที่เลือกไว้และนำคุณกลับไปยัง UC-02 ก่อนดำเนินการต่อ</p>
-            </div>
-            <div className="customer-page__banner-actions">
-              <button type="button" className="primary-button" onClick={handleLoginSuccess}>เข้าสู่ระบบ</button>
-              <button type="button" className="secondary-button" onClick={handleCancelLogin}>ยกเลิก</button>
-            </div>
-          </div>
-        )}
 
         <label className="customer-page__search">
           <span>ค้นหาเมนู</span>
