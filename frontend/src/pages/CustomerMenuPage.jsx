@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 const SAMPLE_MENU = [
   {
@@ -75,18 +75,21 @@ export default function CustomerMenuPage({
   onLoginRequired,
   onContinueToOrder,
   onOpenLogin,
+  isActive = true,
 }) {
   const [menuItems, setMenuItems] = useState(SAMPLE_MENU);
   const [promotions, setPromotions] = useState(SAMPLE_PROMOTIONS);
   const [query, setQuery] = useState('');
   const [loadState, setLoadState] = useState('ready');
+  const requestGeneration = useRef(0);
 
   const activePromotions = useMemo(
     () => promotions.filter((promotion) => promotion.status === 'active'),
     [promotions],
   );
 
-  const loadMenu = async () => {
+  const loadMenu = useCallback(async () => {
+    const generation = ++requestGeneration.current;
     setLoadState('loading');
 
     const endpoints = [
@@ -100,8 +103,10 @@ export default function CustomerMenuPage({
     for (const routeSet of endpoints) {
       try {
         const menuResponse = await fetch(routeSet.menu);
+        if (generation !== requestGeneration.current) return;
         if (!menuResponse.ok) throw new Error('Menu request failed');
         const menuPayload = await menuResponse.json();
+        if (generation !== requestGeneration.current) return;
         if (Array.isArray(menuPayload)) {
           loadedMenu = menuPayload;
         } else if (Array.isArray(menuPayload.items)) {
@@ -109,30 +114,43 @@ export default function CustomerMenuPage({
         }
 
         const promoResponse = await fetch(routeSet.promotions);
+        if (generation !== requestGeneration.current) return;
         if (promoResponse.ok) {
           const promoPayload = await promoResponse.json();
+          if (generation !== requestGeneration.current) return;
           if (Array.isArray(promoPayload)) {
             loadedPromotions = promoPayload;
           }
         }
 
+        if (generation !== requestGeneration.current) return;
         setMenuItems(loadedMenu);
         setPromotions(loadedPromotions);
         setLoadState('ready');
         return;
       } catch {
+        if (generation !== requestGeneration.current) return;
         // Try the next endpoint; if all fail, keep the sample fallback below.
       }
     }
 
+    if (generation !== requestGeneration.current) return;
     setMenuItems(SAMPLE_MENU);
     setPromotions(SAMPLE_PROMOTIONS);
     setLoadState('error');
-  };
+  }, []);
 
   useEffect(() => {
+    if (!isActive) {
+      requestGeneration.current += 1;
+      return undefined;
+    }
+
     loadMenu();
-  }, []);
+    return () => {
+      requestGeneration.current += 1;
+    };
+  }, [isActive, loadMenu]);
 
   const filteredItems = useMemo(() => {
     const keyword = query.trim().toLowerCase();

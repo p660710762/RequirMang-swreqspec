@@ -1,5 +1,71 @@
 const ADMIN_MENU_PATH = '/api/admin/menu';
 const MOCK_ADMIN_HEADERS = { 'X-User-Id': 'admin' };
+const ORDER_LIST_PATH = '/api/orders';
+const DEFAULT_MOCK_ORDER_USER = 'customer-a';
+
+function orderHeaders(userId = DEFAULT_MOCK_ORDER_USER) {
+  return userId ? { 'X-Test-User': userId } : {};
+}
+
+// FR-19: load the order list for the current development/test user.
+export async function getOrders(userId = DEFAULT_MOCK_ORDER_USER) {
+  const response = await fetch(ORDER_LIST_PATH, { headers: orderHeaders(userId) });
+  if (!response.ok) {
+    throw new Error(`Order request failed (${response.status})`);
+  }
+  return response.json();
+}
+
+// FR-20: load details for the selected order using the current development/test user.
+export async function getOrderDetails(
+  orderId,
+  userId = DEFAULT_MOCK_ORDER_USER,
+  orderDate,
+) {
+  const query = orderDate ? `?order_date=${encodeURIComponent(orderDate)}` : '';
+  const response = await fetch(
+    `${ORDER_LIST_PATH}/${encodeURIComponent(orderId)}${query}`,
+    { headers: orderHeaders(userId) },
+  );
+  if (!response.ok) {
+    throw new Error(`Order detail request failed (${response.status})`);
+  }
+  return response.json();
+}
+
+// FR-21, NFR-REL-03: load the confirmed status history for the selected order.
+export async function getOrderStatus(
+  orderId,
+  userId = DEFAULT_MOCK_ORDER_USER,
+  orderDate,
+) {
+  const query = orderDate ? `?order_date=${encodeURIComponent(orderDate)}` : '';
+  const response = await fetch(
+    `${ORDER_LIST_PATH}/${encodeURIComponent(orderId)}/status${query}`,
+    { headers: orderHeaders(userId) },
+  );
+  if (!response.ok) {
+    throw new Error(`Order status request failed (${response.status})`);
+  }
+  return response.json();
+}
+
+// FR-21, NFR-REL-03: reload the selected order's latest confirmed status after a failure.
+export async function refreshOrderStatus(
+  orderId,
+  userId = DEFAULT_MOCK_ORDER_USER,
+  orderDate,
+) {
+  const query = orderDate ? `?order_date=${encodeURIComponent(orderDate)}` : '';
+  const response = await fetch(
+    `${ORDER_LIST_PATH}/${encodeURIComponent(orderId)}/status/refresh${query}`,
+    { method: 'POST', headers: orderHeaders(userId) },
+  );
+  if (!response.ok) {
+    throw new Error(`Order status refresh failed (${response.status})`);
+  }
+  return response.json();
+}
 
 // FR-42: load the current menu list for the Admin menu page.
 export async function getMenuItems() {
@@ -69,8 +135,11 @@ export async function getMenu() {
 }
 
 // รองรับ FR-06 โดยขอ reference draft และเลขที่จองจาก backend
-export function createDraft() {
-  return request('/api/orders/drafts', { method: 'POST' });
+export function createDraft(userId) {
+  return request('/api/orders/drafts', {
+    method: 'POST',
+    headers: orderHeaders(userId || ''),
+  });
 }
 
 // รองรับ FR-06 และ FR-07 โดยส่งจำนวนและตัวเลือกไปเพิ่มใน draft Order
@@ -102,6 +171,15 @@ export function updateOrderItem(orderItemId, changes) {
 export function confirmOrder(draft) {
   return request('/api/orders/confirm', {
     method: 'POST',
+    body: JSON.stringify(draft),
+  });
+}
+
+// FR-17: development/test-only simulated payment completion for the current mock user.
+export function completeMockPayment(draft, userId) {
+  return request('/api/orders/payment/mock-success', {
+    method: 'POST',
+    headers: orderHeaders(userId || ''),
     body: JSON.stringify(draft),
   });
 }

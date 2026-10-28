@@ -54,6 +54,20 @@ def init_database() -> None:
     from .models.payment_transaction import PaymentTransaction
 
     Base.metadata.create_all(bind=engine)
+    if "orders" in inspect(engine).get_table_names():
+        order_columns = {
+            column["name"] for column in inspect(engine).get_columns("orders")
+        }
+        missing_order_columns = {
+            "owner_user_id": "VARCHAR",
+            "last_status_change_at": "DATETIME",
+        }
+        with engine.begin() as connection:
+            for name, column_type in missing_order_columns.items():
+                if name not in order_columns:
+                    connection.execute(
+                        text(f"ALTER TABLE orders ADD COLUMN {name} {column_type}")
+                    )
     if "menu_items" in inspect(engine).get_table_names():
         columns = {
             column["name"] for column in inspect(engine).get_columns("menu_items")

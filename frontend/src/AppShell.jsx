@@ -3,29 +3,63 @@ import { useEffect, useState } from 'react';
 import App from './App.jsx';
 import AdminMenuPage from './pages/AdminMenuPage.jsx';
 import CustomerMenuPage from './pages/CustomerMenuPage.jsx';
+import OrderDetailPage from './pages/OrderDetail.jsx';
+import OrderListPage from './pages/OrderList.jsx';
 import OrderPage from './pages/OrderPage.jsx';
 
 // รองรับ FR-02: เชื่อม Customer/Login ไป UC-03 โดยไม่ส่งเมนูที่เลือกก่อน Login
 export default function AppShell() {
-  const [page, setPage] = useState(() => (
-    window.location.pathname === '/order' ? 'account' : 'customer'
-  ));
+  const [page, setPage] = useState(() => {
+    const path = window.location.pathname;
+    return path === '/order' || path === '/orders/status'
+      || /^\/orders\/[^/]+\/details$/.test(path)
+      ? 'account'
+      : 'customer';
+  });
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [mockUserId, setMockUserId] = useState('');
   const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
   const [selectedOrderMenuId, setSelectedOrderMenuId] = useState(null);
+  const [selectedTrackingOrderId, setSelectedTrackingOrderId] = useState(null);
+  const [selectedTrackingOrderDate, setSelectedTrackingOrderDate] = useState(null);
 
   useEffect(() => {
     const handlePopState = () => {
-      if (window.location.pathname === '/order' && !isLoggedIn) {
+      const path = window.location.pathname;
+      const orderDate = new URLSearchParams(window.location.search).get('order_date');
+      const detailMatch = path.match(/^\/orders\/([^/]+)\/details$/);
+
+      if (path === '/order' && !isLoggedIn) {
         setPage('account');
         setIsOrderModalOpen(false);
         setSelectedOrderMenuId(null);
         return;
       }
 
+      if (path === '/orders/status' || detailMatch) {
+        setIsOrderModalOpen(false);
+        setSelectedOrderMenuId(null);
+        if (!isLoggedIn) {
+          setPage('account');
+          return;
+        }
+        if (detailMatch) {
+          setSelectedTrackingOrderId(decodeURIComponent(detailMatch[1]));
+          setSelectedTrackingOrderDate(orderDate);
+          setPage('orderDetail');
+        } else {
+          setSelectedTrackingOrderId(null);
+          setSelectedTrackingOrderDate(null);
+          setPage('status');
+        }
+        return;
+      }
+
       setPage('customer');
       setIsOrderModalOpen(window.location.pathname === '/order');
       setSelectedOrderMenuId(null);
+      setSelectedTrackingOrderId(null);
+      setSelectedTrackingOrderDate(null);
     };
 
     window.addEventListener('popstate', handlePopState);
@@ -33,12 +67,39 @@ export default function AppShell() {
   }, [isLoggedIn]);
 
   const handleNavigate = (nextPage) => {
-    if (window.location.pathname === '/order') {
+    if (nextPage === 'status' && isLoggedIn) {
+      if (window.location.pathname !== '/orders/status') {
+        window.history.pushState({}, '', '/orders/status');
+      }
+      setSelectedTrackingOrderId(null);
+      setSelectedTrackingOrderDate(null);
+      setIsOrderModalOpen(false);
+      setSelectedOrderMenuId(null);
+      setPage('status');
+      return;
+    }
+
+    if (window.location.pathname !== '/') {
       window.history.replaceState({}, '', '/');
     }
     setIsOrderModalOpen(false);
     setSelectedOrderMenuId(null);
+    setSelectedTrackingOrderId(null);
     setPage(nextPage);
+  };
+
+  const handleSelectOrder = (orderId, orderDate) => {
+    const query = orderDate
+      ? `?order_date=${encodeURIComponent(orderDate)}`
+      : '';
+    window.history.pushState(
+      {},
+      '',
+      `/orders/${encodeURIComponent(orderId)}/details${query}`,
+    );
+    setSelectedTrackingOrderId(orderId);
+    setSelectedTrackingOrderDate(orderDate ?? null);
+    setPage('orderDetail');
   };
 
   const handleLoginRequired = () => {
@@ -47,18 +108,21 @@ export default function AppShell() {
     setPage('account');
   };
 
-  const handleAuthenticationSuccess = () => {
+  const handleAuthenticationSuccess = (account) => {
     setIsLoggedIn(true);
-    if (window.location.pathname === '/order') {
+    setMockUserId(account.id);
+    if (window.location.pathname !== '/') {
       window.history.replaceState({}, '', '/');
     }
     setSelectedOrderMenuId(null);
+    setSelectedTrackingOrderId(null);
+    setSelectedTrackingOrderDate(null);
     setIsOrderModalOpen(false);
     setPage('customer');
   };
 
   const handleLoginCancel = () => {
-    if (window.location.pathname === '/order') {
+    if (window.location.pathname !== '/') {
       window.history.replaceState({}, '', '/');
     }
     setIsOrderModalOpen(false);
@@ -118,6 +182,18 @@ export default function AppShell() {
         >
           Admin Menu
         </button>
+        {/* FR-19, AC-STATUS-01: expose order tracking after login. */}
+        {isLoggedIn && (
+          <button
+            type="button"
+            className={page === 'status' || page === 'orderDetail'
+              ? 'app-switcher__button active'
+              : 'app-switcher__button'}
+            onClick={() => handleNavigate('status')}
+          >
+            Status
+          </button>
+        )}
         <button
           type="button"
           className={page === 'account' ? 'app-switcher__button active' : 'app-switcher__button'}
@@ -129,6 +205,7 @@ export default function AppShell() {
 
       <div hidden={page !== 'customer'}>
         <CustomerMenuPage
+          isActive={page === 'customer'}
           isLoggedIn={isLoggedIn}
           onLoginRequired={handleLoginRequired}
           onContinueToOrder={handleContinueToOrder}
@@ -136,6 +213,16 @@ export default function AppShell() {
         />
       </div>
       {page === 'admin' && <AdminMenuPage />}
+      {page === 'status' && (
+        <OrderListPage userId={mockUserId} onSelectOrder={handleSelectOrder} />
+      )}
+      {page === 'orderDetail' && selectedTrackingOrderId && (
+        <OrderDetailPage
+          orderId={selectedTrackingOrderId}
+          orderDate={selectedTrackingOrderDate}
+          userId={mockUserId}
+        />
+      )}
       <div hidden={page !== 'account'}>
         <App
           onAuthenticated={handleAuthenticationSuccess}
@@ -163,7 +250,11 @@ export default function AppShell() {
             >
               ปิด
             </button>
-            <OrderPage initialMenuId={selectedOrderMenuId} />
+            <OrderPage
+              initialMenuId={selectedOrderMenuId}
+              userId={mockUserId}
+              onGoToStatus={() => handleNavigate('status')}
+            />
           </section>
         </div>
       )}

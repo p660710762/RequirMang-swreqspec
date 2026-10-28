@@ -55,7 +55,9 @@ class MenuRepository(Protocol):
 
 class OrderRepository(Protocol):
     # รองรับ FR-06 โดยจองหมายเลข draft จาก backend ก่อนเพิ่มรายการ
-    def create_draft(self) -> DraftOrderReference: ...
+    def create_draft(
+        self, owner_user_id: str | None = None
+    ) -> DraftOrderReference: ...
 
     # รองรับ FR-06 และ Constraint: เพิ่มรายการลงใน draft Order ที่ระบุเท่านั้น
     def add_item_to_draft(
@@ -302,6 +304,8 @@ class OrderDraftService:
     def __init__(self, order_repository: OrderRepository) -> None:
         self._order_repository = order_repository
 
-    def create_draft(self) -> DraftOrderReference:
+    def create_draft(self, owner_user_id: str | None = None) -> DraftOrderReference:
         # รองรับ FR-06: หมายเลข draft ถูกจองฝั่ง backend ไม่สร้างจาก client
-        return self._order_repository.create_draft()
+        if owner_user_id is None:
+            return self._order_repository.create_draft()
+        return self._order_repository.create_draft(owner_user_id)

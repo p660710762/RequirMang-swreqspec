@@ -6,6 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import OrderPage from "./OrderPage.jsx";
 import {
   addOrderItem,
+  completeMockPayment,
   confirmOrder,
   createDraft,
   getMenu,
@@ -15,6 +16,7 @@ import {
 
 vi.mock("../api/client.js", () => ({
   addOrderItem: vi.fn(),
+  completeMockPayment: vi.fn(),
   confirmOrder: vi.fn(),
   createDraft: vi.fn(),
   getMenu: vi.fn(),
@@ -72,6 +74,11 @@ beforeEach(() => {
   vi.mocked(confirmOrder).mockResolvedValue({
     ...draft,
     payment_status: "pending",
+  });
+  vi.mocked(completeMockPayment).mockResolvedValue({
+    ...draft,
+    payment_status: "success",
+    status: "PENDING_ACCEPT",
   });
 });
 
@@ -281,8 +288,8 @@ describe("OrderPage", () => {
     expect(await screen.findByRole("heading", { name: "ตะกร้าสินค้า" })).not.toBeNull();
     expect(screen.getByLabelText("ชื่อผู้รับเครื่องดื่ม (ตัวอย่าง)").value).toBe("Guest");
     expect(screen.getByLabelText("วิธีชำระเงิน (ตัวอย่าง)").disabled).toBe(true);
-    expect(screen.getByRole("button", { name: "ยืนยันคำสั่งซื้อ / ชำระสำเร็จ" }).disabled)
-      .toBe(true);
+    expect(screen.queryByRole("button", { name: "จำลองชำระเงินสำเร็จ" }))
+      .not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "จำลองกรณีชำระเงินล้มเหลว" }).disabled)
       .toBe(true);
   });
@@ -392,8 +399,33 @@ describe("OrderPage", () => {
       expect(confirmOrder).toHaveBeenCalledWith(draft);
     });
     expect(await screen.findByRole("status")).toHaveTextContent(
-      "Order ผ่านการตรวจสอบและเข้าสู่ขั้นตอนชำระเงินแล้ว",
+      "Order ผ่านการตรวจสอบและรอผลชำระเงิน (จำลอง)",
     );
+  });
+
+  it("completes the development mock payment and offers Status navigation", async () => {
+    const onGoToStatus = vi.fn();
+    render(<OrderPage userId="mock-customer" onGoToStatus={onGoToStatus} />);
+
+    await screen.findByRole("heading", { name: "ชาไทย" });
+    fireEvent.change(screen.getByLabelText("ระดับความหวาน"), {
+      target: { value: "หวานปกติ 75%" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "สั่งซื้อ" }));
+    await screen.findByText(/ชาไทย จำนวน 1/);
+    fireEvent.click(screen.getByRole("button", { name: "ตรวจสอบ Order" }));
+    fireEvent.click(await screen.findByRole("button", { name: "ยืนยัน Order เพื่อชำระเงิน" }));
+
+    fireEvent.click(await screen.findByRole("button", { name: "จำลองชำระเงินสำเร็จ" }));
+
+    await waitFor(() => {
+      expect(completeMockPayment).toHaveBeenCalledWith(draft, "mock-customer");
+    });
+    expect(await screen.findByRole("status")).toHaveTextContent(
+      "ชำระเงินสำเร็จ (จำลอง) · Order 001 พร้อมติดตามสถานะ",
+    );
+    fireEvent.click(screen.getByRole("button", { name: "ไปหน้า Status" }));
+    expect(onGoToStatus).toHaveBeenCalledOnce();
   });
 
   it("test_AC_ORDER_11_show_out_of_stock_message", async () => {

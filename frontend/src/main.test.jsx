@@ -35,6 +35,11 @@ describe('application routes', () => {
     await expect(getRenderedPage('/order')).resolves.toBe(AppShell);
   });
 
+  it('keeps Status routes inside AppShell so they share the in-memory mock identity', async () => {
+    await expect(getRenderedPage('/orders/status')).resolves.toBe(AppShell);
+    await expect(getRenderedPage('/orders/order-123/details')).resolves.toBe(AppShell);
+  });
+
   it('preserves the Menu and Account app at /', async () => {
     await expect(getRenderedPage('/')).resolves.toBe(AppShell);
   });

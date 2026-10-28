@@ -1,16 +1,31 @@
 from datetime import date
 from decimal import Decimal
 from typing import Annotated, Literal
+import os
+import sqlite3
+import uuid
+from collections.abc import Iterator
 
 from fastapi import APIRouter
-from fastapi import Depends, HTTPException, Query, status
+from fastapi import Depends, Header, HTTPException, Query, status
 from pydantic import BaseModel, Field, field_validator
 
 from ..database import configure_database
+if __package__ == "backend.app.routes":
+    from ...database import connect_database
+else:
+    from database import connect_database
 from ..repositories.order_repository import (
+    MockPaymentOrderNotFoundError,
+    MockPaymentOrderNotReadyError,
     OrderNumberExhaustedError,
     menu_repository,
     order_repository,
+)
+from ..services.orders import (
+    get_order_detail_for_user,
+    get_order_status_for_user,
+    list_orders_for_user,
 )
 from ..seed import seed_menu_data
 from ..services.order_service import (
@@ -35,6 +50,7 @@ from ..services.order_service import (
 # รองรับ FR-06, FR-10 และ FR-11; endpoint behavior อยู่ใน tasks ที่ตามมา
 router = APIRouter(prefix="/api/orders", tags=["orders"])
 menu_router = APIRouter(tags=["menu"])
+tracking_router = APIRouter(prefix="/api/orders", tags=["order tracking"])
 
 SweetnessLevel = Literal[
     "หวานปกติ 75%", "หวานน้อย 50%", "เพิ่มหวาน 100%", "ไม่หวาน"
@@ -163,6 +179,12 @@ class ConfirmOrderResponse(BaseModel):
     payment_status: Literal["pending"]
 
 
+# Development/test-only request to complete the explicitly simulated payment flow.
+class MockPaymentSuccessRequest(BaseModel):
+    order_date: date
+    order_id: str = Field(pattern=r"^[0-9]{3}$")
+
+
 def get_menu_repository() -> MenuRepository:
     configure_database()
     # รองรับ FR-06 โดยใช้ repository เมนูร่วมกับ Menu API
@@ -237,10 +259,14 @@ def list_menu_items(
 )
 def create_draft_order(
     service: Annotated[OrderDraftService, Depends(get_order_draft_service)],
+    x_test_user: Annotated[str | None, Header(alias="X-Test-User")] = None,
 ) -> DraftOrderResponse:
     # รองรับ FR-06 โดยจองหมายเลข draft ผ่าน backend ก่อนให้ client เพิ่มรายการ
     try:
-        draft: DraftOrderReference = service.create_draft()
+        user = get_optional_mock_order_user(x_test_user)
+        draft: DraftOrderReference = service.create_draft(
+            user["user_id"] if user is not None else None
+        )
     except OrderNumberExhaustedError as exc:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
@@ -404,3 +430,145 @@ def update_order_item(
         ice_level=result.ice_level,
         total_amount=result.total_amount,
     )
+
+
+# FR-19, NFR-SEC-02, AC-STATUS-01: development/test-only identities for the tracking APIs.
+MOCK_USERS: dict[str, dict[str, str]] = {
+    "customer-a": {"user_id": "sample-user"},
+    "customer-b": {"user_id": "sample-user-2"},
+}
+
+
+def _resolve_mock_order_user(x_test_user: str | None) -> dict[str, str]:
+    if x_test_user in MOCK_USERS:
+        return MOCK_USERS[x_test_user]
+    if x_test_user:
+        try:
+            return {"user_id": str(uuid.UUID(x_test_user))}
+        except ValueError:
+            pass
+    raise HTTPException(status_code=401, detail="Test user is not recognized")
+
+
+# Supports NFR-SEC-02 by resolving an allowlisted test identity only outside production.
+def get_mock_order_user(
+    x_test_user: str | None = Header(default=None, alias="X-Test-User"),
+) -> dict[str, str]:
+    environment = os.environ.get("APP_ENV")
+    if environment not in {"development", "test"}:
+        raise HTTPException(status_code=401, detail="Mock authentication is disabled")
+    return _resolve_mock_order_user(x_test_user)
+
+
+def get_optional_mock_order_user(x_test_user: str | None) -> dict[str, str] | None:
+    if x_test_user is None:
+        return None
+    return get_mock_order_user(x_test_user)
+
+
+# Supports FR-19 by providing a configured relational database connection for the request.
+def get_order_database() -> Iterator[sqlite3.Connection]:
+    database_path = os.environ.get("ORDER_DATABASE_PATH")
+    if not database_path:
+        raise HTTPException(status_code=503, detail="Order database is not configured")
+
+    configure_database()
+    connection = connect_database(database_path)
+    try:
+        yield connection
+    finally:
+        connection.close()
+
+
+@router.post("/payment/mock-success")
+def complete_mock_payment(
+    request: MockPaymentSuccessRequest,
+    user: dict[str, str] = Depends(get_mock_order_user),
+) -> dict[str, object]:
+    # FR-17: explicitly simulate payment success only in development/test and for the owner.
+    configure_database()
+    try:
+        return order_repository.complete_mock_payment(
+            request.order_date,
+            request.order_id,
+            user["user_id"],
+        )
+    except MockPaymentOrderNotFoundError as exc:
+        raise HTTPException(status_code=404, detail="Order not found") from exc
+    except MockPaymentOrderNotReadyError as exc:
+        raise HTTPException(
+            status_code=409,
+            detail="Order is empty or payment has already been processed",
+        ) from exc
+
+
+# Supports FR-19, FR-22, and NFR-SEC-02 by returning the user's orders and their saved item summaries.
+@tracking_router.get("")
+def get_orders(
+    user: dict[str, str] = Depends(get_mock_order_user),
+    connection: sqlite3.Connection = Depends(get_order_database),
+) -> list[dict[str, object]]:
+    return list_orders_for_user(connection, user["user_id"])
+
+
+# Supports FR-20 and NFR-SEC-02 by returning only details owned by the mock-authenticated user.
+@tracking_router.get("/{order_id}")
+def get_order_detail(
+    order_id: str,
+    order_date: date | None = Query(default=None),
+    user: dict[str, str] = Depends(get_mock_order_user),
+    connection: sqlite3.Connection = Depends(get_order_database),
+) -> dict[str, object]:
+    order = get_order_detail_for_user(
+        connection,
+        order_id,
+        user["user_id"],
+        order_date.isoformat() if order_date is not None else None,
+    )
+    if order is None:
+        raise HTTPException(status_code=404, detail="Order not found")
+    return order
+
+
+# Supports FR-21, NFR-REL-03, NFR-SEC-02, and AC-STATUS-07 by reloading only the owner's confirmed status.
+@tracking_router.post("/{order_id}/status/refresh")
+def refresh_order_status(
+    order_id: str,
+    order_date: date | None = Query(default=None),
+    user: dict[str, str] = Depends(get_mock_order_user),
+    connection: sqlite3.Connection = Depends(get_order_database),
+) -> dict[str, object]:
+    try:
+        status = get_order_status_for_user(
+            connection,
+            order_id,
+            user["user_id"],
+            order_date.isoformat() if order_date is not None else None,
+        )
+    except sqlite3.Error as error:
+        raise HTTPException(
+            status_code=503,
+            detail="Unable to load confirmed order status",
+        ) from error
+    if status is None:
+        raise HTTPException(status_code=404, detail="Order not found")
+    return status
+
+
+# Supports FR-21, NFR-REL-03, and NFR-SEC-02 by exposing only an owner's confirmed status history.
+@tracking_router.get("/{order_id}/status")
+def get_order_status(
+    order_id: str,
+    order_date: date | None = Query(default=None),
+    user: dict[str, str] = Depends(get_mock_order_user),
+    connection: sqlite3.Connection = Depends(get_order_database),
+) -> dict[str, object]:
+    status = get_order_status_for_user(
+        connection,
+        order_id,
+        user["user_id"],
+        order_date.isoformat() if order_date is not None else None,
+    )
+    if status is None:
+        raise HTTPException(status_code=404, detail="Order not found")
+    return status

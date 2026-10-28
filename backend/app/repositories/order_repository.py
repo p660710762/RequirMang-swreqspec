@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, datetime, timezone
 from decimal import Decimal
 
 from sqlalchemy import select
@@ -10,10 +10,19 @@ from ..database import SessionLocal
 from ..models.menu import MenuItemEntity
 from ..models.order import Order
 from ..models.order_item import OrderItem, OrderOption
+from ..models.payment_transaction import PaymentTransaction
 
 
 class OrderNumberExhaustedError(Exception):
     """Raised when every Order number for the current date is in use."""
+
+
+class MockPaymentOrderNotFoundError(Exception):
+    """Raised when a mock payment targets an order not owned by the caller."""
+
+
+class MockPaymentOrderNotReadyError(Exception):
+    """Raised when a mock payment targets an empty or already processed order."""
 
 
 @dataclass
@@ -123,7 +132,7 @@ class SqliteMenuRepository:
 class SqliteOrderRepository:
     """จัดเก็บ draft, รายการ และตัวเลือกด้วย transaction ของ SQLite."""
 
-    def create_draft(self) -> RepositoryDraft:
+    def create_draft(self, owner_user_id: str | None = None) -> RepositoryDraft:
         today = date.today()
         with SessionLocal.begin() as session:
             used = session.scalars(
@@ -141,6 +150,7 @@ class SqliteOrderRepository:
                 status="draft",
                 total_amount=Decimal("0"),
                 payment_status="pending",
+                owner_user_id=owner_user_id,
             )
             session.add(draft)
             return RepositoryDraft(today, draft.order_id)
@@ -242,6 +252,35 @@ class SqliteOrderRepository:
 
     def prepare_payment(self, order_date, order_id):
         return RepositoryPaymentPreparation(order_date, order_id)
+
+    def complete_mock_payment(self, order_date, order_id, owner_user_id):
+        with SessionLocal.begin() as session:
+            order = self._get_order(session, order_date, order_id)
+            if order is None or order.owner_user_id != owner_user_id:
+                raise MockPaymentOrderNotFoundError
+            if not order.items or order.payment_status != "pending":
+                raise MockPaymentOrderNotReadyError
+
+            paid_at = datetime.now(timezone.utc)
+            order.payment_status = "success"
+            order.status = "PENDING_ACCEPT"
+            order.paid_at = paid_at
+            order.last_status_change_at = paid_at
+            session.add(
+                PaymentTransaction(
+                    order_date=order_date,
+                    order_id=order_id,
+                    payment_result="success",
+                    reference_key=f"mock-success:{order_date.isoformat()}:{order_id}",
+                )
+            )
+            return {
+                "order_date": order_date,
+                "order_id": order_id,
+                "payment_status": "success",
+                "status": order.status,
+                "paid_at": paid_at,
+            }
 
 
 menu_repository = SqliteMenuRepository()

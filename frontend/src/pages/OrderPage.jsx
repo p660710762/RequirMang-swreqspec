@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 
 import {
   addOrderItem,
+  completeMockPayment,
   confirmOrder,
   createDraft,
   getMenu,
@@ -51,7 +52,11 @@ function formatPrice(value) {
 }
 
 // รองรับ FR-06 และ FR-07, AC-ORDER-01 และ AC-ORDER-02
-export default function OrderPage({ initialMenuId = null }) {
+export default function OrderPage({
+  initialMenuId = null,
+  userId = '',
+  onGoToStatus,
+}) {
   const [menuItems, setMenuItems] = useState([]);
   const [showAllMenuItems, setShowAllMenuItems] = useState(false);
   const [draft, setDraft] = useState(null);
@@ -66,11 +71,13 @@ export default function OrderPage({ initialMenuId = null }) {
   const [updatingItemId, setUpdatingItemId] = useState(null);
   const [confirmingOrder, setConfirmingOrder] = useState(false);
   const [paymentReady, setPaymentReady] = useState(false);
+  const [completingMockPayment, setCompletingMockPayment] = useState(false);
+  const [paymentComplete, setPaymentComplete] = useState(false);
 
   useEffect(() => {
     let active = true;
 
-    Promise.all([getMenu(), createDraft()])
+    Promise.all([getMenu(), createDraft(userId)])
       .then(([items, draftReference]) => {
         if (!active) return;
         setMenuItems(items);
@@ -220,6 +227,24 @@ export default function OrderPage({ initialMenuId = null }) {
       );
     } finally {
       setConfirmingOrder(false);
+    }
+  }
+
+  async function handleMockPaymentSuccess() {
+    if (!draft || !paymentReady || paymentComplete) return;
+    setError("");
+    setCompletingMockPayment(true);
+    try {
+      await completeMockPayment(draft, userId);
+      setPaymentComplete(true);
+    } catch (paymentError) {
+      setError(
+        paymentError instanceof Error
+          ? paymentError.message
+          : "ไม่สามารถยืนยันผลการชำระเงินจำลองได้",
+      );
+    } finally {
+      setCompletingMockPayment(false);
     }
   }
 
@@ -484,9 +509,6 @@ export default function OrderPage({ initialMenuId = null }) {
                 <option value="qr">QR Payment (จำลอง)</option>
               </select>
             </label>
-            <button className="order-primary-button" type="button" disabled>
-              {paymentReady ? "เข้าสู่ขั้นตอนชำระเงินแล้ว" : "ยืนยันคำสั่งซื้อ / ชำระสำเร็จ"}
-            </button>
             <button
               className="order-primary-button"
               type="button"
@@ -495,8 +517,34 @@ export default function OrderPage({ initialMenuId = null }) {
             >
               {confirmingOrder ? "กำลังตรวจสอบ Order" : "ยืนยัน Order เพื่อชำระเงิน"}
             </button>
-            {paymentReady && (
-              <p role="status">Order ผ่านการตรวจสอบและเข้าสู่ขั้นตอนชำระเงินแล้ว</p>
+            {paymentReady && !paymentComplete && (
+              <>
+                <p role="status">Order ผ่านการตรวจสอบและรอผลชำระเงิน (จำลอง)</p>
+                <button
+                  className="order-primary-button"
+                  type="button"
+                  disabled={completingMockPayment}
+                  onClick={handleMockPaymentSuccess}
+                >
+                  {completingMockPayment
+                    ? "กำลังบันทึกผลจำลอง"
+                    : "จำลองชำระเงินสำเร็จ"}
+                </button>
+              </>
+            )}
+            {paymentComplete && (
+              <>
+                <p role="status">
+                  ชำระเงินสำเร็จ (จำลอง) · Order {draft.order_id} พร้อมติดตามสถานะ
+                </p>
+                <button
+                  className="order-primary-button"
+                  type="button"
+                  onClick={onGoToStatus}
+                >
+                  ไปหน้า Status
+                </button>
+              </>
             )}
             <button className="order-secondary-button" type="button" disabled>
               จำลองกรณีชำระเงินล้มเหลว

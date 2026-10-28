@@ -116,6 +116,126 @@ describe('AC-MENU-08 and AC-MENU-09 customer login flow', () => {
     }));
   });
 
+  test('shows a newly created menu after returning from Admin Menu', async () => {
+    let catalog = [];
+    fetch.mockImplementation(async (url, options = {}) => {
+      if (url === '/api/menu' && options.method !== 'POST') {
+        return response({ items: catalog });
+      }
+      if (url === '/api/promotions/active') return response([]);
+      if (url === '/api/admin/menu' && options.method !== 'POST') {
+        return response(catalog);
+      }
+      if (url === '/api/admin/menu' && options.method === 'POST') {
+        const createdItem = { menu_id: 7, ...JSON.parse(options.body) };
+        catalog = [createdItem, ...catalog];
+        return response(createdItem);
+      }
+      return response([], false);
+    });
+
+    render(<AppShell />);
+    expect(await screen.findByText('ไม่พบเมนู')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Admin Menu' }));
+    fireEvent.click(await screen.findByRole('button', { name: '+ เพิ่มเมนูตัวอย่าง' }));
+    fireEvent.change(await screen.findByLabelText(/ชื่อเมนู/), {
+      target: { value: 'ชาเขียวใหม่' },
+    });
+    fireEvent.change(screen.getByLabelText(/ราคา \(บาท\)/), {
+      target: { value: '55' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'บันทึกเมนู' }));
+    expect(await screen.findByText('บันทึกเมนูสำเร็จ')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Customer Menu' }));
+
+    expect(await screen.findByRole('heading', { name: 'ชาเขียวใหม่' }))
+      .toBeInTheDocument();
+    expect(fetch.mock.calls.filter(([url]) => url === '/api/menu')).toHaveLength(2);
+  });
+
+  test('shows a paid Order in Status after the simulated payment succeeds', async () => {
+    const draft = { order_date: '2026-10-28', order_id: '001' };
+    fetch.mockImplementation(async (url, options = {}) => {
+      if (url === '/api/menu') return response({ items: [menuItem] });
+      if (url === '/api/promotions/active') return response([]);
+      if (url === '/api/orders/drafts') return response(draft);
+      if (url === '/api/orders/items') {
+        return response({
+          order_item_id: 7,
+          ...JSON.parse(options.body),
+          ice_level: 'ใส่น้ำแข็งปริมาณปกติ',
+          toppings: null,
+        });
+      }
+      if (url.startsWith('/api/orders/preview?')) {
+        return response({
+          ...draft,
+          items: [{
+            order_item_id: 7,
+            menu_item_id: menuItem.menu_id,
+            name: menuItem.name,
+            quantity: 1,
+            unit_price: 50,
+            line_total: 50,
+            regular_price: 50,
+            promotion_price: null,
+          }],
+          total_amount: 50,
+        });
+      }
+      if (url === '/api/orders/confirm') return response({ ...draft, payment_status: 'pending' });
+      if (url === '/api/orders/payment/mock-success') {
+        return response({
+          ...draft,
+          payment_status: 'success',
+          status: 'PENDING_ACCEPT',
+        });
+      }
+      if (url === '/api/orders') {
+        return response([{
+          ...draft,
+          user_id: 'mock-user',
+          status: 'PENDING_ACCEPT',
+          created_at: '2026-10-28T11:00:00',
+          total_amount: 50,
+          items: [{ menu_name: menuItem.name, quantity: 1, unit_price: 50 }],
+        }]);
+      }
+      return response([], false);
+    });
+
+    render(<AppShell />);
+    fireEvent.click(screen.getByRole('button', { name: 'Login / Register' }));
+    fireEvent.change(screen.getByLabelText('อีเมล'), {
+      target: { value: 'customer@example.com' },
+    });
+    fireEvent.change(screen.getByLabelText('รหัสผ่าน', { selector: '#register-password' }), {
+      target: { value: 'valid-password' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'สมัครสมาชิก' }));
+
+    fireEvent.click(await screen.findByRole('button', { name: 'สั่งซื้อ' }));
+    const orderDialog = await screen.findByRole('dialog', { name: 'สั่งซื้อเครื่องดื่ม' });
+    fireEvent.change(within(orderDialog).getByLabelText('ระดับความหวาน'), {
+      target: { value: 'หวานปกติ 75%' },
+    });
+    fireEvent.click(within(orderDialog).getByRole('button', { name: 'สั่งซื้อ' }));
+    fireEvent.click(await within(orderDialog).findByRole('button', { name: 'ตรวจสอบ Order' }));
+    fireEvent.click(
+      await within(orderDialog).findByRole('button', { name: 'ยืนยัน Order เพื่อชำระเงิน' }),
+    );
+    fireEvent.click(
+      await within(orderDialog).findByRole('button', { name: 'จำลองชำระเงินสำเร็จ' }),
+    );
+    fireEvent.click(await within(orderDialog).findByRole('button', { name: 'ไปหน้า Status' }));
+
+    expect(await screen.findByRole('heading', { name: 'ชาเขียว' })).toBeInTheDocument();
+    const orderCard = screen.getByText('Order: 001').closest('article');
+    expect(orderCard).toHaveTextContent('รอรับ Order');
+  });
+
   test('a logged-in menu click filters the order popup to that menu', async () => {
     const secondMenuItem = {
       id: 2,

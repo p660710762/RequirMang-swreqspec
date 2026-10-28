@@ -33,6 +33,10 @@ class Order(Base):
     total_amount: Mapped[Decimal] = mapped_column(Numeric, nullable=False)
     paid_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     payment_status: Mapped[str] = mapped_column(String, nullable=False)
+    owner_user_id: Mapped[str | None] = mapped_column(String, nullable=True)
+    last_status_change_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True)
+    )
 
     items: Mapped[list[OrderItem]] = relationship(back_populates="order")
     payment_transactions: Mapped[list[PaymentTransaction]] = relationship(
