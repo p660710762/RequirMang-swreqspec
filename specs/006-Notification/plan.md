@@ -3,8 +3,10 @@
 ## 1. สรุปแนวทาง
 - ฟีเจอร์นี้จะตรวจสอบเมื่อ Order เปลี่ยนสถานะเป็น “พร้อมรับสินค้า” และตรวจสอบว่าเป้าหมายมี LINE User ID ที่ถูกต้องก่อนส่งข้อความตาม FR-19 และ FR-20
 - ผู้ใช้หลักคือ ลูกค้า / นักศึกษา ที่เคยเชื่อมต่อบัญชี LINE กับระบบแล้ว และต้องได้รับแจ้งเตือนเมื่อเครื่องดื่มพร้อมรับสินค้า ตาม FR-21 และ AC-NOTIFICATION-01
-- ระบบจะส่งข้อความผ่าน LINE Notification Service แบบสั้น ๆ ที่มีหมายเลข Order และข้อความว่า “Order พร้อมรับสินค้า” และจะบันทึกผลการส่งว่า สำเร็จ หรือไม่สำเร็จ ตาม FR-21 และ FR-22
-- หาก LINE User ID ว่างหรือไม่ถูกต้อง หรือ LINE Notification Service ส่งไม่สำเร็จ ระบบจะไม่ส่งข้อความซ้ำทันที และไม่เปลี่ยนสถานะ Order จาก “พร้อมรับสินค้า” ตาม FR-20, Alternative Flow 3a, Exception Flow 4a และ NFR-REL-01
+- ระบบจะส่งข้อความผ่าน LINE Notification Service แบบสั้น ๆ ตามรูปแบบ “Order 123 พร้อมรับสินค้า” และบันทึกผลการส่งว่า สำเร็จ หรือไม่สำเร็จ ตาม FR-21 และ FR-22
+- หาก LINE User ID ว่างหรือไม่ถูกต้อง ระบบจะไม่ส่งแจ้งเตือนย้อนหลังอัตโนมัติ แม้ลูกค้าจะเชื่อมต่อ LINE ภายหลังและ Order ยังคงเป็น “พร้อมรับสินค้า” ตาม clarifying decision ที่ถูกบันทึกใน spec v2
+- หาก LINE Notification Service ส่งไม่สำเร็จ ระบบจะบันทึกว่า failed โดยไม่ retry อัตโนมัติทันที และไม่เปลี่ยนสถานะ Order ตาม FR-22, Exception Flow 4a และ NFR-REL-01
+- การส่งซ้ำจะใช้ `order_id` เป็น idempotency key และอนุญาตเฉพาะกรณี failed เท่านั้น ตาม FR-23 และ AC-NOTIFICATION-04
 - แผนนี้จะไม่สร้างการสมัครสมาชิก การเชื่อมต่อบัญชี LINE การอัปเดตสถานะ Order หรือการส่งโปรโมชั่นทั่วไป เพราะกำหนดไว้ใน Out of scope และ spec ระบุชัดว่าฟีเจอร์นี้รับผิดชอบเฉพาะการแจ้งเตือนเมื่อ Order พร้อมรับสินค้าเท่านั้น
 
 ## 2. เทคโนโลยีที่ใช้
@@ -22,12 +24,13 @@
 | Entity | ฟิลด์หลัก | รองรับ FR / NFR |
 |---|---|---|
 | OrderReadyEvent | `order_id`, `status`, `status_changed_at`, `user_id`, `line_user_id` | รองรับ FR-19, FR-20, AC-NOTIFICATION-01, AC-NOTIFICATION-02 |
-| NotificationLog | `notification_id`, `order_id`, `line_user_id`, `message_text`, `status`, `sent_at`, `result_code`, `retry_allowed` | รองรับ FR-21, FR-22, FR-23, NFR-REL-02, AC-NOTIFICATION-01, AC-NOTIFICATION-03, AC-NOTIFICATION-04 |
+| NotificationLog | `notification_id`, `order_id`, `line_user_id`, `message_text`, `status`, `sent_at`, `result_code`, `retry_allowed`, `idempotency_key` | รองรับ FR-21, FR-22, FR-23, NFR-REL-02, AC-NOTIFICATION-01, AC-NOTIFICATION-03, AC-NOTIFICATION-04 |
 | LineConnection | `user_id`, `line_user_id`, `connected_at`, `is_active` | รองรับ FR-20, Alternative Flow 3a, AC-NOTIFICATION-02 |
 | Order | `order_id`, `current_status`, `last_status_change_at` | รองรับ FR-19, FR-23, NFR-REL-01, AC-NOTIFICATION-03 |
 
 หมายเหตุโมเดลข้อมูล:
-- จะไม่มีฟิลด์ระบุตัวบ่งชี้ “Retry อัตโนมัติ” เมื่อส่งไม่สำเร็จจนกว่าจะมีคำตอบจาก Open Questions เนื่องจาก spec ระบุว่า “ไม่ทำการ retry อัตโนมัติทันที” และ “ให้บันทึกผลการส่งไม่สำเร็จ” เท่านั้น
+- `retry_allowed` จะถูกเก็บเป็นข้อมูลที่ระบุว่าไม่อนุญาตให้ retry อัตโนมัติทันทีหลัง failed เนื่องจาก spec v2 ระบุชัดว่า “ไม่ retry อัตโนมัติทันที” และ “บันทึกผลล้มเหลวโดยไม่เปลี่ยนสถานะ Order”
+- `idempotency_key` จะใช้ `order_id` เพื่อป้องกันการส่งซ้ำเมื่อส่งสำเร็จแล้ว และให้ retry ได้เฉพาะกรณีที่ status เป็น failed เท่านั้น
 - `line_user_id` จะถูกเก็บเป็นข้อมูลของการเชื่อมต่อ LINE และอาจเป็น NULL หรือว่างได้ หากลูกค้ายังไม่ได้เชื่อมต่อ LINE ตาม FR-20 และ Alternative Flow 3a
 - `status` ของ NotificationLog จะมีค่าเป็น `success` หรือ `failed` ตาม FR-22 และ AC-NOTIFICATION-03
 - `Order` จะไม่เก็บข้อมูลการส่งแอดมินหรือโปรโมชั่นเพิ่มเติม เนื่องจาก Out of scope
@@ -38,7 +41,7 @@
 - `POST /api/notifications/send` — Input: `order_id`, `line_user_id`, `message_text`; Output: `success|failed`, `notification_id`, `result_code` — รองรับ FR-21, FR-22, AC-NOTIFICATION-01, AC-NOTIFICATION-03
 - `GET /api/notifications/{order_id}/status` — Output: last send status, retry flag, result summary — รองรับ FR-22, FR-23, NFR-REL-02, AC-NOTIFICATION-03, AC-NOTIFICATION-04
 - `POST /api/notifications/callback` — Input: LINE response payload; Output: `success|failed` และ log บันทึกผล — รองรับ FR-22, Exception Flow 4a, AC-NOTIFICATION-03
-- `GET /notifications` — Output: หน้าควบคุม/ตรวจสอบสถานะการส่งแจ้งเตือน (ถ้ามี UI สำหรับตรวจสอบ) — รองรับ NFR-REL-02, ไม่บังคับสอดคล้องกับ scope แต่ถูกใช้เพื่อ monitor หากทีมเลือกสร้าง UI 
+- `GET /notifications` — Output: หน้าควบคุม/ตรวจสอบสถานะการส่งแจ้งเตือน (ถ้ามี UI สำหรับตรวจสอบ) — รองรับ NFR-REL-02, ไม่บังคับสอดคล้องกับ scope แต่ถูกใช้เพื่อ monitor หากทีมเลือกสร้าง UI
 
 ## 5. ตารางตรวจ Constraints
 
@@ -68,17 +71,14 @@
 5. สร้าง idempotency protection เพื่อให้ส่งได้เพียงครั้งเดียวต่อ Order ที่ส่งสำเร็จแล้วตาม FR-23, Alternative Flow 5a และ AC-NOTIFICATION-04
 6. ทดสอบ end-to-end สำหรับ Acceptance Criteria ทั้ง 4 ข้อต่อไปด้วยการจำลองสถานะพร้อมรับสินค้า, LINE User ID ว่าง, LINE ส่งไม่สำเร็จ, และ duplicate notification
 
-## 8. สิ่งที่ยังไม่ทำ
+## 8. ข้อสรุปตาม spec v2 ที่ถูกยืนยันแล้ว
 
-- ข้อความแจ้งเตือนต้องมีข้อมูลใดบ้าง เช่น หมายเลข Order ชื่อเมนู หรือเวลารับสินค้า
-  - ส่วนที่เกี่ยวข้องกับข้อนี้จะยังไม่สร้างจนกว่าจะได้คำตอบ
-
-- หากส่งแจ้งเตือนไม่สำเร็จ ระบบจะให้ Retry อัตโนมัติหรือให้พนักงานดำเนินการ
-  - ส่วนที่เกี่ยวข้องกับข้อนี้จะยังไม่สร้างจนกว่าจะได้คำตอบ
-
-- ต้องกำหนดจำนวนครั้งหรือระยะเวลาสำหรับ Retry หรือไม่
-  - ส่วนที่เกี่ยวข้องกับข้อนี้จะยังไม่สร้างจนกว่าจะได้คำตอบ
+- ข้อความแจ้งเตือนเป็นข้อความสั้น ๆ เช่น “Order 123 พร้อมรับสินค้า” และไม่รวมข้อมูลเพิ่มเติมที่ไม่จำเป็น
+- หากส่ง LINE ไม่สำเร็จ ระบบจะบันทึกผลว่า failed เท่านั้น โดยไม่ retry อัตโนมัติทันที และไม่เปลี่ยนสถานะ Order
+- หาก LINE User ID ว่างหรือไม่ถูกต้อง ระบบจะไม่ส่งแจ้งเตือนย้อนหลังอัตโนมัติ แม้ลูกค้าจะเชื่อมต่อ LINE ภายหลัง
+- การป้องกันการส่งซ้ำใช้ `order_id` เป็น key และอนุญาตให้ retry เฉพาะเมื่อสถานะเป็น failed
+- ระบบต้องบันทึกผลการส่งใน Log หรือฐานข้อมูลเพื่อให้ผู้ดูแลตรวจสอบได้
 
 ---
 
-สรุป: แผนงานนี้จะสร้างระบบแจ้งเตือนเมื่อ Order เปลี่ยนสถานะเป็น “พร้อมรับสินค้า” โดยยึด FR, NFR, constraints และ AC ของ spec อย่างเคร่งครัด โดยเฉพาะการตรวจสอบ LINE User ID, การป้องกันการส่งซ้ำ, และการไม่เปลี่ยนสถานะ Order หากการส่งไม่สำเร็จ
+สรุป: แผนงานนี้จะสร้างระบบแจ้งเตือนเมื่อ Order เปลี่ยนสถานะเป็น “พร้อมรับสินค้า” โดยยึด FR, NFR, constraints และ AC ของ spec v2 อย่างเคร่งครัด โดยเฉพาะการตรวจสอบ LINE User ID, การป้องกันการส่งซ้ำด้วย `order_id`, การบันทึก failed delivery, และการไม่เปลี่ยนสถานะ Order หากการส่งไม่สำเร็จ

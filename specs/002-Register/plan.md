@@ -1,103 +1,197 @@
 # แผนงานสำหรับ Feature: สมัครสมาชิก / เข้าสู่ระบบ (Register & Login)
 
-## 1. สรุปแนวทาง
-- Release 1 พัฒนาด้วย React + Vite ใน `frontend/src/` โดยใช้ React State
-  และ Mock Data ในหน่วยความจำระหว่างเปิดหน้า Prototype
-- ฟีเจอร์นี้จะสร้างหน้าเดียวสำหรับลูกค้าในการสมัครสมาชิกและเข้าสู่ระบบ โดยมีฟอร์ม login ด้านบนและปุ่มสมัครสมาชิกด้านล่าง ตาม FR-02 และ NFR-USE-01
-- ระบบจะตรวจสอบข้อมูล Email หรือเบอร์โทรศัพท์ + รหัสผ่าน ก่อนสร้างบัญชีหรืออนุญาตให้เข้าสู่ระบบ ตาม FR-01, FR-03, FR-04
-- ระบบจะเก็บข้อมูลบัญชีพื้นฐานและตรวจสอบข้อมูลซ้ำก่อนยอมให้สมัครใหม่ เพื่อป้องกันการสร้างบัญชีซ้ำตาม FR-01, FR-02, FR-04
-- ระบบจะมีทางเลือก Mock LINE Connection แบบไม่บังคับ โดย React State จำลองผลสำเร็จ
-  ผลล้มเหลว และการข้าม ใช้ Mock LINE User ID `mock-line-user-001`
-  และให้ผู้ใช้ข้ามได้ตาม FR-05, FR-06 และ Alternative Flow 7a/7b
-- Release 1 ไม่สร้าง API, Backend, Database, JWT หรือ session จริง
-  การ Auto-login เป็นสถานะใน React State เท่านั้น
+## 1. ขอบเขตและสถานะของแผน
 
-## 2. เทคโนโลยีที่ใช้
+ฟีเจอร์นี้เป็น Frontend Prototype ของ UC-02 ตาม `SPEC-ACCOUNT-001` โดยใช้
+HTML, CSS และ JavaScript แบบเดิมของ Repo ร่วมกับ Mock Data ในหน่วยความจำของ
+browser เท่านั้น ไม่มี backend, API จริง, React, Vite, FastAPI หรือฐานข้อมูลจริง
 
-| สิ่งที่เลือก | มาจาก | หมายเหตุ |
+Prototype นี้จำลองเฉพาะพฤติกรรมที่ตรวจได้จาก Acceptance Criteria:
+
+- สมัครสมาชิกด้วย Email หรือเบอร์โทรศัพท์อย่างน้อยหนึ่งช่องและรหัสผ่านที่ไม่ว่าง
+- ตรวจสอบข้อมูลไม่ครบ/ไม่ถูกต้องและข้อมูลซ้ำก่อนเพิ่มบัญชีจำลอง
+- เข้าสู่ระบบด้วย Email หรือเบอร์โทรศัพท์และรหัสผ่านของบัญชีจำลอง
+- แสดงข้อความเมื่อเข้าสู่ระบบไม่สำเร็จ
+- ข้ามขั้นตอน LINE ได้ และจำลองผลสำเร็จ/ล้มเหลวของการเชื่อมต่อ LINE
+- เมื่อเชื่อมต่อสำเร็จ ให้เก็บ Mock LINE User ID `mock-line-user-001`
+  ใน Browser Memory และผูกกับบัญชีที่ Login/Register สำเร็จเท่านั้น
+- เมื่อเชื่อมต่อล้มเหลว ห้ามสร้างความสัมพันธ์ใหม่กับ LINE และต้องใช้งาน Prototype ต่อได้
+
+การสมัครสมาชิกและการเข้าสู่ระบบในแผนนี้ **ไม่ใช่ Authentication จริง**:
+ข้อมูลบัญชีอยู่ในตัวแปร JavaScript ระหว่างการเปิดหน้านี้เท่านั้น ไม่มีการส่งข้อมูล
+ออกจาก browser ไม่มีการสร้าง session/token จริง และไม่ใช้แทนระบบ production
+
+ทีมยืนยัน Q-01 แล้วว่า Release นี้ใช้ Mock LINE Connection เท่านั้น
+โดยไม่สร้าง OAuth/callback หรือเรียก LINE API จริง ส่วนการยกเลิกและการเปลี่ยนบัญชี LINE
+ตาม Q-02 และ Q-03 เลื่อนไป Release ถัดไป
+
+## 2. เทคโนโลยีและโครงสร้างที่ใช้จริง
+
+| ส่วน | เทคโนโลยี/ตำแหน่ง | การใช้งานใน Prototype |
 |---|---|---|
-| React + Vite สำหรับหน้าเว็บ | ข้อสรุปของทีมสำหรับ Release 1 | ใช้พัฒนาใน `frontend/src/` และจัดการ UI/React State ของ Login, Register และ Mock LINE |
-| Python FastAPI สำหรับ API | ข้อเสนอเดิมของทีม ไม่ใช่ Release 1 | ต้องยืนยันและจัดเป็นงาน Release ถัดไป หากมี Requirement รองรับ; ยังไม่สร้าง |
-| ฐานข้อมูลเชิงสัมพันธ์ (เช่น PostgreSQL) | ข้อเสนอเดิมของทีม ไม่ใช่ Release 1 | ต้องยืนยันและจัดเป็นงาน Release ถัดไป; Release 1 ใช้ Mock Data ในหน่วยความจำ |
-| JWT หรือ session-based auth | ข้อเสนอเดิมของทีม ไม่ใช่ Release 1 | Auto-login ของ Release 1 ใช้ React State เท่านั้น; JWT/session จริงต้องยืนยันเพิ่มเติม |
-| Mock LINE Connection ด้วย React State | คำตอบ Q-01 ของทีม | จำลอง success/failure/skip และใช้ `mock-line-user-001` ในหน่วยความจำ โดยไม่ใช้ LINE API/OAuth/callback |
+| หน้า account | HTML ใน `features/account/index.html` | แสดงฟอร์ม login/register และส่วนเลือกเชื่อมต่อหรือข้าม LINE ในหน้าเดียว |
+| พฤติกรรม account | Vanilla JavaScript ใน `features/account/account.js` | จัดการ event, validation, mock accounts, duplicate check และข้อความผลลัพธ์ |
+| รูปแบบหน้า | CSS กลางใน `shared/styles.css` | ใช้ style ที่มีอยู่แล้วโดยไม่สร้าง framework หรือไฟล์ style ซ้ำใน feature |
+| ข้อมูลทดสอบ | Mock Data ใน `features/account/account.js` | เก็บบัญชีตัวอย่างและบัญชีที่สมัครระหว่างการเปิดหน้านี้ใน memory เท่านั้น |
+| การตรวจสอบ | Node.js test ที่ `tests/` ตาม runner ที่ Repo มีอยู่ | ตรวจ source/markup และพฤติกรรม prototype เท่าที่ทำได้โดยไม่เพิ่ม backend |
 
-## 3. โมเดลข้อมูล
+ไม่ใช้และไม่สร้างในงานนี้:
 
-โมเดลในตารางนี้เป็นข้อเสนอสำหรับระบบจริง/Release ถัดไป ไม่ใช่สิ่งที่ต้องสร้างใน
-Release 1 ซึ่งใช้ React State และ Mock Data ในหน่วยความจำเท่านั้น
+- `frontend/src/`, React, Vite หรือ `frontend/src/api/client.js`
+- `backend/`, FastAPI, `main.py` หรือ REST endpoint
+- PostgreSQL, migration, schema จริง หรือฐานข้อมูลถาวร
+- JWT, session จริง หรือระบบ Authentication จริง
+- LINE Login, LINE OAuth, callback webhook หรือการเรียกบริการ LINE จริง
 
-| Entity | ฟิลด์หลัก | รองรับ FR / NFR |
+ไฟล์ที่เกี่ยวข้องกับฟีเจอร์นี้มีเฉพาะ:
+
+- `features/account/index.html`
+- `features/account/account.js`
+- `shared/styles.css` เฉพาะเมื่อจำเป็นต้องใช้ style ที่เกี่ยวข้องกับหน้า account
+- `tests/AC-ACCOUNT-*.test.cjs` หรือไฟล์ test ของ account ที่ทีมสร้างภายหลัง
+
+ห้ามแก้ feature อื่นและห้ามแก้ `shared/index.html` หากไม่จำเป็นต่อ UC-02
+
+## 3. การออกแบบ Mock Data และข้อจำกัด
+
+ใช้รายการบัญชีจำลองใน `features/account/account.js` โดยมีข้อมูลตัวอย่างขั้นต่ำสำหรับ
+ลอง login และเพิ่มบัญชีระหว่างการเปิดหน้า:
+
+- ตัวระบุบัญชี: `email` หรือ `phone`
+- รหัสผ่าน: ใช้เฉพาะเพื่อจำลองการเปรียบเทียบภายใน browser
+- ไม่บันทึกข้อมูลลงไฟล์, localStorage, cookie, server หรือฐานข้อมูล
+
+การมี password ใน Mock Data มีไว้เพื่อจำลอง AC เท่านั้น ไม่ใช่การจัดเก็บ password
+ของระบบจริง และต้องแสดงสถานะต้นแบบให้ผู้ใช้ทราบตามข้อความในหน้า account
+
+การตรวจสอบจำลองต้องรักษาพฤติกรรมตาม spec:
+
+- Register ต้องมี Email หรือเบอร์โทรศัพท์อย่างน้อยหนึ่งช่อง และ password ไม่ว่าง
+- Email ที่กรอกต้องผ่าน native HTML email validation ที่มีอยู่
+- Email หรือเบอร์โทรศัพท์ซ้ำต้องไม่เพิ่มบัญชีและแสดง
+  “อีเมล/เบอร์โทรศัพท์นี้ถูกใช้งานแล้ว”
+- Login ที่ identifier หรือ password ว่าง/ไม่ตรงบัญชีต้องไม่สำเร็จและแสดง
+  “กรุณากรอกข้อมูลให้ถูกต้อง”
+- การสมัครสำเร็จต้องแสดงว่าสามารถเข้าสู่ระบบได้ทันทีใน prototype
+
+## 4. หน้าจอและ Flow
+
+### 4.1 หน้า account
+
+`features/account/index.html` เป็นหน้าเดียวสำหรับ FR-02:
+
+- ส่วน login อยู่ด้านบน/ด้านซ้ายตาม layout ปัจจุบัน พร้อมปุ่มเข้าสู่ระบบ
+- ส่วน register อยู่ด้านล่าง/ด้านขวาตาม layout ปัจจุบัน พร้อมปุ่มสร้างบัญชี
+- ใช้ `../../shared/styles.css`
+- โหลด `account.js` ด้วย script ของหน้า Account
+- แสดงข้อความว่าเป็น Prototype และไม่เชื่อมระบบบัญชีจริง
+
+### 4.2 Register Flow
+
+เมื่อ submit `#register-form` ใน `features/account/account.js`:
+
+1. อ่าน Email, เบอร์โทรศัพท์ และ password จาก form
+2. ตรวจว่ามี Email หรือเบอร์โทรศัพท์อย่างน้อยหนึ่งช่อง, password ไม่ว่าง และ Email
+   ผ่าน native validation
+3. ตรวจ Email/เบอร์โทรศัพท์ซ้ำใน Mock Data
+4. ถ้าไม่ซ้ำ เพิ่มบัญชีลงใน memory และแสดงสถานะสมัครสำเร็จ
+5. เปิดส่วนต่อเนื่องของ account flow เพื่อให้ลอง login หรือเลือกขั้นตอน LINE
+
+Flow นี้รองรับ FR-01, FR-02, FR-04 และ AC-ACCOUNT-01 โดยเป็นการจำลองใน browser
+
+### 4.3 Login Flow
+
+เมื่อ submit `#login-form`:
+
+1. อ่าน identifier และ password
+2. ค้นหา Email หรือเบอร์โทรศัพท์ที่ตรงกับ Mock Data
+3. ถ้าไม่พบหรือข้อมูลว่าง ให้คงสถานะไม่ login และแสดงข้อความตาม FR-04
+4. ถ้าพบ ให้แสดงสถานะ login สำเร็จในหน้า prototype และเปิด flow ต่อเนื่อง
+
+Flow นี้รองรับ FR-02, FR-03, FR-04, NFR-SEC-01 และ AC-ACCOUNT-02 ถึง
+AC-ACCOUNT-03 ในขอบเขตที่เป็นการจำลองหน้าจอ ไม่ใช่การคุ้มครองข้อมูลจริง
+
+### 4.4 LINE Flow
+
+ส่วน `#line-panel` เป็นทางเลือกตาม FR-05 และ Alternative Flow 7a/7b:
+
+- ปุ่มเชื่อมต่อสำเร็จและปุ่มเชื่อมต่อล้มเหลวเป็นการจำลองผลลัพธ์เท่านั้น
+- ปุ่มข้ามต้องปิด/จบขั้นตอน LINE และให้ผู้ใช้ใช้ prototype ต่อได้
+- ห้ามระบุหรือสมมติว่าใช้ LINE Login, OAuth หรือ callback รูปแบบใด
+- Mock LINE User ID ใช้ค่า `mock-line-user-001` เฉพาะใน Browser Memory
+- ห้ามอ้างว่ามีการบันทึก LINE User ID จริง
+- การเชื่อมต่อสำเร็จต้องผูกกับบัญชีที่ Login/Register สำเร็จเท่านั้น
+- การเชื่อมต่อล้มเหลวต้องไม่สร้างความสัมพันธ์ใหม่กับ LINE
+
+งานที่เกี่ยวข้องกับรูปแบบการเชื่อมต่อจริงไม่อยู่ใน Release นี้
+ส่วนการยกเลิกการเชื่อมต่อและการเปลี่ยนบัญชี LINE ถูกเลื่อนไป Release ถัดไป:
+
+| Open Question | งานที่เกี่ยวข้อง | สถานะ |
 |---|---|---|
-| Account | `account_id`, `email`, `phone_number`, `password_hash`, `is_verified`, `created_at`, `updated_at` | รองรับ FR-01, FR-02, FR-03, FR-04, NFR-SEC-01 |
-| AccountLinkLine | `account_id`, `line_user_id`, `connected_at`, `status` | รองรับ FR-05, FR-06, Alternative Flow 7a, Exception Flow 7c, NFR-REL-01 |
-| AuthSession | `session_id`, `account_id`, `issued_at`, `expires_at` | รองรับ FR-03, NFR-SEC-01 |
+| Q-01 รูปแบบการเชื่อมบัญชี LINE | ใช้ Mock LINE Connection และ Mock LINE User ID `mock-line-user-001` ใน Browser Memory | ตอบแล้ว |
+| Q-02 การยกเลิกการเชื่อมต่อ LINE | ไม่รองรับใน Release นี้ | เลื่อน Release ถัดไป |
+| Q-03 การเปลี่ยนบัญชี LINE | ไม่รองรับใน Release นี้ | เลื่อน Release ถัดไป |
 
-หมายเหตุโมเดลข้อมูล:
-- ผู้ใช้สามารถกรอก Email หรือเบอร์โทรศัพท์อย่างน้อยหนึ่งช่อง โดยไม่จำเป็นต้องกรอกทั้งคู่ ตาม Constraint ใน spec
-- ระบบจะเก็บ hash ของ password เท่านั้น และไม่เก็บ Password ของบัญชี LINE ตาม Constraint
-- `line_user_id` จะเป็นค่าว่างหรือ null จนกว่าจะเชื่อมต่อ LINE สำเร็จ ตาม FR-05, FR-06 และ Exception Flow 7c
-- ข้อมูลส่วนบุคคลที่เกี่ยวกับบัญชี เช่น ชื่อ อีเมล เบอร์โทรศัพท์ จะเข้าถึงได้เฉพาะหลัง login ตาม NFR-SEC-01
+## 5. การรองรับ Requirements และ Constraints
 
-## 4. API / หน้าจอ
+| รายการ | ตำแหน่ง/วิธีจำลอง |
+|---|---|
+| FR-01 | `#register-form` และ validation ใน `features/account/account.js` |
+| FR-02 | หน้าเดียวใน `features/account/index.html` มี login และ register |
+| FR-03 | การค้นหา Mock Data ด้วย Email หรือเบอร์โทรศัพท์ใน `account.js` |
+| FR-04 | ข้อความ error ของ login และ duplicate register ใน `account.js` |
+| FR-05 | ส่วน `#line-panel` และปุ่มเชื่อมต่อ/ข้ามแบบจำลอง |
+| FR-06 | เก็บ Mock LINE User ID `mock-line-user-001` ใน Browser Memory และผูกกับบัญชีที่ Login/Register สำเร็จ; ไม่ใช่การเชื่อมต่อจริง |
+| NFR-SEC-01 | จำกัดการแสดงสถานะข้อมูล account ไว้หลัง flow login/register ในหน้า prototype; ไม่อ้างว่าเป็น security จริง |
+| NFR-REL-01 | จำลอง LINE failure แล้วให้ flow account ใช้งานต่อได้ |
+| NFR-USE-01 | จัดวางขั้นตอน login, register และ LINE ให้เห็นชัดในหน้าเดียว |
+| Constraint: เข้าถึงหน้าสมัคร/login ได้ | เปิด `features/account/index.html` |
+| Constraint: identifier ไม่ซ้ำ | duplicate check ใน `account.js` |
+| Constraint: Email หรือ phone อย่างน้อยหนึ่งช่อง | register validation ใน `account.js` |
+| Constraint: password ไม่ว่าง | register/login validation ใน `account.js` |
+| Constraint: LINE เป็นทางเลือก | ปุ่ม skip และ failure ไม่ขัดขวาง flow หลัก |
+| Constraint: ไม่เก็บ Password ของบัญชี LINE | ไม่มี field หรือ Mock Data สำหรับ LINE password |
+| Constraint: เชื่อมโยง LINE User ID | ผูก Mock LINE User ID `mock-line-user-001` กับบัญชีที่ Login/Register สำเร็จใน Browser Memory |
+| Constraint: ข้อมูลส่วนบุคคลต้อง login ก่อน | แสดงผล account หลัง flow สำเร็จใน prototype เท่านั้น; ไม่มี protected endpoint จริง |
 
-ส่วน API ด้านล่างเป็นข้อเสนอเดิมสำหรับระบบจริงหรือ Release ถัดไป
-ไม่ใช่ขอบเขตการ Implement ของ Release 1 และยังต้องยืนยัน Requirement/Constraints
-ก่อนสร้าง
+## 6. แผนการทดสอบ
 
-- `GET /auth` — แสดงหน้า login/signup เดียวกัน พร้อมฟอร์ม login ด้านบนและปุ่มสมัครสมาชิกด้านล่าง — รองรับ FR-02, NFR-USE-01
-- `POST /api/auth/register` — Input: `email?`, `phone_number?`, `password`; Output: created account / validation error / duplicate error — รองรับ FR-01, FR-02, FR-04, AC-ACCOUNT-01
-- `POST /api/auth/login` — Input: `email_or_phone`, `password`; Output: session token หรือ redirect หลัง login สำเร็จ / error message — รองรับ FR-03, FR-04, AC-ACCOUNT-02, AC-ACCOUNT-03
-- `POST /api/auth/line/connect` — Input: `account_id`, `line_user_id`; Output: success/failure result และไม่บันทึกเมื่อล้มเหลว — รองรับ FR-05, FR-06, Alternative Flow 7a, AC-ACCOUNT-04, AC-ACCOUNT-06
-- `POST /api/auth/line/skip` — Input: `account_id`; Output: continue without line connection — รองรับ Alternative Flow 7b, AC-ACCOUNT-05
-- `GET /api/account/profile` หรือ protected endpoint — Output: ข้อมูลบัญชีพื้นฐานหลัง login เท่านั้น — รองรับ NFR-SEC-01
+ใช้ test runner และรูปแบบที่มีอยู่ใน Repo โดยไม่เพิ่ม framework ใหม่:
 
-## 5. ตารางตรวจ Constraints
-
-| Constraint ID | ถูกนำไปใช้ที่ไหนใน plan | สถานะ |
+| AC ID | ชื่อ test | ขอบเขตการตรวจ |
 |---|---|---|
-| ไม่ระบุ ID ใน spec — ลูกค้าต้องสามารถเข้าถึงหน้าสมัครสมาชิกหรือเข้าสู่ระบบได้ | ใช้ในหน้าจอ `GET /auth` และ flow ของ login/register ในหน้าเดียว | ใช้แล้ว |
-| ไม่ระบุ ID ใน spec — Email หรือเบอร์โทรศัพท์ต้องไม่ซ้ำกับบัญชีที่มีอยู่ในระบบ | ใช้ใน validation ของ `POST /api/auth/register` และ duplicate-check logic | ใช้แล้ว |
-| ไม่ระบุ ID ใน spec — ผู้ใช้สามารถกรอก Email หรือเบอร์โทรศัพท์อย่างน้อยหนึ่งช่อง โดยไม่จำเป็นต้องกรอกทั้งคู่ | ใช้ใน validation สำหรับ input ของ register/login และ error handling | ใช้แล้ว |
-| ไม่ระบุ ID ใน spec — Password ต้องเป็นไปตามเงื่อนไขที่ระบบกำหนด โดยข้อมูลที่ไม่ว่างถือว่าเป็นข้อมูลที่ถูกต้องสำหรับการเข้าสู่ระบบ | ใช้ใน register/login validator และ message “กรุณากรอกข้อมูลให้ถูกต้อง” | ใช้แล้ว |
-| ไม่ระบุ ID ใน spec — การเชื่อมต่อ LINE เป็นทางเลือก ไม่บังคับต่อการสมัครสมาชิกหรือเข้าสู่ระบบ | ใช้ใน `POST /api/auth/line/connect` และ `POST /api/auth/line/skip` | ใช้แล้ว |
-| ไม่ระบุ ID ใน spec — ระบบต้องไม่จัดเก็บ Password ของบัญชี LINE | ใช้ใน model `AccountLinkLine` ให้มีเฉพาะ `line_user_id` และไม่มี password field | ใช้แล้ว |
-| ไม่ระบุ ID ใน spec — ระบบต้องสามารถเชื่อมโยง LINE User ID กับบัญชีลูกค้าได้อย่างถูกต้อง | ใช้ใน `AccountLinkLine` และ API connect flow พร้อมตรวจสอบ account_id + line_user_id | ใช้แล้ว |
-| ไม่ระบุ ID ใน spec — ข้อมูลส่วนบุคคลที่เกี่ยวกับบัญชี เช่น ชื่อ อีเมล เบอร์โทรศัพท์ ต้องมีการ login ก่อนถึงจะเข้าถึงได้ | ใช้ใน protected endpoint และ auth guard สำหรับ `/api/account/profile` | ใช้แล้ว |
+| AC-ACCOUNT-01 | `test_AC_ACCOUNT_01_register_success` | ตรวจหน้า register และจำลองการเพิ่มบัญชีที่มี Email/phone กับ password ถูกต้อง |
+| AC-ACCOUNT-02 | `test_AC_ACCOUNT_02_login_success` | ตรวจ Mock Data และจำลอง login ด้วยข้อมูลที่ถูกต้อง |
+| AC-ACCOUNT-03 | `test_AC_ACCOUNT_03_login_invalid_input` | จำลองข้อมูลว่าง/ไม่ตรงและตรวจข้อความ “กรุณากรอกข้อมูลให้ถูกต้อง” |
+| AC-ACCOUNT-04 | `test_AC_ACCOUNT_04_line_connect_success` | ตรวจ Mock LINE Connection success, สถานะ UI และ Mock LINE User ID ใน Browser Memory; ไม่ใช่การทดสอบ LINE จริง |
+| AC-ACCOUNT-05 | `test_AC_ACCOUNT_05_skip_line_connection` | จำลองการกดข้ามและตรวจว่ายังใช้ prototype ต่อได้ |
+| AC-ACCOUNT-06 | `test_AC_ACCOUNT_06_line_connect_failure` | จำลองความล้มเหลว ไม่สร้างความสัมพันธ์ใหม่ และตรวจว่าไม่ขัดขวางการใช้งานต่อ |
 
-## 6. แผนทดสอบจาก Acceptance Criteria
+การทดสอบต้องไม่ตรวจหรืออ้างว่ามี API, session/token, database หรือ Authentication
+จริง และต้องไม่แก้ test ของ feature อื่น
 
-| AC ID | ชื่อ test | ทดสอบอย่างไร |
-|---|---|---|
-| AC-ACCOUNT-01 | `test_AC_ACCOUNT_01_register_success` | โจมตี API `POST /api/auth/register` ด้วย email/phone + password ที่ถูกต้อง แล้วตรวจว่าควรสร้างบัญชีและคืน session/token ให้ผู้ใช้เข้าสู่ระบบได้ |
-| AC-ACCOUNT-02 | `test_AC_ACCOUNT_02_login_success` | เข้าสู่ระบบด้วยบัญชีที่มีอยู่และข้อมูลถูกต้อง แล้วตรวจว่าระบบอนุญาต login ได้ |
-| AC-ACCOUNT-03 | `test_AC_ACCOUNT_03_login_invalid_input` | ส่งข้อมูล login ที่ไม่ถูกต้องหรือว่าง แล้วตรวจว่าระบบปฏิเสธและแสดงข้อความ “กรุณากรอกข้อมูลให้ถูกต้อง” |
-| AC-ACCOUNT-04 | `test_AC_ACCOUNT_04_line_connect_success` | เลือกเชื่อมต่อ LINE ให้ callback สำเร็จ แล้วตรวจว่ามีการบันทึก `line_user_id` ผูกกับบัญชีที่ login อยู่ |
-| AC-ACCOUNT-05 | `test_AC_ACCOUNT_05_skip_line_connection` | เลือกข้ามขั้นตอน LINE แล้วตรวจว่าระบบให้ใช้งานต่อได้ตามปกติ โดยไม่ติดการเชื่อมต่อ |
-| AC-ACCOUNT-06 | `test_AC_ACCOUNT_06_line_connect_failure` | จำลอง LINE connect ล้มเหลว แล้วตรวจว่าระบบไม่บันทึก `line_user_id` และผู้ใช้ยังคงใช้งานได้ต่อ |
+## 7. ลำดับการทำงาน
 
-## 7. ลำดับงาน
-
-1. วิเคราะห์และกำหนดรูปแบบ validation สำหรับ Email/เบอร์โทรศัพท์/รหัสผ่าน และการตรวจข้อมูลซ้ำ ตาม FR-01, FR-03, FR-04
-2. สร้างหน้า login/signup แบบหน้าเดียว พร้อมฟอร์มและข้อความแจ้งเตือนตาม FR-02 และ NFR-USE-01
-3. สร้าง API สมัครสมาชิกและตรวจสอบ duplicate check ตาม FR-01, FR-02, AC-ACCOUNT-01
-4. สร้าง API เข้าสู่ระบบ พร้อม error handling และ session/token ตาม FR-03, FR-04, AC-ACCOUNT-02, AC-ACCOUNT-03
-5. เพิ่ม auth guard และ protected resource สำหรับข้อมูลบัญชีพื้นฐาน ตาม NFR-SEC-01
-6. สร้าง flow เชื่อมต่อ LINE แบบ optional และ skip flow ตาม FR-05, FR-06, Alternative Flow 7a/7b, AC-ACCOUNT-04, AC-ACCOUNT-05, AC-ACCOUNT-06
-7. ทดสอบ end-to-end กับทุก Acceptance Criteria และตรวจความสอดคล้องกับ Open Questions โดยไม่สร้างฟังก์ชันนอก scope
+1. ตรวจ markup และข้อความ trace ใน `features/account/index.html` ให้ครอบคลุม FR/AC
+2. ตรวจหรือปรับ validation, duplicate check และ mock login ใน
+   `features/account/account.js`
+3. ตรวจ Mock LINE Connection success/failure, การผูก Mock LINE User ID กับบัญชีที่สำเร็จ และไม่ให้ failure ขัดขวาง flow หลัก
+4. เขียน/ปรับเฉพาะ test ของ account ใน `tests/` ตาม AC ทั้ง 6 ข้อ
+5. รัน test ที่เกี่ยวข้องกับ account และตรวจว่า feature อื่นไม่ถูกแก้ไข
 
 ## 8. สิ่งที่ยังไม่ทำ
 
-- Release 1 ไม่สร้าง LINE Login, LINE OAuth หรือ callback จริง เพราะ Q-01
-  ปิดด้วย Mock LINE Connection ใน React State แล้ว
-- การยกเลิกการเชื่อมต่อ LINE เลื่อนไป Release 2 ตาม Q-02
-- การเปลี่ยนบัญชี LINE เลื่อนไป Release 2 ตาม Q-03
-- FastAPI, Database, JWT/session และ API เป็นข้อเสนอสำหรับระบบจริงหรือ Release ถัดไป
-  ต้องยืนยัน Requirement/Constraints ก่อน จึงยังไม่สร้างใน Release 1
+- ไม่สร้างระบบสมัครสมาชิกหรือ login จริง
+- ไม่สร้าง backend, API, React, Vite, FastAPI หรือฐานข้อมูล
+- ไม่สร้างการเข้ารหัส password หรือระบบ session จริง เพราะอยู่นอกขอบเขต Frontend Prototype นี้
+- ไม่สร้าง LINE OAuth/Login, callback หรือการเชื่อมต่อบริการ LINE จริง
+- ไม่สร้างการยกเลิกหรือเปลี่ยนบัญชี LINE ใน Release นี้ตาม Q-02 และ Q-03
+- ไม่ทำการยกเลิกการเชื่อมต่อหรือเปลี่ยนบัญชี LINE ใน Release นี้
+- ไม่ทำการจัดการข้อมูลส่วนตัวหลัง login, เปลี่ยน password หรือ LINE notification service
+- ไม่แก้ไข Feature ของสมาชิกคนอื่น
 
----
-
-สรุป: Release 1 จะสร้างหน้า React + Vite สำหรับสมัคร/เข้าสู่ระบบแบบหน้าเดียว,
-validation และ duplicate-check สำหรับ Mock Data, Auto-login ใน React State,
-และ Mock LINE Connection แบบเสริมที่ไม่กระทบต่อการสมัครหรือ login หลัก ตาม spec.md
-โดยไม่สร้าง Backend, API, Database, JWT/session หรือ LINE API จริง
+สรุป: แผนนี้ใช้เฉพาะ HTML, CSS และ JavaScript ที่มีอยู่ใน Repo โดยให้
+`features/account/` เป็นหน้าและ logic ของ UC-02 และใช้ `shared/styles.css` เป็น
+style กลาง การทำงานทั้งหมดเป็น Mock Data/Frontend Prototype และส่วน LINE ที่ติด
+Q-01 ถึง Q-03 ได้รับคำตอบจากทีมแล้ว: Q-01 ใช้ Mock LINE Connection ใน Release นี้
+ส่วน Q-02 และ Q-03 เลื่อนไป Release ถัดไป

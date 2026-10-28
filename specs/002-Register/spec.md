@@ -18,7 +18,7 @@ Depends on: - | Reviewed by: -
 - ตรวจสอบข้อมูลเข้าสู่ระบบ
 - แสดงข้อความแจ้งเตือนเมื่อเข้าสู่ระบบไม่สำเร็จ
 - ให้ลูกค้าเลือกเชื่อมต่อบัญชี LINE
-- บันทึก LINE User ID เมื่อเชื่อมต่อสำเร็จ
+- จำลองการเชื่อมต่อ LINE และเก็บ Mock LINE User ID ใน Browser Memory เมื่อเชื่อมต่อสำเร็จ
 
 ### Out of scope
 - การจัดการข้อมูลส่วนตัวหลังเข้าสู่ระบบ
@@ -34,7 +34,7 @@ Depends on: - | Reviewed by: -
 - Password ต้องไม่เป็นค่าว่าง และสำหรับการเข้าสู่ระบบ รหัสผ่านที่กรอกต้องตรงกับรหัสผ่านของบัญชี Mock ที่ลงทะเบียนไว้ จึงจะสามารถเข้าสู่ระบบได้
 - การเชื่อมต่อ LINE เป็นทางเลือก ไม่บังคับต่อการสมัครสมาชิกหรือเข้าสู่ระบบ
 - ระบบต้องไม่จัดเก็บ Password ของบัญชี LINE
-- ระบบต้องสามารถเชื่อมโยง LINE User ID กับบัญชีลูกค้าได้อย่างถูกต้อง
+- ระบบต้องสามารถเชื่อมโยง Mock LINE User ID `mock-line-user-001` กับบัญชีลูกค้าที่ Login/Register สำเร็จใน Browser Memory ได้อย่างถูกต้อง
 - ข้อมูลส่วนบุคคลที่เกี่ยวกับบัญชี เช่น ชื่อ อีเมล เบอร์โทรศัพท์ ต้องมีการ login ก่อนถึงจะเข้าถึงได้
 
 ## Requirements
@@ -60,24 +60,22 @@ Depends on: - | Reviewed by: -
 
 - FR-05
   ระบบต้องสามารถให้ลูกค้าเลือกเชื่อมต่อบัญชีผู้ใช้กับ LINE เพื่อรับการแจ้งเตือน Order
-  โดยผู้ใช้ต้อง Login หรือสมัครสมาชิกสำเร็จก่อนจึงจะสามารถเชื่อมต่อ Mock LINE ได้
-  โดย Release 1 ใช้ Mock LINE Connection ภายใน React Prototype เพื่อจำลองผลสำเร็จ
-  ผลล้มเหลว และการข้ามขั้นตอน โดยไม่เชื่อมต่อ LINE API จริง
+  โดย Prototype จำลองผลสำเร็จและล้มเหลวด้วย HTML/CSS/Vanilla JavaScript
+  โดยไม่เชื่อมต่อ LINE API จริง
 
 - FR-06
   เมื่อเชื่อมต่อ LINE สำเร็จ ระบบ Prototype ต้องเก็บ Mock LINE User ID
-  `mock-line-user-001` ในหน่วยความจำระหว่างเปิดหน้า Prototype และผูกกับบัญชีลูกค้า
-  ที่ Login/Register สำเร็จ โดยแสดงสถานะเชื่อมต่อสำเร็จใน UI
-  เมื่อสมัครสมาชิกด้วยข้อมูลถูกต้อง ระบบต้องสร้างบัญชี Mock และตั้งสถานะ
-  Auto-login ใน Prototype ทันทีโดยไม่ต้องกรอก Login ซ้ำ
-  ทั้งนี้ไม่ใช่ session/token หรือ Authentication จริง
+  `mock-line-user-001` ใน Browser Memory และผูกกับบัญชีลูกค้าที่ Login/Register สำเร็จ
+  โดยแสดงสถานะเชื่อมต่อสำเร็จใน UI
+  และเมื่อข้อมูลถูกต้อง ระบบต้องสร้างบัญชีและถือว่าผ่านการยืนยันบัญชีผู้ใช้ แล้วอนุญาตให้เข้าสู่ระบบได้ทันที
+  หากเชื่อมต่อไม่สำเร็จต้องไม่สร้างความสัมพันธ์ใหม่กับ LINE และยังใช้งาน Prototype ต่อได้
 
 ### Alternative Flow Requirement
 
 - FR-05 / UC-02 Alternative Flow 7a
-  หากลูกค้าเลือกเชื่อมต่อ LINE ระบบ Prototype ต้องจำลองการเชื่อมต่อสำเร็จ
-  และบันทึก Mock LINE User ID `mock-line-user-001` ในหน่วยความจำ
-  เมื่อมีบัญชีที่ Login/Register สำเร็จแล้ว โดยไม่เรียก LINE API จริง
+  หากลูกค้าเลือกเชื่อมต่อ LINE Prototype ต้องจำลองการเชื่อมต่อสำเร็จ
+  และบันทึก Mock LINE User ID `mock-line-user-001` ใน Browser Memory
+  เมื่อมีบัญชีที่ Login/Register สำเร็จแล้ว
 
 - FR-05 / UC-02 Alternative Flow 7b
   หากลูกค้าไม่ต้องการเชื่อมต่อ LINE ระบบต้องให้ลูกค้าใช้งานระบบต่อได้ตามปกติ
@@ -91,7 +89,8 @@ Depends on: - | Reviewed by: -
   หาก Email หรือเบอร์โทรศัพท์ถูกใช้สมัครแล้ว ระบบต้องไม่สร้างบัญชีซ้ำและแจ้งลูกค้า
 
 - UC-02 Exception Flow 7c
-  หากไม่สามารถเชื่อมต่อ LINE ได้ ระบบต้องไม่บันทึก LINE User ID และต้องไม่ทำให้การสมัครสมาชิกหรือเข้าสู่ระบบล้มเหลว
+  หากไม่สามารถเชื่อมต่อ LINE ได้ ระบบ Prototype ต้องไม่สร้างความสัมพันธ์ใหม่กับ LINE
+  และต้องไม่ทำให้การสมัครสมาชิกหรือเข้าสู่ระบบล้มเหลว
 
 ## Quality Requirements
 - NFR-SEC-01
@@ -111,8 +110,7 @@ Depends on: - | Reviewed by: -
 
   Given ลูกค้ากรอกข้อมูลสมัครสมาชิกถูกต้องและครบถ้วน
   When ลูกค้ายืนยันการสมัครสมาชิก
-  Then ระบบสร้างบัญชี Mock แสดงสถานะสมัครสมาชิกสำเร็จ และตั้งสถานะ
-  Auto-login ใน Prototype ให้ลูกค้าเข้าสู่ flow ต่อได้ทันทีโดยไม่ต้องกรอก Login ซ้ำ
+  Then ระบบสร้างบัญชีและให้ลูกค้าสามารถเข้าสู่ระบบได้
 
 - [ ] AC-ACCOUNT-02 (FR-03)
 
@@ -130,9 +128,8 @@ Depends on: - | Reviewed by: -
 
   Given ลูกค้า Login/Register สำเร็จและเลือกเชื่อมต่อ LINE
   When การเชื่อมต่อ LINE สำเร็จ
-  Then Prototype แสดงสถานะเชื่อมต่อสำเร็จและเก็บ Mock LINE User ID
-  `mock-line-user-001` ในหน่วยความจำระหว่างเปิดหน้า Prototype
-  โดยผูกกับบัญชีลูกค้า และไม่เรียก LINE API จริง
+  Then Prototype แสดงสถานะเชื่อมต่อสำเร็จและเก็บ Mock LINE User ID `mock-line-user-001`
+  ใน Browser Memory โดยผูกกับบัญชีลูกค้า
 
 - [ ] AC-ACCOUNT-05 (UC-02 Alternative Flow 7b)
 
@@ -157,12 +154,11 @@ Depends on: - | Reviewed by: -
 - ข้อมูลส่วนบุคคลที่ระบุในระบบคือข้อมูลบัญชีพื้นฐาน เช่น ชื่อ อีเมล เบอร์โทรศัพท์ และต้องมีการ login ก่อนถึงจะเข้าถึงได้
 
 ### Open Questions และคำตอบของทีม
-- Q-01: Release 1 ใช้ Mock LINE Connection ด้วย React State
-  เพื่อจำลองผลสำเร็จ ผลล้มเหลว และการข้ามขั้นตอน
-  ใช้ Mock LINE User ID `mock-line-user-001` เก็บและผูกกับบัญชี
-  ในหน่วยความจำระหว่างเปิดหน้า Prototype โดยไม่ใช้ LINE API, OAuth หรือ callback จริง
-- Q-02: ไม่รองรับการยกเลิกการเชื่อมต่อ LINE ใน Release 1 และเลื่อนไป Release 2
-- Q-03: ไม่รองรับการเปลี่ยนบัญชี LINE ใน Release 1 และเลื่อนไป Release 2
+- Q-01: ใช้ Mock LINE Connection จำลองการเชื่อมต่อสำเร็จ/ล้มเหลวด้วย HTML/CSS/Vanilla JavaScript
+  เก็บ Mock LINE User ID `mock-line-user-001` เฉพาะใน Browser Memory
+  และผูกกับบัญชีที่ Login/Register สำเร็จเท่านั้น
+- Q-02: ไม่รองรับการยกเลิกการเชื่อม LINE ใน Release นี้ เลื่อนไป Release ถัดไป
+- Q-03: ไม่รองรับการเปลี่ยนบัญชี LINE ใน Release นี้ เลื่อนไป Release ถัดไป
 
 ## Traceability
 

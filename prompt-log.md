@@ -2,6 +2,102 @@
 
 บันทึกทุกครั้งที่ใช้ AI กับ repo นี้ เขียนต่อท้ายเรื่อย ๆ ไม่ต้องลบของเก่า
 
+---
+
+## 2569-10-28 15:55 คำสั่ง: /implement T-11 specs/009-MenuManagement/tasks.md
+- โหมด: ทำ task เดี่ยว
+- ไฟล์ที่แก้: `backend/app/services/history_service.py`, `backend/app/services/menu_service.py`, `backend/app/routes/menu.py`, `specs/009-MenuManagement/tasks.md`, `prompt-log.md`
+- ผล: เพิ่ม in-memory history/snapshot store, `record_menu_history()`, `create_order_snapshot()`, `delete_menu_item()` และ route `DELETE /api/admin/menu/{menu_id}` พร้อมรวม `menu_history` และ `order_snapshots` ใน response ของ `GET /api/admin/menu`
+- Test ที่รัน: `APP_ENV=test PYTHONPATH=. pytest -q tests/test_AC_MENU_MGMT_01_admin_can_view_menu_list.py tests/test_AC_MENU_MGMT_02_admin_can_add_menu_item.py tests/test_AC_MENU_MGMT_03_admin_can_edit_menu_details.py tests/test_AC_MENU_MGMT_04_admin_can_change_status.py tests/test_AC_MENU_MGMT_05_validation_before_save.py tests/test_AC_MENU_MGMT_07_sold_out_menu_blocked_for_customer.py tests/test_AC_MENU_MGMT_13_non_admin_is_blocked.py`
+- ผลลัพธ์: 17 passed, 0 failed
+- หมายเหตุ: ยึดตาม FR-49, NFR-REL-08, NFR-REL-09 และ Constraints ที่ต้องคงข้อมูล snapshot/history สำหรับ Order เก่าในขณะที่เมนูถูกแก้ไขหรือลบออกจาก catalog ปัจจุบัน
+
+---
+
+## 2569-10-28 15:20 คำสั่ง: /implement T-12 specs/009-MenuManagement/tasks.md
+- โหมด: ทำ task เดี่ยว
+- ไฟล์ที่แก้: `frontend/src/components/DeleteMenuDialog.jsx`, `frontend/src/pages/AdminMenuPage.jsx`, `frontend/src/api/client.js`, `frontend/src/pages/AdminMenuPage.test.jsx`, `specs/009-MenuManagement/tasks.md`, `prompt-log.md`
+- ผล: เพิ่ม delete confirmation dialog, button ในรายการเมนู, และ call `DELETE /api/admin/menu/{menu_id}` พร้อมลบรายการจาก UI หลังยืนยัน
+- Test ที่รัน: `cd frontend && npm test -- --run src/pages/AdminMenuPage.test.jsx`
+- ผลลัพธ์: 6 passed, 0 failed
+- หมายเหตุ: ยึดตาม FR-49 และ AC-MENU-MGMT-08 / 14 โดยให้ลบจาก catalog ปัจจุบันแต่คง snapshot/history ไว้ เพื่อให้ Order เก่าใช้งานต่อได้
+
+---
+
+## 2569-10-28 15:45 คำสั่ง: /implement T-10 specs/009-MenuManagement/tasks.md
+- โหมด: ทำ task เดียว
+- ไฟล์ที่แก้: `backend/app/services/order_guard.py`, `backend/app/services/order_service.py`, `backend/app/routes/orders.py`, `tests/test_AC_MENU_MGMT_07_sold_out_menu_blocked_for_customer.py`, `specs/009-MenuManagement/tasks.md`, `prompt-log.md`
+- ผล: เพิ่ม guard logic `ensure_menu_is_orderable()` และรวมเข้ากับ `OrderService.add_item()` เพื่อป้องกันการสั่งเมนูที่ status = sold_out; customer order route ยังส่ง HTTP 409 ตาม contract เดิม
+- Test ที่รัน: `APP_ENV=test PYTHONPATH=. pytest -q tests/test_AC_MENU_MGMT_07_sold_out_menu_blocked_for_customer.py tests/test_AC_MENU_MGMT_04_admin_can_change_status.py tests/test_AC_MENU_MGMT_02_admin_can_add_menu_item_api.py`
+- ผลลัพธ์: 10 passed, 0 failed
+- หมายเหตุ: ไม่ได้เดา extra requirement; ใช้ FR-45, FR-48 และ AC-MENU-MGMT-07 / 10 เป็นแหล่งข้อมูลเดียว และยึด status value เป็น `open` / `sold_out` จาก `backend/app/config.py`
+
+---
+
+## 2569-10-28 14:16 คำสั่ง: /testcases AC-STAFF-ORDER-05 specs/007-StaffOrder/spec.md
+- โหมด: ร่าง
+- TC ID: `TC-STAFF-ORDER-05-1`, `TC-STAFF-ORDER-05-2`, `TC-STAFF-ORDER-05-3`
+- ผล: เพิ่มแถวร่างใน `specs/007-StaffOrder/test-cases.md` สำหรับ AC-STAFF-ORDER-05 และหยดก่อนเขียนโค้ด test เพราะยังต้องมีการตรวจแถวและเปลี่ยนสถานะเป็น "ใช้ได้" ก่อน
+- หมายเหตุ: Then ของทุกแถวยึดจาก FR-33, FR-32 และ Constraint/plan ที่ระบุให้คง Order สิ้นสุดไว้ท้ายรายการ; ไม่มี Open Question เพิ่มเติมที่ต้องให้คนตรวจในข้อนี้
+
+---
+
+## 2569-10-28 14:20 คำสั่ง: /testcases AC-STAFF-ORDER-06 specs/007-StaffOrder/spec.md
+- โหมด: ร่าง
+- TC ID: `TC-STAFF-ORDER-06-1`, `TC-STAFF-ORDER-06-2`, `TC-STAFF-ORDER-06-3`
+- ผล: เพิ่มแถวร่างใน `specs/007-StaffOrder/test-cases.md` สำหรับ AC-STAFF-ORDER-06 และหยุดก่อนเขียนโค้ด test เพราะแถวยังไม่ได้รับการตรวจและเปลี่ยนสถานะเป็น "ใช้ได้"
+- หมายเหตุ: แถว 06-3 ใช้ข้อความ "spec ไม่ได้บอก" สำหรับกรณีมี Order แต่ไม่มี Order ใหม่ เนื่องจาก AC ระบุเฉพาะกรณี "ยังไม่มี Order ใหม่" แต่ไม่ได้ระบุว่าควรจัดการกับ Order เก่าหรือสิ้นสุดอย่างไร
+
+---
+
+## 2569-10-28 08:11 คำสั่ง: /implement T-06 (แก้ F-09)
+
+- ไฟล์ที่แก้: `frontend/src/pages/OrderPage.test.jsx`, `specs/003-Order/tasks.md`
+- เพิ่ม test `test_TC_ORDER_03_1_show_order_summary` สำหรับ Order ที่มีเครื่องดื่ม 2 รายการ
+- Assertions ครอบคลุมชื่อสินค้า จำนวน ราคาต่อรายการ ราคาโปรโมชั่น และยอดรวมตาม TC-ORDER-03-1
+- ยังไม่ได้แก้ Business Logic หรือ Payment Flow
+- ผล test: `cd frontend && npm test -- --run src/pages/OrderPage.test.jsx` ผ่าน 13 tests, ไม่ผ่าน 0
+
+---
+
+## 2569-10-28 08:15 คำสั่ง: /implement T-07 (แก้ F-10)
+
+- ทีมอนุมัติให้เพิ่ม `backend/app/repositories/order_repository.py` และ `backend/tests/test_order_sqlite_repository.py` ในไฟล์ที่แตะของ T-07
+- ไฟล์ที่แก้: `backend/app/repositories/order_repository.py`, `backend/tests/test_order_sqlite_repository.py`, `specs/003-Order/tasks.md`
+- เพิ่ม Integration Test `test_AC_ORDER_04_and_09_update_delete_and_recalculate_via_sqlite`
+- Test เรียก `PATCH /api/orders/items/{id}` ผ่าน FastAPI และตรวจ Persistence ใน SQLite จริง
+- ครอบคลุมการเพิ่มจำนวน, การตรวจรายการอื่นไม่เปลี่ยน, การอ่าน summary/ยอดรวมหลังแก้, `quantity = 0` เพื่อลบ และการคงอยู่ของรายการที่เหลือ
+- แก้ Repository ให้ลบ `OrderOption` ก่อน `OrderItem` เมื่อ quantity เป็น 0 เพื่อไม่ให้ SQLite เกิด NOT NULL constraint error
+- ผล test: `cd backend && pytest -v` ผ่าน 34 tests, ไม่ผ่าน 0, collection error 0
+
+---
+
+## 2569-10-28 08:22 คำสั่ง: /implement T-08 (แก้ F-11)
+
+- ทีมยืนยันให้เพิ่ม `backend/tests/test_order_sqlite_repository.py`, `specs/003-Order/tasks.md` และ `prompt-log.md` ในไฟล์ที่แตะของ T-08
+- เพิ่ม Integration Test `test_AC_ORDER_05_confirm_valid_order_via_sqlite_and_returns_pending`
+- Test สร้าง Draft และรายการพร้อม sweetness ผ่าน API/SQLite จริง จากนั้นเรียก `POST /api/orders/confirm`
+- ตรวจ HTTP 200, response `payment_status = "pending"`, รายการและ options ใน SQLite และสถานะ Order ที่ยังเป็น `draft`
+- คง Negative Tests ของ Order ว่าง, options ไม่ครบ และสินค้าหมดไว้เดิม
+- ไม่ได้สร้าง QR Code, Payment Callback, Completed Order หรือ Timeout Flow
+- ผล test เฉพาะ AC-ORDER-05/11: ผ่าน 4 tests, ไม่ผ่าน 0
+- ผล Backend ทั้งหมด: ผ่าน 35 tests, ไม่ผ่าน 0, collection error 0
+
+---
+
+## 2569-10-28 08:24 คำสั่ง: /verify specs/003-Order
+
+- ตรวจ RTM หลังแก้ F-09, F-10 และ F-11 โดยไม่แก้โค้ดหรือ Test
+- ตรวจพบ Test ตาม `TC-ORDER-03-1`: `test_TC_ORDER_03_1_show_order_summary` และ assertion สำหรับ Order สองรายการ
+- ตรวจพบ SQLite Integration Test ของ AC-ORDER-04/09: `test_AC_ORDER_04_and_09_update_delete_and_recalculate_via_sqlite`
+- ตรวจพบ SQLite Happy Path Integration Test ของ AC-ORDER-05: `test_AC_ORDER_05_confirm_valid_order_via_sqlite_and_returns_pending`
+- ผล Backend: 35 ผ่าน, 0 ไม่ผ่าน, 0 collection error
+- ผล Frontend: 37 ผ่าน, 0 ไม่ผ่าน
+- RTM หลัง Verify: ครบ 9 แถว, ยังไม่ถึง 10 แถว, รอ Q-xx 0 แถว, ช่องโหว่ 0 แถว
+- F-09, F-10 และ F-11 ย้ายไปหัวข้อ “แก้แล้ว”; Payment Flow, QR, Timeout, Callback, Completed Order และ Idempotency คงเป็น Release ถัดไป
+
+---
+
 ## 2569-09-18 10:00 คำสั่ง: /clarify
 
 - เครื่องมือ: Copilot in VS Code
@@ -535,6 +631,26 @@
 
 ---
 
+## 2569-10-28 16:05 คำสั่ง: /implement T-08
+- โหมด: ทำ task เดียวตาม tasks.md
+- ไฟล์ที่แก้: `backend/app/routes/menu.py`, `tests/test_AC_MENU_MGMT_02_admin_can_add_menu_item_api.py`, `specs/009-MenuManagement/tasks.md`
+- ผล: เพิ่ม handling สำหรับ exception แบบ save failure ให้คืน HTTP 500 พร้อมข้อความ `ไม่สามารถบันทึกข้อมูลได้` สำหรับ create/update/status, และเพิ่ม automated test `test_AC_MENU_MGMT_12_save_failure_is_not_shown_as_success` เพื่อยืนยันว่าข้อมูลเก่าคงอยู่และไม่แสดงว่าสำเร็จ
+- ข้อจำกัด/การตัดสิน: ไฟล์ `backend/app/services/menu_service.py` มี transaction ของ SQLAlchemy อยู่แล้ว (`SessionLocal.begin()`), ดังนั้น rollback อยู่ในระดับ persistence ตาม FR-47 / NFR-REL-08 โดยไม่ต้องเพิ่ม logic ที่เดาเกินจำเป็น
+- ผล test: `cd /workspaces/RequirMang-swreqspec && PYTHONPATH=. pytest tests/test_AC_MENU_MGMT_02_admin_can_add_menu_item_api.py -q` → ผ่าน 5/5
+- ขอบเขต: ทำเฉพาะ T-08; ไม่แตะ task อื่นหรือเพิ่มฟีเจอร์นอก scope
+
+---
+
+## 2569-10-28 16:49 คำสั่ง: /implement T-09
+- โหมด: ทำ task เดียวตาม tasks.md
+- ไฟล์ที่แก้: `frontend/src/components/Toast.jsx`, `frontend/src/pages/AdminMenuPage.jsx`, `frontend/src/pages/AdminMenuPage.test.jsx`, `specs/009-MenuManagement/tasks.md`
+- ผล: เพิ่ม toast แจ้งสถานะสำเร็จ/ผิดพลาดบนหน้า Admin Menu, ตั้งข้อความให้ตรงกับ requirement `บันทึกข้อมูลสำเร็จ` และ `ไม่สามารถบันทึกข้อมูลได้`, และยืนยันด้วย test `test_AC_MENU_MGMT_06_successful_update_is_persisted_and_shows_success_toast` และ `test_AC_MENU_MGMT_12_save_failure_not_marked_as_success_and_shows_error_toast`
+- ข้อจำกัด/การตัดสิน: ไม่ต้องสร้างฟีเจอร์เพิ่มเติมนอก scope; ใช้ toast แบบง่ายและสอดคล้องกับ UI ขั้นตอนแก้ไขเมนูที่มีอยู่แล้ว ไม่ได้เพิ่มปุ่มหรือ flow ใหม่
+- ผล test: `cd /workspaces/RequirMang-swreqspec/frontend && npm test -- --run src/pages/AdminMenuPage.test.jsx` → ผ่าน 5/5
+- ขอบเขต: ทำเฉพาะ T-09; ไม่แตะ task อื่นหรือ out-of-scope ฟีเจอร์
+
+---
+
 ## 2569-10-12 คำสั่ง: เตรียม RTM ตามคำตัดสินทีมหลัง /verify รอบแรก
 
 - ไฟล์ที่แก้: specs/001-Menu/rtm.md; เพิ่มบันทึกนี้ท้าย prompt-log.md
@@ -542,6 +658,35 @@
 - ตรวจเลขคำถามใน specs/001-Menu/spec.md: มี Q-03 ซึ่งปิดแล้ว และไม่มี Q ที่เปิดอยู่ จึงกำหนด Q-04 สำหรับ F-02 ใน RTM เพื่อถามผลเมื่อคลิกปุ่ม “สั่งซื้อ”; ยังไม่กำหนดคำตอบ และยังไม่ได้บันทึก Q-04 ลง Spec
 - จัดประเภทให้สอดคล้องกับคำตัดสิน: F-01 แก้โค้ด; F-02 รอ Q-04; F-03 AC ไม่มี test (เพิ่ม Automated Test โดยไม่เปลี่ยนพฤติกรรมระบบ); F-04/F-05 test อ่อนและ NFR กับ AC ไม่สอดคล้องกัน (แก้ Spec ผ่าน CR); F-06 เป็นข้อมูลตัวอย่าง ไม่ใช่บั๊ก พร้อมข้อพิจารณาเรื่องแหล่งข้อมูล/รูปแบบราคาใน Spec
 - รายการดำเนินการต่อ: แก้โค้ด F-01; ให้ทีมตอบ Q-04 ก่อนตัดสินพฤติกรรมปุ่ม; เพิ่ม Automated Test สำหรับ read-only constraint ของ F-03; ดำเนิน CR เพื่อปรับ NFR-26/AC-MENU-07 และ NFR-22/AC-MENU-06 ของ F-04/F-05; ให้ทีมพิจารณาความจำเป็นต้องระบุแหล่งข้อมูลและรูปแบบราคาใน Spec สำหรับ F-06
+
+---
+
+## 2569-10-27 09:44 คำสั่ง: /testcases AC-MENU-MGMT-05 specs/009-MenuManagement/
+
+- โหมด: ร่าง
+- ตรวจพบแถวที่มีอยู่แล้ว: TC-MENU-MGMT-05-1, TC-MENU-MGMT-05-2, TC-MENU-MGMT-05-3
+- ผล test: ยังไม่เขียนโค้ด test และยังไม่ได้รัน เนื่องจากทุกแถวอยู่สถานะ "ร่าง"
+- การดำเนินการ: ตรวจสอบ spec.md, plan.md, tasks.md, test-cases.md และ AGENTS.md แล้ว; ไม่มีการแก้ไข test-cases.md หรือโค้ดระบบ
+
+---
+
+## 2569-10-27 09:45 คำสั่ง: /testcases AC-MENU-MGMT-05 specs/009-MenuManagement/
+
+- โหมด: เขียน test
+- TC ID ที่เขียน: TC-MENU-MGMT-05-1, TC-MENU-MGMT-05-2, TC-MENU-MGMT-05-3
+- ไฟล์ test ที่แก้: frontend/src/components/MenuForm.test.jsx
+- ผล frontend test: ผ่าน 33/33 tests
+- ผล backend test: ผ่าน 21/21 tests
+- หมายเหตุ: เพิ่ม test ต่อท้าย test เดิมใน `MenuForm.test.jsx` ครบ 1 ตัวต่อ 1 แถว; ไม่แก้โค้ดระบบและไม่แก้ test เดิม
+
+---
+
+## 2569-10-27 10:00 คำสั่ง: /verify specs/009-MenuManagement/
+
+- ผล test: backend ผ่าน 21/21; frontend ผ่าน 33/33; รวมผ่าน 54 ตัว ไม่ผ่าน 0 ตัว
+- ผลการตรวจ: สร้าง [rtm.md](specs/009-MenuManagement/rtm.md) โดยอ่าน spec.md, plan.md, tasks.md, test-cases.md, AGENTS.md, โค้ดใน backend/app และ frontend/src และ test ทั้งหมดที่มีอยู่จริง
+- ตารางตามรอยไปข้างหน้า: ครบ 10 แถว, ยังไม่ถึง 13 แถว, รอ 0 แถว, ช่องโหว่ 3 แถว
+- ข้อค้นพบใหม่: F-01 test AC-MENU-MGMT-15 ตรวจไม่ครบทุกส่วนของ Then และไม่ยืนยันว่าไม่บันทึก; F-02 seed promotion อาจอยู่ในอดีตขัด Constraint; F-03 ยังไม่มี customer ordering guard สำหรับเมนูหมด; F-04 ยังไม่มี delete/history/order snapshot flow
 - ไม่แก้ code, Automated Tests หรือ Spec; ไม่ commit หรือ push
 
 ---
@@ -596,6 +741,24 @@
 - ระบุใน RTM ว่า F-02 ยังไม่ปิดและรอ T-02 รวมถึง Automated Test ที่ตรวจผลจากการคลิกปุ่มจริง
 - บันทึกเหตุผลที่ยังไม่มี Test: Test ใช้ `node:test` กับ mock `document`/`innerHTML` ผ่าน `node:vm` โดยไม่มี DOM/browser test library จึงไม่สามารถจำลองการคลิกปุ่ม DOM จริงและตรวจผลหน้าจอได้; รอบนี้ห้ามติดตั้ง dependency หรือเพิ่มเครื่องมือ จึงยังไม่สร้าง Test และไม่ใช้การตรวจ source code แทน
 - ไม่แก้ app.js, Automated Tests, Spec, tasks.md, test-cases.md หรือ F-03 ถึง F-07; ไม่ commit หรือ push
+
+---
+
+## 2569-10-27 คำสั่ง: /tasks specs/007-StaffOrder/spec.md
+
+- ไฟล์ที่สร้าง/แก้: specs/007-StaffOrder/tasks.md; เพิ่มบันทึกนี้ท้าย prompt-log.md
+- ผลลัพธ์: แตก plan เป็น 11 เฟส รวม 21 task; ครอบคลุม AC-STAFF-ORDER-01 ถึง AC-STAFF-ORDER-09 และ FR-29 ถึง FR-33
+- มี 3 task รอคำตอบ Open Questions ตามลำดับข้อ เนื่องจาก spec ไม่มี Q-ID; ไม่สร้าง ID ใหม่และไม่เริ่มทำ task หรือเขียนโค้ด
+- เฟสแรกที่ลองใช้งานได้จริงคือเฟส 1 (แสดงรายการ Order); กลไก Real-time รอคำตอบเรื่องวิธีอัปเดต/แจ้งเตือน
+- ตรวจพบว่า Constraints ไม่มี ID, ไม่มี mockup/UI ID, NFR-22 ไม่มี AC โดยตรง และ plan.md ไม่ระบุคำสั่งเปิดระบบ; บันทึกช่องว่างเหล่านี้ใน tasks.md โดยไม่เดาเพิ่ม
+- ตรวจ tasks.md แล้วไม่พบข้อผิดพลาดจากตัวตรวจไฟล์; ไม่มีการ commit หรือ push
+
+## 2569-10-27 แก้รอบที่ 1: ปรับ tasks.md ตามขอบเขต prototype
+
+- ทีมยืนยันให้ตัด T-18 เดิมออกทั้งหมด เพราะเป็นเพียง prototype รวมถึงไม่ทดสอบ AC-STAFF-ORDER-08 และ NFR-22 (100 concurrent users, p95 ไม่เกิน 2 วินาที)
+- ลบเฟสทดสอบภาระงาน ปรับ task ที่รอ Open Questions เป็น T-18 ถึง T-20 และอัปเดตจำนวนเฟส/งานกับตารางอ้างอิงใน tasks.md
+- ระบุ AC-STAFF-ORDER-08/NFR-22 ว่าไม่รวมใน prototype โดยไม่แก้ spec; spec ยังมีข้อกำหนดเดิม จึงควรปรับ spec ให้ตรงกับขอบเขตที่ทีมยืนยันก่อนใช้เป็น baseline
+- ยังไม่ได้เริ่มทำ task หรือเขียนโค้ด; ไม่มีการ commit หรือ push
 
 ---
 
@@ -872,3 +1035,1446 @@
 - เพิ่ม test 2 ตัวตาม `TC-ACCOUNT-01-5` และ `TC-ACCOUNT-01-6`; ไม่แก้ Source Code หรือ Test Cases
 - ผลการตรวจ: เพิ่ม assertion การปฏิเสธการสมัคร, ข้อความ “อีเมล/เบอร์โทรศัพท์นี้ถูกใช้งานแล้ว” และไม่สร้างบัญชีซ้ำ
 - ผลการรัน: `cd frontend && npm test` ผ่าน 21/21 Tests
+
+## 2569-10-27 คำสั่ง: แก้คอนฟิก `frontend/src/main.jsx`
+
+- คำถามที่ AI ถาม: ต้องการให้ entry point เปิด Login/Register, Customer/Admin Menu หรือรวมทั้งสองส่วนไว้ในแอปเดียว?
+- คำตอบของทีม: รวม Account และ Menu ไว้ในแอปเดียว พร้อมตัวสลับหน้า
+- ไฟล์ที่แก้: `frontend/src/main.jsx`, `prompt-log.md`
+- ปรับ entry point ให้สลับระหว่าง Customer Menu, Admin Menu และ Login/Register โดยคง Customer Menu เป็นหน้าเริ่มต้น
+- ผลตรวจ JSX syntax: ผ่าน
+- ผล `vite build`: รันไม่สำเร็จเพราะ `frontend/package.json` ยังมี Git merge conflict ที่ทำให้ JSON ไม่ถูกต้อง; ไม่แก้ไฟล์ conflict อื่นนอกขอบเขต
+
+## 2569-10-27 คำสั่ง: แก้ Conflict `frontend/index.html`
+
+- ไฟล์ที่แก้: `frontend/index.html`, `prompt-log.md`
+- รวม metadata จากฝั่งเมนูและใช้ชื่อหน้า `OWL CHA | เมนูและบัญชี` ให้ตรงกับ entry point ที่รวม Menu และ Account
+- คง `theme-color` เดิมและลบ Git conflict markers ออกจากไฟล์
+
+## 2569-10-27 คำสั่ง: แก้ Conflict `frontend/package.json`
+
+- ไฟล์ที่แก้: `frontend/package.json`, `prompt-log.md`
+- คงชื่อและเวอร์ชันแพ็กเกจ พร้อม React, Vite และ Vitest จากฝั่ง Menu ซึ่งตรงกับ dependency ที่ติดตั้งอยู่
+- รวม script `preview` จากฝั่ง Account และคง script `test` ของฝั่ง Menu
+- ไม่เปลี่ยน dependency versions เพื่อหลีกเลี่ยงการเปลี่ยน toolchain ระหว่างรวมฟีเจอร์
+
+## 2569-10-27 คำสั่ง: แก้ Conflict `frontend/package-lock.json`
+
+- ไฟล์ที่แก้: `frontend/package-lock.json`, `prompt-log.md`
+- เลือก lockfile ฝั่ง Menu ซึ่ง dependency และเวอร์ชันตรงกับ `frontend/package.json` หลังแก้ conflict
+- ตรวจ root metadata/dependencies ของ lockfile เทียบ manifest: ผ่าน
+- ผล `npm ci --dry-run --ignore-scripts --offline --prefix frontend`: ผ่าน
+
+## 2569-10-27 คำสั่ง: แก้ Conflict `frontend/vite.config.js`
+
+- ไฟล์ที่แก้: `frontend/vite.config.js`, `prompt-log.md`
+- คง API proxy ของ Menu และการตั้งค่า Vitest/jsdom พร้อม setup file สำหรับทั้งสองฟีเจอร์
+- ลบ Git conflict markers ออกจาก config
+- ผล `npm test --prefix frontend`: ผ่าน 43/43 tests
+- ผล `npm run build --prefix frontend`: ผ่าน
+
+## 2569-10-27 คำสั่ง: เชื่อม Customer Menu กับ Login/Register
+
+- ไฟล์ที่แก้: `frontend/src/AppShell.jsx`, `frontend/src/main.jsx`, `frontend/src/App.jsx`, `frontend/src/pages/CustomerMenuPage.jsx`, `frontend/src/__tests__/AC-MENU-08-09.test.jsx`, `prompt-log.md`
+- อ้างอิง: `specs/001-Menu/spec.md` FR-02, AC-MENU-08, AC-MENU-09 และ `specs/002-Register/spec.md` FR-02, FR-03
+- เมื่อยังไม่ Login แล้วกดสั่งซื้อ ระบบพาไป Login/Register พร้อมแสดงเมนูที่เลือก
+- เมื่อ Login/Register สำเร็จ กลับหน้า Customer และเพิ่มเมนูที่เลือกเข้า Order
+- เมื่อ Login ไม่สำเร็จหรือผู้ใช้ยกเลิก ระบบยกเลิกเมนูที่ค้างไว้ โดยไม่เพิ่มเข้า Order
+- ผล `npm test --prefix frontend`: ผ่าน 46/46 tests รวม integration tests ใหม่ 3 tests
+- ผล `npm run build --prefix frontend`: ผ่าน
+
+## 2569-10-27 คำสั่ง: `/verify specs/001-Menu/`
+
+- ตรวจโค้ดและ tests เทียบกับ `specs/001-Menu/spec.md` Draft v8 โดยไม่แก้โค้ด, test, spec, plan หรือ tasks
+- ผล `cd backend && pytest -v`: ไม่พบ tests (collected 0; pytest exit code 5)
+- ผล `npm test --prefix frontend -- --run`: ผ่าน 46/46 tests, ไม่ผ่าน 0 tests
+- RTM: 18 แถว — ครบ 1, ยังไม่ถึง 4, รอ 0, ช่องโหว่ 13
+- ข้อค้นพบใหม่: F-10 ถึง F-19 (10 ข้อ); ข้อค้นพบเดิม F-03 คงไว้
+- รายงาน RTM: `specs/001-Menu/rtm.md`
+## 2569-10-27 คำสั่ง: เพิ่ม route สำหรับเปิดหน้า Order แยก
+
+- เพิ่ม T-17 ใน `specs/003-Order/tasks.md` หลังผู้ใช้ยืนยันแนวทางให้คงหน้า Admin ที่ `/` และเปิดหน้า Order ที่ `/order`
+- ไฟล์ที่แก้: `frontend/src/main.jsx`, `frontend/src/main.test.jsx`, `specs/003-Order/tasks.md`; เพิ่มบันทึกนี้ท้าย `prompt-log.md`
+- `main.jsx` เลือกแสดง `OrderPage` ที่ `/order` และคง `AdminMenuPage` ที่ `/`; เพิ่ม tests สำหรับทั้งสอง route
+- ผลทดสอบ `npm test -- --run src/main.test.jsx src/pages/OrderPage.test.jsx src/pages/AdminMenuPage.test.jsx`: ผ่าน 10/10; `npm run build`: สำเร็จ; `git diff --check` และ `git diff --cached --check`: ผ่าน
+- คืน build artifacts ที่ build สร้าง/เปลี่ยนให้ตรงกับ staged state เดิม; ไม่แตะไฟล์อื่นและไม่ commit หรือ push
+
+---
+
+## 2569-10-27 คำสั่ง: ปรับ UI Order ตาม mockup
+
+- ไฟล์ที่แก้: `frontend/src/pages/OrderPage.jsx`, `frontend/src/pages/OrderPage.test.jsx`, `frontend/src/styles.css`, `specs/003-Order/tasks.md`; เพิ่มบันทึกนี้ท้าย `prompt-log.md`
+- จัดหน้า Order ให้มี header, notice, menu cards และหน้า summary แบบตะกร้ากับแผงชำระเงินสองคอลัมน์ พร้อม responsive layout; เพิ่ม Guest/QR/ปุ่มชำระเงินเป็น placeholder disabled ตามที่ทีมเลือก
+- ปุ่มยืนยัน/สำเร็จและจำลองล้มเหลวไม่ทำงาน; ไม่มีการเพิ่ม API, ข้อมูลผู้ใช้จริง หรือ payment flow
+- เพิ่ม T-18 หลังทีมยืนยันให้ทำเฉพาะ placeholder UI
+- ผล `npm test -- --run src/pages/OrderPage.test.jsx`: ผ่าน 6/6; `npm run build`: สำเร็จ; `git diff --check` และ `git diff --cached --check`: ผ่าน
+- คืน build artifacts ที่ build สร้าง/เปลี่ยนให้ตรงกับ staged state เดิม
+- ไม่แก้ไฟล์อื่นและไม่ commit หรือ push
+
+---
+
+## 2569-10-27 คำสั่ง: /testcases AC-ORDER-01 specs/003-Order/
+
+- โหมด: เขียน test จากแถวสถานะ “ใช้ได้”
+- เพิ่ม test ตามตาราง: `test_TC_ORDER_01_1_add_open_menu_item`, `test_TC_ORDER_01_3_add_only_open_menu_item`, `test_TC_ORDER_01_4_reject_unavailable_menu_item` ใน `backend/tests/test_order_flow.py`; เพิ่ม `frontend/src/__tests__/TC-ORDER-01-2.test.jsx`
+- TC-ORDER-01-5 เป็นการตรวจด้วยคน เพราะ spec ไม่ได้ระบุผลเมื่อเลือกเครื่องดื่มโดยยังไม่ได้เปิดรายการเมนู จึงไม่ได้เขียนโค้ด test
+- ผล frontend `npm test`: ผ่าน 8 test files, 30 tests
+- ผล backend: รันไม่สำเร็จระหว่าง collection จาก import conflict `backend/app/models.py` กับ package `backend/app/models/` (`app.models` ถูกโหลดเป็น module จึงหา `app.models.order` ไม่ได้); ไม่แก้โค้ดระบบตามข้อกำหนดของ `/testcases`
+
+---
+
+## 2569-10-27 คำสั่ง: ลบ TC-ORDER-01-5
+
+- ลบแถว `TC-ORDER-01-5` จาก `specs/003-Order/test-cases.md` ตามคำขอของทีม
+- ไม่แก้โค้ดระบบหรือ test อื่น และไม่ต้องรัน test เนื่องจากเป็นการปรับเอกสาร test case เท่านั้น
+
+---
+
+## 2569-10-27 คำสั่ง: /testcases AC-ORDER-01 specs/003-Order/
+
+- โหมด: ร่าง (ยังไม่มี `specs/003-Order/test-cases.md`)
+- ไฟล์ที่สร้าง/แก้: `specs/003-Order/test-cases.md`; เพิ่มบันทึกนี้ท้าย `prompt-log.md`
+- เสนอ TC-ORDER-01-1 ถึง TC-ORDER-01-5 ครอบคลุมการบันทึกรายการปกติ, การแสดงรายการบนหน้าจอ, ขอบเขตเมนูเปิดขาย, การปฏิเสธเมนูที่ไม่เปิดขาย และกรณีผู้ใช้ยังไม่เปิดรายการเมนู
+- ไม่เขียนหรือรันโค้ด test ในโหมดร่าง
+- ประเด็นที่ spec ไม่ได้บอก: ผลที่ระบบต้องแสดง/ดำเนินการเมื่อผู้ใช้พยายามเลือกเครื่องดื่มโดยยังไม่ได้เปิดรายการเมนู
+
+---
+
+## 2569-10-27 คำสั่ง: /testcases AC-ORDER-02 specs/003-Order/
+
+- โหมด: ร่าง (ยังไม่มีแถว AC-ORDER-02 ใน `specs/003-Order/test-cases.md`)
+- เสนอ TC-ORDER-02-1 ถึง TC-ORDER-02-4 ครอบคลุมตัวเลือกครบ, จำนวนขั้นต่ำพร้อมไม่เลือกตัวเลือกเสริม, เลือก toppings พร้อมค่าเริ่มต้นน้ำแข็ง และไม่เลือกระดับความหวาน
+- ไม่เขียนหรือรันโค้ด test ในโหมดร่าง
+- ประเด็นที่ spec ไม่ได้บอก: ข้อความหรือรูปแบบการแจ้งเตือนเมื่อไม่เลือกระดับความหวาน แม้ spec ระบุว่าต้องเลือกทุกครั้ง
+
+---
+
+## 2569-10-27 คำสั่ง: /testcases AC-ORDER-03 specs/003-Order/
+
+- โหมด: ร่าง
+- เสนอ TC-ORDER-03-1 ถึง TC-ORDER-03-3 ครอบคลุมสรุป Order หลายรายการ, ขอบเขตมีรายการเดียว และกรณีไม่มีรายการ
+- ระบุราคาโปรโมชั่นเป็น `(รอ Q-04)` ตาม Open Question ที่ขัดแย้งกับ FR-08/ASM-10
+- ประเด็นที่ spec ไม่ได้บอก: ผลที่ต้องแสดงหรือดำเนินการเมื่อเปิดหน้าตรวจสอบโดยไม่มีรายการใน Order
+- ไม่เขียนหรือรันโค้ด test ในโหมดร่าง
+
+---
+
+## 2569-10-27 คำสั่ง: /testcases AC-ORDER-04 specs/003-Order/
+
+- โหมด: ร่าง (ยังไม่มีแถว AC-ORDER-04 ใน `specs/003-Order/test-cases.md`)
+- เสนอ TC-ORDER-04-1 ถึง TC-ORDER-04-3 ครอบคลุมการแก้จำนวนเป็นค่ามากกว่า 0, การตั้งจำนวนเป็น 0 เพื่อลบรายการ และการลบรายการโดยตรงพร้อมคำนวณยอดรวมใหม่
+- ไม่เขียนหรือรันโค้ด test ในโหมดร่าง
+- ไม่พบผลลัพธ์ที่ spec ไม่ได้บอกใน 3 แถวที่เสนอ
+
+---
+
+## 2569-10-27 คำสั่ง: /testcases AC-ORDER-05 specs/003-Order/
+
+- โหมด: ร่าง (ยังไม่มีแถว AC-ORDER-05 ใน `specs/003-Order/test-cases.md`)
+- เสนอ TC-ORDER-05-1 ถึง TC-ORDER-05-4 ครอบคลุมข้อมูลครบถ้วน, ขอบเขตมีรายการ 1 รายการ, ไม่มีรายการ และไม่เลือกระดับความหวาน
+- ไม่เขียนหรือรันโค้ด test ในโหมดร่าง
+- ประเด็นที่ spec ไม่ได้บอก: ผลการนำผู้ใช้เข้าสู่การชำระเงินหรือข้อความแจ้งเตือนเมื่อยืนยัน Order ที่ไม่มีรายการหรือไม่เลือกระดับความหวาน
+
+---
+
+## 2026-10-27 คำสั่ง: /implement T-03 ด้วย Mock Authentication
+
+- ตรวจ `spec.md` และ repository ก่อนแก้: ไม่พบข้อกำหนดใน spec ที่ขัดกับ Mock Authentication สำหรับ Development/Test; plan ระบุ Session/Auth user context แต่ผู้ใช้กำหนดชัดให้ใช้ mock และห้ามสร้าง Login/Session/Token จริง
+- ตามอนุมัติของทีม ปรับรายการไฟล์ T-03 ให้ตรงกับโครงสร้างจริง `backend/app/...` และเพิ่ม test file ที่ทีมร้องขอ
+- เพิ่ม `backend/app/routes/orders.py` และ `backend/app/services/orders.py`, ผูก router ใน `backend/app/main.py`; ใช้ allowlist `X-Test-User` -> user_id (`sample-user`, `sample-user-2`) เฉพาะเมื่อ `APP_ENV=development` หรือ `test`; ปฏิเสธค่า environment อื่นรวมถึง Production
+- `GET /api/orders` กรอง SQL ด้วย user_id ที่ dependency กำหนด ไม่รับ owner จาก query/body; ใช้ `ORDER_DATABASE_PATH` สำหรับ SQLite โดยไม่มี fallback
+- เพิ่ม `tests/test_AC_STATUS_01_show_only_user_orders.py` ซึ่งสร้าง Order fixture แยกเจ้าของสองคนและตรวจ list isolation, การปลอม owner ด้วย query/body และการปิด Mock Auth ใน Production
+- ผลทดสอบ `python -m unittest discover -s tests -p 'test_*.py' -v`: ผ่าน 21/21; `py_compile` ผ่าน; ตรวจ whitespace ผ่าน; มี Starlette deprecation warning เกี่ยวกับ httpx แต่ไม่กระทบผลทดสอบ
+- ติดตั้ง FastAPI และ httpx เฉพาะใน environment เพื่อรันทดสอบ เนื่องจากก่อนหน้านี้ไม่มี FastAPI; ไม่แก้ dependency manifest
+- อัปเดต T-03 เป็น “เสร็จ รอทีมตรวจ”; ไม่สร้างระบบ auth จริง ไม่แก้ `backend/app/auth.py` หรือไฟล์นอกขอบเขตที่อนุมัติ
+
+---
+
+## 2026-10-27 คำสั่ง: /implement T-04 specs/005-Status/spec.md
+
+- ตรวจ `tasks.md`, `spec.md`, `plan.md`, `AGENTS.md` และโครงสร้าง frontend; T-04 พร้อมทำ, prerequisite T-03 มีสถานะ “เสร็จ”, และไม่พบ Open Questions ใน spec
+- ผู้ใช้อนุมัติให้ขยายไฟล์จากรายการ T-04 เพื่อเพิ่ม route ใน `frontend/src/main.jsx` และ AC test ใน `frontend/src/pages/OrderList.test.jsx`; เหตุผลคือแอปเดิม render `AdminMenuPage` โดยตรงและไม่มี test ของ Order list
+- เพิ่ม `getOrders()` ใน `frontend/src/api/client.js` เรียก `GET /api/orders` พร้อม `X-Test-User: customer-a` ตาม allowlist mock ที่มีอยู่; สร้างหน้ารายการใน `frontend/src/pages/OrderList.jsx` และเปิดหน้าเมื่อ path เป็น `/orders/status` ใน `frontend/src/main.jsx`
+- เพิ่ม `test_AC_STATUS_01_show_only_user_orders` ใน `frontend/src/pages/OrderList.test.jsx`; ใช้ response จำลองของผู้ใช้ที่ API client กำหนดและตรวจว่า Order ปรากฏในหน้า
+- ผล `cd frontend && npm test -- src/pages/OrderList.test.jsx`: ผ่าน 1/1; ชุดเต็ม `cd frontend && npm test`: ผ่าน 22/22; ผล `cd frontend && npm run build`: ผ่าน; `git diff --check` ผ่าน
+- อัปเดต T-04 เป็น “เสร็จ รอทีมตรวจ”; ไม่แก้ task อื่น; mock identity เป็น `customer-a` จากรายการผู้ใช้ทดสอบที่ T-03 กำหนดไว้แล้ว
+
+---
+
+## 2026-10-27 คำสั่ง: /implement T-05 specs/005-Status/spec.md
+
+- ตรวจ `tasks.md`, `spec.md`, `plan.md`, `AGENTS.md`; T-05 พร้อมทำ, prerequisite T-03/T-04 เป็น “เสร็จ”, ช่องไฟล์และเกณฑ์เสร็จครบ และไม่มี Open Questions
+- สร้าง `backend/tests/test_orders.py` ตาม path ที่ task ระบุ เพราะ `backend/tests/` ยังไม่มีอยู่; test สร้าง Order ให้ผู้ใช้สองคนและตรวจ AC-STATUS-01 ว่าแต่ละ identity เห็นเฉพาะ Order ของตน พร้อมยืนยัน user_id ทั้งสองไม่ซ้ำกัน
+- `frontend/src/pages/OrderList.test.jsx` มี `test_AC_STATUS_01_show_only_user_orders` จาก T-04 อยู่แล้ว จึงไม่แก้ไฟล์นี้และรันทดสอบซ้ำด้วย mocked `fetch` ตามเกณฑ์ T-05
+- ผล `python -m unittest discover -s backend/tests -p 'test_*.py' -v`: ผ่าน 1/1; ผล `cd frontend && npm test -- src/pages/OrderList.test.jsx`: ผ่าน 1/1; `git diff --check` ผ่าน; มี Starlette deprecation warning เกี่ยวกับ httpx แต่การทดสอบผ่าน
+- เปลี่ยนเฉพาะสถานะ T-05 เป็น “เสร็จ รอทีมตรวจ”; ไม่แก้ task อื่น และไม่พบจุดที่ต้องเดา/ถามเพิ่ม
+
+---
+
+## 2026-10-27 คำสั่ง: /implement T-06 specs/005-Status/spec.md
+
+- ตรวจ `tasks.md`, `spec.md`, `plan.md`, `AGENTS.md`; T-06 พร้อมทำและ prerequisite T-03 มีสถานะ “เสร็จ”
+- พบว่า `backend/services/orders.py` ตาม tasks ไม่มีอยู่จริง; service อยู่ที่ `backend/app/services/orders.py` และ T-06 ไม่ได้ระบุไฟล์ test แม้ต้องตรวจ AC-STATUS-05. ขออนุมัติทีมและได้รับอนุญาตให้แก้ `backend/app/services/orders.py` และ `backend/tests/test_orders.py`
+- เพิ่ม `ORDER BY created_at DESC` ใน query ที่กรอง `user_id` เพื่อให้ API ส่ง Order ล่าสุดก่อน โดยยังคง owner filter เดิมตาม NFR-SEC-02; เพิ่ม `test_AC_STATUS_05_list_orders_sorted_by_latest_created` ด้วยข้อมูลวันเวลาที่ต่างกันและยืนยัน response order
+- แก้ช่องไฟล์ T-06 ให้ตรงกับไฟล์จริงที่อนุมัติ และเปลี่ยนสถานะ T-06 เป็น “เสร็จ รอทีมตรวจ”; ไม่เปลี่ยน task อื่น
+- ผล `python -m unittest backend.tests.test_orders.TestOrderListOwnership.test_AC_STATUS_05_list_orders_sorted_by_latest_created -v`: ผ่าน 1/1; ผล `python -m unittest discover -s backend/tests -p 'test_*.py' -v`: ผ่าน 2/2; `py_compile` และ `git diff --check` ผ่าน; มี Starlette deprecation warning เกี่ยวกับ httpx แต่การทดสอบผ่าน
+
+---
+
+## 2026-10-27 คำสั่ง: /implement T-09 specs/005-Status/spec.md
+
+- ตรวจ `tasks.md`, `spec.md`, `plan.md`, `AGENTS.md`; T-09 พร้อมทำและ prerequisites T-01/T-03 เป็น “เสร็”
+- พบ path เดิม `backend/routes/orders.py` และ `backend/services/orders.py` ไม่มีจริง; ขออนุมัติและได้รับอนุญาตให้แก้ `backend/app/routes/orders.py`, `backend/app/services/orders.py` และเพิ่ม AC test ใน `backend/tests/test_orders.py`
+- ก่อนลงมือขอคำตัดสินเพราะ spec/plan ไม่ระบุ response สำหรับ Order ของผู้ใช้อื่นและไม่มีสถานะยืนยัน; ทีมเลือก 404 สำหรับ Order ที่ไม่ได้เป็นเจ้าของ และ `latest_status: null` เมื่อไม่มีสถานะยืนยัน
+- เพิ่ม `GET /api/orders/{order_id}`; query กรองทั้ง `order_id` และ `user_id` ของ Mock Auth, ส่งข้อมูล Order/รายการสินค้า และสถานะล่าสุดจาก history ที่ `is_confirmed = 1` เท่านั้น; Order ที่หาไม่พบหรือไม่ใช่ของผู้ใช้ตอบ 404
+- เพิ่ม `test_AC_STATUS_02_select_order_and_view_detail` ตรวจข้อมูล detail, latest confirmed status, items และการปฏิเสธ Order ของเจ้าของอื่น; เพิ่ม `test_AC_STATUS_02_detail_without_confirmed_status_returns_null` ซึ่งตรวจว่า API ไม่ส่ง status จาก Order row เมื่อไม่มี history ที่ยืนยัน
+- เพื่อไม่เผยสถานะที่ไม่ยืนยัน API ส่งสถานะเฉพาะใน `latest_status` จาก confirmed history; เมื่อไม่มีรายการยืนยันส่ง `null` ตามคำตัดสินของทีม
+- ผล targeted tests: ผ่าน 2/2; `python -m unittest discover -s backend/tests -p 'test_*.py' -v`: ผ่าน 4/4; `python -m unittest discover -s tests -p 'test_*.py' -v`: ผ่าน 21/21; `py_compile` และ `git diff --check` ผ่าน; มี Starlette deprecation warning เกี่ยวกับ httpx แต่ไม่กระทบผล
+- ปรับ file list และเกณฑ์เสร็จ T-09 ให้ตรงกับ paths ที่อนุมัติ; เปลี่ยนเฉพาะสถานะ T-09 เป็น “เสร็จ รอทีมตรวจ”
+
+---
+
+## 2026-10-27 คำสั่ง: /implement T-10 specs/005-Status/spec.md
+
+- ตรวจ `tasks.md`, `spec.md`, `plan.md`, `AGENTS.md`; T-10 พร้อมทำและ prerequisites T-04/T-09 เป็น “เสร็จ”
+- ขออนุมัติและได้รับอนุญาตให้ขยายไฟล์ที่แตะเพื่อเพิ่ม routing ใน `frontend/src/main.jsx` และ AC test ใน `frontend/src/pages/OrderDetail.test.jsx`; เหตุผลคือ main ปัจจุบันไม่มี route สำหรับรายละเอียดและ T-10 ต้องตรวจ AC-STATUS-02
+- เพิ่ม `getOrderDetails()` ใน `frontend/src/api/client.js` เรียก `GET /api/orders/{order_id}` ด้วย mock identity เดิม; เพิ่ม link “ดูรายละเอียด” ในรายการ; สร้าง `OrderDetail.jsx` เพื่อโหลดและแสดง Order ที่เลือกพร้อมสถานะล่าสุด; route `/orders/{order_id}/details` เลือกหน้า detail ใน `main.jsx`
+- เพิ่ม `test_AC_STATUS_02_select_order_and_view_detail` ตรวจ URL ของ link, รายละเอียด/สถานะที่แสดง และ request endpoint ที่ส่ง mock header
+- ผล `cd frontend && npm test -- src/pages/OrderDetail.test.jsx src/pages/OrderList.test.jsx`: ผ่าน 3/3; ชุด frontend ทั้งหมด `cd frontend && npm test`: ผ่าน 24/24; `cd frontend && npm run build`: ผ่าน; `git diff --check` ผ่าน
+- อัปเดต file list ที่ได้รับอนุมัติและเปลี่ยนสถานะ T-10 เป็น “เสร็จ รอทีมตรวจ”; ไม่มี mockup ใน spec และไม่มีประเด็นกำกวมที่ต้องตัดสินใจเพิ่ม
+
+---
+
+## 2026-10-27 คำสั่ง: /implement T-07 specs/005-Status/spec.md
+
+- ตรวจ `tasks.md`, `spec.md`, `plan.md`, `AGENTS.md`; T-07 พร้อมทำและ prerequisites T-04/T-06 เป็น “เสร็จ”
+- ตรวจพบว่า `OrderList.jsx` ใช้ `orders.map(...)` และรักษาลำดับที่ API ส่งมา ซึ่ง API เรียงล่าสุดก่อนตาม T-06; ขออนุมัติและได้รับอนุญาตให้เพิ่ม assertion ใน `frontend/src/pages/OrderList.test.jsx` เพื่อยืนยันลำดับใน UI
+- ปรับ comment ของ `OrderListPage` ให้อ้าง FR-19 และ FR-23; เพิ่ม `test_AC_STATUS_05_list_orders_sorted_by_latest_created` โดย mock response ที่ API เรียง Order ล่าสุดก่อนและตรวจลำดับหัวข้อที่ render
+- เพิ่ม `frontend/src/pages/OrderList.test.jsx` ในรายการไฟล์ T-07 ที่อนุมัติ และเปลี่ยนสถานะ T-07 เป็น “เสร็จ รอทีมตรวจ”; ไม่พบข้อมูลที่ต้องเดาหรือถามเพิ่มเติม
+- ผล `cd frontend && npm test -- src/pages/OrderList.test.jsx`: ผ่าน 2/2; ผล `cd frontend && npm run build`: ผ่าน; `git diff --check` ผ่าน
+
+---
+
+## 2026-10-27 คำสั่ง: /implement T-08 specs/005-Status/spec.md
+
+- ตรวจ `tasks.md`, `spec.md`, `plan.md`, `AGENTS.md`; T-08 พร้อมทำและ prerequisites T-06/T-07 เป็น “เสร็จ”; ช่องไฟล์และเกณฑ์เสร็จครบ
+- พบ test ที่ task ต้องการอยู่แล้วในทั้งสองไฟล์: backend test สร้าง Order ที่ `created_at` ต่างกันแล้วตรวจ response API ว่าใหม่กว่ามาก่อน; frontend test ตรวจว่าหน้าจอ render ตามลำดับ response ที่ API เรียงแล้ว จึงไม่ต้องแก้ test code ซ้ำ
+- ผล `python -m unittest backend.tests.test_orders.TestOrderListOwnership.test_AC_STATUS_05_list_orders_sorted_by_latest_created -v`: ผ่าน 1/1; ผล `cd frontend && npm test -- src/pages/OrderList.test.jsx`: ผ่าน 2/2 (รวม AC-STATUS-01 และ AC-STATUS-05)
+- เปลี่ยนเฉพาะสถานะ T-08 เป็น “เสร็จ รอทีมตรวจ”; ไม่พบประเด็นกำกวมหรือสิ่งที่ต้องถามเพิ่ม; backend แสดง Starlette deprecation warning เกี่ยวกับ httpx แต่การทดสอบผ่าน
+
+---
+
+## 2026-10-27 คำสั่ง: /implement T-11 specs/005-Status/spec.md
+
+- ตรวจ `tasks.md`, `spec.md`, `plan.md`, `AGENTS.md`; T-11 พร้อมทำและ prerequisites T-09/T-10 มีสถานะ “เสร็จ”
+- test ที่ระบุใน `backend/tests/test_orders.py` และ `frontend/src/pages/OrderDetail.test.jsx` มีอยู่แล้วจาก T-09/T-10 และใช้ชื่อ `test_AC_STATUS_02_select_order_and_view_detail`; ไม่แก้ test source ซ้ำ
+- ผล targeted backend test: ผ่าน 1/1; targeted frontend test: ผ่าน 1/1; backend suite `python -m unittest discover -s tests -p 'test_*.py' -v`: ผ่าน 21/21; frontend suite `cd frontend && npm test`: ผ่าน 24/24; `git diff --check` ผ่าน
+- เปลี่ยนเฉพาะสถานะ T-11 เป็น “เสร็จ รอทีมตรวจ”; ไม่มีจุดกำกวมหรือสิ่งที่ต้องเดา/ถามเพิ่ม; มี Starlette deprecation warning เกี่ยวกับ httpx แต่การทดสอบผ่าน
+
+## 2026-10-27 คำสั่ง: /implement T-12 specs/005-Status/spec.md
+
+- ตรวจ `tasks.md`, `spec.md`, `plan.md`, `AGENTS.md`; T-12 พร้อมทำและ prerequisites T-01/T-09 มีสถานะ “เสร็จ”
+- ทีมอนุมัติปรับ path ไปยัง `backend/app/routes/orders.py` และ `backend/app/services/orders.py` ซึ่งเป็นโครงสร้างจริง และเพิ่ม test ใน `backend/tests/test_orders.py`
+- ทีมเลือกให้ `current_status` เป็น status code string และให้ `status_history[]` มี `status_code`, `status_name`, `changed_at`
+- เพิ่ม `GET /api/orders/{order_id}/status`; query จำกัด `user_id` ตาม Mock Authentication และอ่านเฉพาะ `is_confirmed = 1`; Order ที่ผู้ใช้ไม่มีสิทธิ์เห็นตอบ 404
+- เพิ่ม `test_AC_STATUS_03_display_4_step_status_flow` ครอบคลุมสถานะทั้งสี่, เวลาเปลี่ยนสถานะสองขั้นท้าย, กรองสถานะไม่ยืนยัน และปฏิเสธ Order ของผู้ใช้อื่น
+- ผล targeted backend test (`PYTHONPATH=.. python -m unittest discover -s tests -p 'test_orders.py' -v` จาก `backend/`): ผ่าน 5/5; `git diff --check` ผ่าน; มี Starlette deprecation warning เกี่ยวกับ httpx แต่การทดสอบผ่าน
+- เปลี่ยนเฉพาะสถานะ T-12 เป็น “เสร็จ รอทีมตรวจ”; ตัดสินใจเรื่องรูปแบบ `current_status` โดยถามทีมก่อน ไม่ได้เดา
+
+## 2569-10-27 คำสั่ง: /implement T-08 specs/003-Order/tasks.md
+
+- ไฟล์ที่แก้: `backend/app/routes/orders.py`, `backend/app/services/order_service.py`, `backend/tests/test_order_flow.py`
+- เพิ่ม `POST /api/orders/confirm` สำหรับตรวจ Order ก่อนเข้าสู่การชำระเงินตาม FR-10/FR-11
+- ตรวจว่ามีรายการอย่างน้อย 1 รายการ, ทุก OrderItem มีระดับความหวาน และเมนูยังมีสถานะ `open`
+- หากเมนูไม่พร้อม ระบบตอบ `409` พร้อมข้อความให้เปลี่ยนเมนูและไม่เรียก `prepare_payment`
+- เพิ่ม tests: `test_AC_ORDER_05_confirm_order_to_payment`, `test_AC_ORDER_11_show_out_of_stock_message`
+- `py_compile` และ `git diff --check` ผ่าน
+- `pytest -v` ยังเริ่ม collection ไม่ได้จาก import conflict เดิมของโปรเจกต์: ไม่พบ `app` เมื่อรันจาก `backend`
+- ไม่ได้แก้ไฟล์นอกช่อง `ไฟล์ที่แตะ` ของ T-08 และไม่ได้เดาพฤติกรรม payment จริงนอกขอบเขต; endpoint ส่งสถานะ `pending` เพื่อเข้าสู่ขั้นตอนชำระเงินตาม plan.md
+
+---
+
+## 2026-10-27 คำสั่ง: /implement T-13 specs/005-Status/spec.md
+
+- ตรวจ `tasks.md`, `spec.md`, `plan.md`, `AGENTS.md`; T-13 พร้อมทำและ prerequisites T-10/T-12 มีสถานะ “เสร็จ”
+- ทีมอนุมัติขยายรายการไฟล์ T-13 เพื่อเพิ่ม API client และ test ของ status timeline
+- ทีมอนุมัติปรับ `OrderDetail.test.jsx` ให้ mock status response เพื่อให้ test เดิมครอบคลุมการโหลด timeline โดยตรง
+- เพิ่ม `getOrderStatus()` และแสดงลำดับ 4 สถานะใน `OrderStatusTimeline`; แสดงเวลาเฉพาะสถานะ “พร้อมรับสินค้า” และ “รับสินค้าแล้ว” จากประวัติที่ API ยืนยัน และไม่แสดง timeline หากโหลดสถานะไม่สำเร็จ
+- เพิ่ม `test_AC_STATUS_03_display_4_step_status_flow` และ test กรณี API status ล้มเหลว
+- ผล targeted frontend tests (`npm test -- src/components/OrderStatusTimeline.test.jsx src/pages/OrderDetail.test.jsx` จาก `frontend/`): ผ่าน 3/3; `npm run build` ผ่าน; `git diff --check` ผ่าน
+- เปลี่ยนเฉพาะสถานะ T-13 เป็น “เสร็จ รอทีมตรวจ”; รูปแบบข้อมูลใช้ API response ที่ทีมเลือกใน T-12
+
+## 2026-10-27 คำสั่ง: /implement T-14 specs/005-Status/spec.md
+
+## 2569-10-27 คำสั่ง: /implement T-09 specs/003-Order/tasks.md
+
+- ไฟล์ที่แก้: `frontend/src/pages/OrderPage.jsx`, `frontend/src/api/client.js`, `frontend/src/pages/OrderPage.test.jsx`
+- เพิ่ม `updateOrderItem()` สำหรับ `PATCH /api/orders/items/{order_item_id}`
+- หน้า Order เพิ่มการแก้จำนวนและระดับความหวานจากตะกร้า และอัปเดตรายการ/ยอดรวมจาก response
+- จำนวน 0 จะนำรายการออกจากตะกร้าตาม FR-09
+- เพิ่ม tests: `test_AC_ORDER_04_update_quantity_or_remove_item`, `test_AC_ORDER_09_recalculate_total_after_edit`
+- ผลทดสอบ: OrderPage 8/8 ผ่าน; frontend suite 32/32 ผ่าน; `npm run build` ผ่าน
+- ไม่ได้เดาพฤติกรรมใหม่ของ payment หรือแก้ไฟล์นอกช่อง T-09
+
+---
+
+- ตรวจ `tasks.md`, `spec.md`, `plan.md`, `AGENTS.md`; T-14 พร้อมทำและ prerequisites T-12/T-13 มีสถานะ “เสร็จ”
+- test `test_AC_STATUS_03_display_4_step_status_flow` มีอยู่แล้วใน `backend/tests/test_orders.py` และ `frontend/src/components/OrderStatusTimeline.test.jsx` จาก T-12/T-13 จึงนำมารันซ้ำโดยไม่แก้ source test
+- ผล backend `PYTHONPATH=.. python -m unittest discover -s tests -p 'test_orders.py' -v` จาก `backend/`: ผ่าน 5/5; frontend `npm test -- src/components/OrderStatusTimeline.test.jsx` จาก `frontend/`: ผ่าน 2/2; มี Starlette deprecation warning เกี่ยวกับ httpx แต่การทดสอบผ่าน
+- เปลี่ยนเฉพาะสถานะ T-14 เป็น “เสร็จ รอทีมตรวจ”; ไม่มีจุดกำกวมหรือสิ่งที่ต้องเดา/ถามเพิ่ม
+
+## 2026-10-27 คำสั่ง: /implement T-15 specs/005-Status/spec.md
+
+- ตรวจ `tasks.md`, `spec.md`, `plan.md`, `AGENTS.md`; T-15 พร้อมทำและ prerequisites T-01/T-09 มีสถานะ “เสร็จ”
+- ทีมอนุมัติใช้ `backend/app/services/orders.py` แทน path ที่ไม่มีอยู่ และเพิ่ม test ใน `backend/tests/test_orders.py`
+- service ปัจจุบันมี logic ส่งรายการสินค้าและสถานะล่าสุดที่ยืนยันแล้วอยู่แล้ว จึงคง behavior เดิมและเพิ่ม `test_AC_STATUS_04_show_order_items_and_latest_status` ยืนยันรายการ/จำนวน/ราคาและสถานะล่าสุด โดยไม่ส่งสถานะที่ไม่ยืนยัน
+- ผล `PYTHONPATH=.. python -m unittest discover -s tests -p 'test_orders.py' -v` จาก `backend/`: ผ่าน 6/6; `git diff --check` ผ่าน; มี Starlette deprecation warning เกี่ยวกับ httpx แต่การทดสอบผ่าน
+- เปลี่ยนเฉพาะสถานะ T-15 เป็น “เสร็จ รอทีมตรวจ”; ไม่พบข้อกำกวมเพิ่มเติม
+
+## 2569-10-27 คำสั่ง: /implement T-10 specs/003-Order/tasks.md
+
+- ไฟล์ที่แก้: `frontend/src/pages/OrderPage.jsx`, `frontend/src/api/client.js`, `frontend/src/pages/OrderPage.test.jsx`
+- เพิ่ม `confirmOrder()` สำหรับ `POST /api/orders/confirm`
+- หน้า Order ตรวจสอบและส่ง Order ที่มีรายการไปยังขั้นตอนชำระเงินเมื่อ backend ตอบสำเร็จ
+- เมื่อ backend แจ้งสินค้าไม่พร้อม หน้าจอแสดงข้อผิดพลาดและไม่แสดงสถานะเข้าสู่การชำระเงิน
+- เพิ่ม tests: `test_AC_ORDER_05_confirm_order_to_payment`, `test_AC_ORDER_11_show_out_of_stock_message`
+- ผลทดสอบ: OrderPage 10/10 ผ่าน; frontend suite 34/34 ผ่าน; `npm run build` ผ่าน
+- ยังไม่สร้าง QR หรือ payment gateway จริง เพราะอยู่นอกขอบเขต T-10 และยังมีงานเฟสถัดไป
+
+---
+
+## 2026-10-27 คำสั่ง: /implement T-16 specs/005-Status/spec.md
+
+- ตรวจ `tasks.md`, `spec.md`, `plan.md`, `AGENTS.md`; T-16 พร้อมทำและ prerequisites T-10/T-15 มีสถานะ “เสร็จ”
+- ทีมอนุมัติเพิ่ม `frontend/src/pages/OrderDetail.test.jsx` ใน file list เพื่อทดสอบ AC-STATUS-04
+- ทีมระบุให้แสดง `unit_price` เท่านั้นเมื่อ spec/API มี `unit_price` และ `line_total` แต่ AC-STATUS-04 ระบุเพียง “ราคา”
+- เพิ่ม `OrderItems` และเชื่อมในหน้า Order detail โดยแสดงสินค้า จำนวน และราคาต่อหน่วยจาก API; สถานะล่าสุดที่ยืนยันแล้วแสดงจากข้อมูล Order เดิม
+- เพิ่ม `test_AC_STATUS_04_show_order_items_and_latest_status`
+- ผล targeted frontend tests (`npm test -- src/pages/OrderDetail.test.jsx src/components/OrderStatusTimeline.test.jsx` จาก `frontend/`): ผ่าน 4/4; `npm run build` ผ่าน; `git diff --check` ผ่าน
+- เปลี่ยนเฉพาะสถานะ T-16 เป็น “เสร็จ รอทีมตรวจ”; ไม่ได้เดารูปแบบราคาหรือเพิ่มข้อมูลนอก FR-22
+
+## 2026-10-27 คำสั่ง: /implement T-17 specs/005-Status/spec.md
+
+## 2569-10-27 คำสั่ง: /verify specs/003-Order/
+
+- อ่าน `spec.md`, `plan.md`, `tasks.md`, `test-cases.md`, `AGENTS.md`, source ใต้ `backend/app/` และ `frontend/src/` รวมถึง tests ที่มีอยู่
+- ผล test: frontend `34 passed`; backend `pytest -v` รันไม่ได้ตั้งแต่ collection ด้วย `ModuleNotFoundError: No module named 'app'`
+- RTM: สถานะ `ครบ` 0, `ยังไม่ถึง` 11, `รอ Q-xx` 0, `ช่องโหว่` 8 แถวในตารางตามรอยไปข้างหน้า (รวม 19 แถว)
+- ข้อค้นพบใหม่: F-01 ถึง F-08 ใน `specs/003-Order/rtm.md`
+- ไม่แก้โค้ด, test, spec, plan หรือ tasks ตามข้อจำกัดของ `/verify`
+
+---
+
+- ตรวจ `tasks.md`, `spec.md`, `plan.md`, `AGENTS.md`; T-17 พร้อมทำและ prerequisites T-15/T-16 มีสถานะ “เสร็จ”
+- backend test `test_AC_STATUS_04_show_order_items_and_latest_status` มีอยู่แล้วใน `backend/tests/test_orders.py` จาก T-15 จึงรันซ้ำโดยไม่แก้ source นั้น
+- เพิ่ม `frontend/src/components/OrderItems.test.jsx` พร้อม test ชื่อเดียวกัน ตรวจชื่อสินค้า จำนวน ราคาต่อหน่วย และสถานะล่าสุดบนหน้า Order detail
+- ผล frontend test: ผ่าน 1/1; backend `PYTHONPATH=.. python -m unittest discover -s tests -p 'test_orders.py' -v` จาก `backend/`: ผ่าน 6/6; `git diff --check` ผ่าน; มี Starlette deprecation warning เกี่ยวกับ httpx แต่การทดสอบผ่าน
+- เปลี่ยนเฉพาะสถานะ T-17 เป็น “เสร็จ รอทีมตรวจ”; การเลือก `unit_price` ถูกกำหนดโดยทีมใน T-16 จึงไม่มีการเดาเพิ่ม
+
+## 2026-10-27 คำสั่ง: /implement T-18 specs/005-Status/spec.md
+
+- ตรวจ `tasks.md`, `spec.md`, `plan.md`, `AGENTS.md`; T-18 พร้อมทำและ prerequisites T-07/T-10 มีสถานะ “เสร็จ”
+- เพิ่ม `test_AC_STATUS_06_select_order_from_multiple_orders` ใน `OrderList.test.jsx` ตรวจรายการหลาย Order และ href สำหรับรายละเอียดของรายการที่เลือก
+- เพิ่ม `test_AC_STATUS_06_select_order_from_multiple_orders` ใน `OrderDetail.test.jsx` ตรวจว่า detail page ขอและแสดง Order ID ที่เลือก โดยใช้ mock API client ผ่าน fetch
+- ผล `npm test -- src/pages/OrderList.test.jsx src/pages/OrderDetail.test.jsx` จาก `frontend/`: ผ่าน 6/6; `git diff --check` ผ่าน
+- เปลี่ยนเฉพาะสถานะ T-18 เป็น “เสร็จ รอทีมตรวจ”; ไม่มีจุดกำกวมหรือสิ่งที่ต้องเดา/ถามเพิ่ม
+
+## 2569-10-28 คำสั่ง: แก้ foundation ตาม F-01 ถึง F-06 (ไม่รวม payment)
+
+- ทีมยืนยันให้แก้เฉพาะ foundation และใช้ in-memory repository สำหรับ release นี้ โดยเลื่อน payment ไป release ถัดไป
+- เพิ่ม `backend/pytest.ini` เพื่อให้ `cd backend && pytest` หา package `app` ได้
+- แก้ import ของ backend ที่ใช้ `backend.app` ให้เป็น relative import และรวม Menu models เข้า `backend/app/models/__init__.py` เพื่อแก้ชื่อ `app.models.py` ชนกับ `app/models/`
+- เพิ่ม in-memory Menu/Order repository และเชื่อม dependency ของ Order API แทน placeholder ที่ตอบ 503
+- เพิ่ม test ตาม TC-ORDER-02-1 ถึง TC-ORDER-02-4
+- ผล test backend: `26 passed`; มี warning จาก Starlette/httpx 1 รายการ
+- ไม่ทำ QR, payment callback, promotion calculation หรือ completed-payment Order เพราะอยู่นอกขอบเขตที่ทีมยืนยันในรอบนี้
+
+---
+
+## 2026-10-27 คำสั่ง: /implement T-19 specs/005-Status/spec.md
+
+- ตรวจ `tasks.md`, `spec.md`, `plan.md`, `AGENTS.md`; T-19 พร้อมทำและ prerequisite T-12 มีสถานะ “เสร็จ”
+- ทีมอนุมัติปรับ path ไปยัง `backend/app/services/orders.py` และเพิ่ม AC-STATUS-08 test ใน `backend/tests/test_orders.py`
+- service มีการกรอง `is_confirmed = 1` ใน detail query และ status history อยู่แล้ว จึงคง logic เดิม; เพิ่ม `test_AC_STATUS_08_show_only_confirmed_status` ให้ยืนยันว่าทั้งสอง API คืนเฉพาะสถานะล่าสุดที่ยืนยันแล้วและไม่ส่งสถานะล่าสุดที่ไม่ยืนยัน
+- ผล `PYTHONPATH=.. python -m unittest discover -s tests -p 'test_orders.py' -v` จาก `backend/`: ผ่าน 7/7; `git diff --check` ผ่าน; มี Starlette deprecation warning เกี่ยวกับ httpx แต่การทดสอบผ่าน
+- เปลี่ยนเฉพาะสถานะ T-19 เป็น “เสร็จ รอทีมตรวจ”; path ที่ผิดได้รับการยืนยันจากทีมก่อนปรับ
+
+## 2026-10-27 คำสั่ง: /implement T-20 specs/005-Status/spec.md
+
+## 2569-10-28 คำสั่ง: แก้ F-01 ด้วย SQLite file
+
+- ทีมเลือก SQLite file เป็น persistence layer ของ release ปัจจุบัน
+- เพิ่ม `backend/app/database.py` สำหรับ `ORDER_DATABASE_URL` และ default `backend/order.sqlite3`
+- เพิ่ม SQLAlchemy `MenuItemEntity` และเชื่อม foreign key ของ `OrderItem` กับตาราง `menu_items`
+- เปลี่ยน repository จาก in-memory เป็น `SqliteMenuRepository` และ `SqliteOrderRepository` พร้อม transaction ผ่าน `SessionLocal.begin()`
+- เชื่อม repository จริงเข้ากับ `get_menu_repository` และ `get_order_repository`; ไม่ใช้ placeholder 503
+- เพิ่ม integration test `test_order_api_uses_sqlite_persistence` ที่ตรวจผ่าน API และสร้าง repository ใหม่อ่านข้อมูลจาก SQLite
+- ผล test backend: `27 passed`, `0 failed`, `0 collection errors`; มี warning จาก Starlette/httpx 1 รายการ
+- เพิ่ม `.gitignore` สำหรับไฟล์ runtime `backend/*.sqlite3`
+- ไม่พัฒนา Payment, QR Code, Callback หรือ Timeout
+
+---
+
+- ตรวจ `tasks.md`, `spec.md`, `plan.md`, `AGENTS.md`; T-20 พร้อมทำและ prerequisites T-13/T-19 มีสถานะ “เสร็จ”
+- `test_AC_STATUS_08_show_only_confirmed_status` ฝั่ง backend มีอยู่แล้วจาก T-19 จึงรันซ้ำโดยไม่แก้ source test; เพิ่ม test ชื่อเดียวกันใน `frontend/src/pages/OrderDetail.test.jsx`
+- UI test ตรวจว่า current status และเวลาเป็นสถานะล่าสุดที่ยืนยันแล้ว และสถานะถัดไปที่ไม่ยืนยันไม่ถูกกำหนดเวลา/ไม่เป็น current; timeline ยังคงแสดง 4 ขั้นตาม FR-21
+- ผล backend `PYTHONPATH=.. python -m unittest discover -s tests -p 'test_orders.py' -v` จาก `backend/`: ผ่าน 7/7; frontend `npm test -- src/pages/OrderDetail.test.jsx` จาก `frontend/`: ผ่าน 4/4; `git diff --check` ผ่าน; มี Starlette deprecation warning เกี่ยวกับ httpx แต่การทดสอบผ่าน
+- ระหว่างทดสอบครั้งแรก assertion คาดว่า label ของขั้นที่ยังไม่ถึงจะไม่แสดง ซึ่งขัดกับ timeline 4 ขั้น; ปรับ test ให้ยืนยันว่า step ยังเป็น upcoming และไม่มีเวลาแทน โดยไม่เปลี่ยน behavior
+- เปลี่ยนเฉพาะสถานะ T-20 เป็น “เสร็จ รอทีมตรวจ”; ไม่มีข้อกำกวมอื่น
+
+## 2026-10-27 คำสั่ง: /implement T-21 specs/005-Status/spec.md
+
+- ตรวจ `tasks.md`, `spec.md`, `plan.md`, `AGENTS.md`; T-21 พร้อมทำและ prerequisites T-03/T-04 มีสถานะ “เสร็จ”
+- เพิ่ม `test_AC_STATUS_09_show_only_authorized_orders` ใน `backend/tests/test_orders.py`; มี Order ของ `sample-user` และ `sample-user-2` แล้วขอรายการด้วย identity `customer-a`; ยืนยันว่ามีเฉพาะ `order-a`
+- เพิ่ม `test_AC_STATUS_09_show_only_authorized_orders` ใน `frontend/src/pages/OrderList.test.jsx`; mock ผล Order ของผู้ใช้ปัจจุบัน ตรวจว่าไม่ render Order อื่น และยืนยัน request ส่ง `X-Test-User: customer-a`
+- ผล backend `PYTHONPATH=.. python -m unittest discover -s tests -p 'test_orders.py' -v` จาก `backend/`: ผ่าน 8/8; frontend `npm test -- src/pages/OrderList.test.jsx` จาก `frontend/`: ผ่าน 4/4; `git diff --check` ผ่าน; มี Starlette deprecation warning เกี่ยวกับ httpx แต่การทดสอบผ่าน
+- เปลี่ยนเฉพาะสถานะ T-21 เป็น “เสร็จ รอทีมตรวจ”; ไม่พบข้อกำกวมหรือสิ่งที่ต้องเดา
+## 2026-10-27 คำสั่ง: /implement T-22 specs/005-Status/spec.md
+
+## 2569-10-28 คำสั่ง: แก้ F-02, F-03 และ F-04
+
+- ตรวจสอบ `spec.md`, `tasks.md`, `test-cases.md` และ tests ของ Backend/Frontend ก่อนเพิ่ม test
+- F-02: เพิ่ม integration test `test_TC_ORDER_02_sqlite_persists_options_per_item` เพื่อยืนยันตัวเลือกของ OrderItem หลายรายการถูกบันทึกแยกกันใน SQLite รวม default ice และ optional toppings
+- F-03: เพิ่ม integration tests `test_AC_ORDER_05_rejects_empty_order_and_does_not_prepare_payment` และ `test_AC_ORDER_05_rejects_missing_options_before_payment` ครอบคลุมไม่มีรายการและข้อมูลตัวเลือกไม่ครบ พร้อมยืนยัน Order ยังเป็น draft
+- F-04: เพิ่ม integration test `test_AC_ORDER_11_rejects_one_out_of_stock_item_in_multi_item_order` สำหรับหลายรายการที่มีหนึ่งรายการ sold out พร้อมยืนยันข้อความ 409 และ Order ยังไม่พร้อมชำระเงิน
+- Frontend: เพิ่ม `test_TC_ORDER_02_4_reject_missing_sweetness` ยืนยันว่าไม่เรียก API เมื่อไม่เลือกระดับความหวาน
+- ผล test: Backend `31 passed`; Frontend `35 passed`; ไม่มี failed/error
+- ไม่แก้ Payment Flow, QR Code, Callback หรือ Timeout
+
+---
+
+- ตรวจ `tasks.md`, `spec.md`, `plan.md`, `AGENTS.md`; T-22 พร้อมทำและ prerequisites T-09/T-12 มีสถานะ “เสร็จ”
+- แจ้งทีมว่า path ใน task เดิมไม่ตรงกับโครงสร้างจริงและขออนุมัติเพิ่ม backend test; ทีมอนุมัติใช้ `backend/app/routes/orders.py`, `backend/app/services/orders.py` และเพิ่ม `backend/tests/test_orders.py`
+- ทีมยืนยันว่า refresh ต้องอ่านสถานะที่ยืนยันแล้วจากฐานข้อมูลซ้ำเท่านั้น ไม่เปลี่ยนหรือสร้าง status history
+- เพิ่ม `POST /api/orders/{order_id}/status/refresh` ซึ่งใช้ service อ่านเฉพาะสถานะยืนยันของเจ้าของ Order; SQLite load failure ตอบ HTTP 503 และ Order ที่ไม่ใช่ของผู้ใช้ตอบ 404
+- เพิ่ม `test_AC_STATUS_07_refresh_returns_confirmed_status_or_error` เพื่อตรวจผล refresh ที่ไม่รวมสถานะไม่ยืนยันและกรณีโหลดฐานข้อมูลล้มเหลว
+- Constraint NFR-REL-03 ถูกบังคับใน query `is_confirmed = 1`; NFR-SEC-02 ถูกบังคับด้วย owner-scoped service query
+- ผล `python -m unittest backend.tests.test_orders`: ผ่าน 9/9; test เฉพาะ T-22 ผ่าน 1/1; `git diff --check` ผ่าน; มี Starlette deprecation warning เกี่ยวกับ httpx แต่การทดสอบผ่าน
+- จุดที่ถามแทนการเดา: path ของไฟล์, การเพิ่ม test, และความหมายของการ refresh ได้รับการยืนยันจากทีมก่อนแก้
+
+## 2026-10-27 คำสั่ง: /implement T-23 specs/005-Status/spec.md
+
+- ตรวจ `tasks.md`, `spec.md`, `plan.md`, `AGENTS.md`; T-23 พร้อมทำและ prerequisites T-10/T-22 มีสถานะ “เสร็จ”
+- file list เดิมไม่ครอบคลุม `OrderStatusTimeline.jsx` ซึ่งเป็นเจ้าของ error state และไม่มีไฟล์ test สำหรับ AC-STATUS-07; ขออนุมัติและทีมอนุมัติขยาย file list เป็น `frontend/src/api/client.js`, `frontend/src/pages/OrderDetail.jsx`, `frontend/src/components/OrderStatusTimeline.jsx`, `frontend/src/pages/OrderDetail.test.jsx`
+- เพิ่ม `refreshOrderStatus()` สำหรับเรียก POST refresh; timeline แสดงข้อความผิดพลาดและปุ่ม “ลองใหม่”, ล้าง status เดิม และนำผล refresh ที่ตอบสำเร็จมาแสดง
+- ให้ status summary ใช้ข้อมูลยืนยันจาก timeline และซ่อนทันทีเมื่อโหลด status/refresh ไม่สำเร็จ เพื่อไม่ให้ข้อมูลเดิมปรากฏใน error state
+- เพิ่ม `test_AC_STATUS_07_show_retry_when_load_fails` ครอบคลุม error state, การไม่แสดงสถานะเดิม, retry ที่ยังล้มเหลว และ retry ที่สำเร็จด้วยข้อมูลยืนยันใหม่
+- Constraint NFR-REL-03 อยู่ใน client/refresh flow โดยแสดงเฉพาะผล refresh ที่ backend ส่งกลับ; status ถูกล้างเมื่อโหลดล้มเหลวหรือ retry อยู่ระหว่างดำเนินการ
+- ผล `cd frontend && npm test -- src/pages/OrderDetail.test.jsx src/components/OrderStatusTimeline.test.jsx`: ผ่าน 7/7 tests ใน 2 files; `git diff --check` ผ่าน
+- จุดที่ถามแทนการเดา: ขออนุมัติขยาย file list เพราะ retry UI ต้องแก้ component timeline และต้องเพิ่ม AC test; ได้รับอนุมัติก่อนแก้ไข
+
+## 2569-10-28 คำสั่ง: แก้ F-05
+
+- ทีมยืนยันกติกา Q-04 แบบ `menu_effective_price`: Menu persistence เป็นแหล่งราคา และ Order ใช้ `promotion_price` เป็น `effective_price` โดยตรงเมื่อมีค่า; ถ้าไม่มี promotion ใช้ราคาปกติ
+- เพิ่ม `promotion_price` ใน SQLite `menu_items` และ migration สำหรับฐานเดิมที่ยังไม่มีคอลัมน์
+- เพิ่ม `promotion_price` และ `effective_price` ใน Menu API response
+- เพิ่ม `regular_price`, `promotion_price`, `unit_price` (ราคาที่มีผลจริง), `line_total` และ `total_amount` ใน Order Summary contract
+- เพิ่ม UI แสดงราคาปกติและราคาโปรโมชัน โดยยอดรวมใช้ `unit_price`/`line_total` จาก backend
+- เพิ่ม backend tests สำหรับมี promotion และไม่มี promotion รวมถึงตรวจ API/SQLite
+- เพิ่ม frontend test `test_AC_ORDER_03_show_promotion_price_and_effective_total`
+- ผล test: Backend `33 passed`; Frontend `36 passed`; ไม่มี failed/error
+- ไม่เพิ่มสูตรส่วนลดใหม่ และไม่แก้ Payment Flow
+
+---
+
+## 2026-10-27 คำสั่ง: /implement T-24 specs/005-Status/spec.md
+
+- ตรวจ `tasks.md`, `spec.md`, `plan.md`, `AGENTS.md`; T-24 พร้อมทำและ prerequisites T-22/T-23 มีสถานะ “เสร็จ”
+- test สำหรับ AC-STATUS-07 มีอยู่แล้วจาก T-22/T-23; ไม่แก้ test/source เพิ่ม เพราะทดสอบตามเกณฑ์ T-24 ครบแล้ว
+- รัน backend `test_AC_STATUS_07_refresh_returns_confirmed_status_or_error`: ผ่าน 1/1 โดยจำลอง refresh API ล้มเหลวด้วย SQLite error และยืนยัน HTTP 503; มี Starlette deprecation warning เกี่ยวกับ httpx
+- รัน `cd frontend && npm test -- src/pages/OrderDetail.test.jsx`: ผ่าน 5/5; `test_AC_STATUS_07_show_retry_when_load_fails` จำลอง status API ล้มเหลว, retry ล้มเหลว, และ retry สำเร็จผ่าน client mock พร้อมตรวจว่าไม่แสดงสถานะเดิมที่ไม่ได้ยืนยัน
+- `git diff --check` ผ่าน; NFR-REL-03 ตรวจจาก error/retry flow ที่ไม่แสดงข้อมูลเก่า และผล retry แสดงจาก API ที่สำเร็จเท่านั้น
+- เปลี่ยนเฉพาะสถานะ T-24 เป็น “เสร็จ รอทีมตรวจ”; ไม่มีจุดกำกวมที่ต้องถามเพิ่ม
+
+## 2026-10-27 คำสั่ง: ปรับหน้า Order ให้ใกล้เคียง `specs/mockups/Tracking/TrackingMenu.png`
+
+## 2569-10-28 คำสั่ง: /verify specs/003-Order (หลังแก้ F-01 ถึง F-06)
+
+- อ่าน `spec.md`, `plan.md`, `tasks.md`, `test-cases.md`, `AGENTS.md`, source ทั้งหมดใต้ `backend/app/` และ `frontend/src/` รวมถึง tests ที่มีอยู่
+- ผล test จริง: Backend `33 passed`, `0 failed`, `0 collection errors`; Frontend `36 passed`, `0 failed`
+- RTM ล่าสุด: `ครบ` 5 แถว, `ยังไม่ถึง` 10 แถว, `รอ Q-xx` 0 แถว, `ช่องโหว่` 4 แถว
+- Findings ใหม่: F-09 ถึง F-11 ใน `specs/003-Order/rtm.md`
+- F-01 ถึง F-06 ย้ายไปหัวข้อ “แก้แล้ว” โดยอ้างอิงผล test และ integration test ที่ผ่าน
+- F-07/F-08 และงาน payment คงไว้เป็น Release ถัดไป ไม่ถือเป็นข้อบกพร่องที่ต้องแก้ใน release ปัจจุบัน
+- ไม่แก้ source code หรือ tests ระหว่าง verify
+
+---
+
+## 2569-10-27 คำสั่ง: /implement T-07 specs/003-Order/tasks.md
+
+- ไฟล์ที่แก้: `backend/app/routes/orders.py`, `backend/app/services/order_service.py`, `backend/tests/test_order_flow.py`
+- เพิ่ม `PATCH /api/orders/items/{order_item_id}` สำหรับแก้จำนวน/ตัวเลือก และลบรายการเมื่อจำนวนเป็น 0 ตาม FR-07/FR-09
+- เพิ่ม tests: `test_AC_ORDER_04_update_quantity_or_remove_item`, `test_AC_ORDER_09_recalculate_total_after_edit`, `test_AC_ORDER_09_update_item_options_without_changing_total`
+- `python -m py_compile ...` และ service smoke test ผ่าน
+- `pytest` ยังรัน collection ไม่ได้จากปัญหาเดิมของโปรเจกต์: `app.models.py` ชนกับ `app/models/` และ import path ของ `backend/app`
+- ไม่ได้เดาข้อกำหนดเพิ่มเติมนอกสัญญา PATCH ใน `plan.md`; กรณี repository จริงยังต้อง implement `update_item` ให้สอดคล้องกับ protocol
+
+---
+
+## 2569-10-27 คำสั่ง: แก้ Conflict จาก `git merge origin/order`
+
+- คง `specs/001-Menu/spec.md` ตาม branch `sunita` ตามคำสั่ง; รวมเนื้อหา prompt-log จากทั้งสอง branch
+- รวม API Menu Management กับ Order และหน้า Customer/Account กับ Order โดยคงหน้าเดิมเป็นค่าเริ่มต้น และเพิ่ม route `/order`
+- ย้าย Menu schemas เป็น package `backend/app/models/` เพื่อให้ import models ของ UC-03 ใช้ร่วมกับ Menu ได้; เพิ่ม SQLAlchemy dependency ที่ Order ORM ใช้ โดย SQLAlchemy เป็นเทคโนโลยีที่ทีมเลือกเอง ไม่ได้มาจาก spec
+- สร้าง `frontend/dist` ใหม่จาก source ที่รวมแล้ว
+- ผลตรวจ: Frontend 59/59 tests ผ่าน; Backend 41/41 tests ผ่าน (`PYTHONPATH=.:backend pytest -q`); `npm run build --prefix frontend` ผ่าน; Python compile และ `git diff --check` ผ่าน
+- ไม่ได้ commit หรือ push
+
+---
+
+## 2569-10-27 คำสั่ง: `/implement T-13 specs/001-Menu/tasks.md`
+
+- ทีมตัดสินให้ใช้ `sessionStorage` ในแท็บเดิมเก็บและส่งต่อเมนูที่เลือกระหว่าง UC-01, UC-02 และ UC-03
+- บันทึกคำตัดสินใน `specs/001-Menu/spec.md` และปรับแนวทางที่เกี่ยวข้องใน `specs/001-Menu/plan.md`; เปลี่ยนสถานะ T-13 เป็น `เสร็จ รอทีมตรวจ`
+- ไม่มีการแก้โค้ดหรือรัน tests เพราะ T-13 เป็น task ตัดสินใจและบันทึกเอกสาร
+- T-14 และ T-15 ไม่ได้ทำในรอบนี้; ต้องสั่งแยกหลังตรวจคำตัดสิน T-13
+
+---
+
+## 2569-10-27 คำสั่ง: `/implement T-14 specs/001-Menu/tasks.md`
+
+- ยืนยัน flow ใหม่: Guest ที่คลิก “สั่งซื้อ” ไป UC-02; เมื่อ Login สำเร็จไป `/order` และเลือกเมนู/รายละเอียดใหม่ใน UC-03 โดยไม่เก็บหรือส่งเมนูเดิม
+- ปรับ `specs/001-Menu/spec.md` และ `plan.md` ให้ตัดข้อความส่งเมนู/ราคาเดิมไป UC-03 ซึ่งขัดกับคำตัดสินล่าสุด; อัปเดต traceability และเวอร์ชันเป็น Draft v11
+- เชื่อม route ใน `frontend/src/main.jsx` และ `frontend/src/AppShell.jsx`; ปรับ `frontend/src/pages/CustomerMenuPage.jsx` ให้ปุ่มเมนูและปุ่มดำเนินการต่อไป UC-03 ผ่าน Login gate โดยไม่สร้างรายการ Order ใน UC-01 และไม่ให้ guest เปิด `/order` โดยตรง
+- ปรับ `frontend/src/__tests__/AC-MENU-08-09.test.jsx` และ `frontend/src/main.test.jsx` ให้ทดสอบ Guest → Login → `/order`, การเลือกเมนูใหม่, การไม่ส่งเมนูเดิม และการป้องกัน guest route; อัปเดต T-14 ใน `tasks.md` เป็น `เสร็จ รอทีมตรวจ`
+- ผลตรวจ: Frontend 61/61 tests ผ่าน (`npm test --prefix frontend`); `npm run build --prefix frontend` ผ่าน; `git diff --check` ผ่าน
+- Order API client contract ไม่เปลี่ยน; ไฟล์ `frontend/dist` ที่ build สร้างถูกคืนสู่สถานะก่อนทดสอบและไม่รวมในงาน
+- ไม่มีจุดที่ต้องเดา; ใช้คำตัดสิน flow ที่ทีมยืนยันแล้ว และไม่ได้ commit หรือ push
+
+---
+
+## 2569-10-28 คำสั่ง: เชื่อม Order เป็น Popup บนหน้าเมนู
+
+- คำขอ: ให้หน้า `OrderPage.jsx` เปิดเป็น Popup บนหน้าเมนู และให้ผู้ใช้สั่งเครื่องดื่มผ่าน Popup ได้
+- เชื่อม flow ใน `frontend/src/AppShell.jsx` ให้เปิด UC-03 เป็น dialog ทับหน้า Customer Menu; Login gate และการไม่ส่งเมนูที่คลิกก่อน Login ยังคงเดิมตาม FR-02
+- ปรับ `frontend/src/pages/CustomerMenuPage.jsx` ให้กดเมนูเปิด Popup และตรวจสถานะสินค้าหมดจากข้อมูล API; รายการใน Popup ยังคงเรียก Order API เดิมตาม FR-06/FR-07
+- เพิ่มสไตล์ Popup ที่รองรับหน้าจอเล็ก ปุ่มปิด การคลิกพื้นหลัง และปุ่ม Escape
+- เพิ่ม/ปรับการทดสอบการ Login, เปิด-ปิด Popup และเพิ่มเมนูผ่าน API ใน `frontend/src/__tests__/AC-MENU-08-09.test.jsx`
+- ผลตรวจ: Frontend tests ที่เกี่ยวข้องผ่าน 17/17; Vite production build ผ่านโดยส่ง output ไป `/tmp` เพื่อไม่เขียนทับ `frontend/dist` ที่มีการแก้ไขอยู่แล้ว
+- ไม่เปลี่ยน spec เพราะ Popup เป็นการนำเสนอ UC-03 ที่ยังคงพฤติกรรม FR-02/FR-06/FR-07; ไม่ได้ commit หรือ push
+
+---
+
+## 2569-10-28 คำสั่ง: ให้ Popup Order แสดงเฉพาะเมนูที่คลิก
+
+- คำขอ: เมื่อคลิก “สั่งซื้อ” จากหน้าเมนู ให้ Popup `03 · Ordering & Payment` แสดงเฉพาะเมนูนั้น แทนการแสดงเมนูทุกตัว
+- ปรับ `frontend/src/pages/CustomerMenuPage.jsx` ให้ส่ง `menu_id` ของรายการที่ Login แล้วคลิกไปยัง AppShell
+- ปรับ `frontend/src/AppShell.jsx` และ `frontend/src/pages/OrderPage.jsx` ให้กรองเมนูแรกใน Popup ตาม `menu_id` ที่เลือก โดยยังไม่เพิ่ม OrderItem จนกว่าผู้ใช้กำหนดตัวเลือกและกดสั่งซื้อ
+- เมื่อผู้ใช้กด “+ เลือกเครื่องดื่ม” ในหน้าสรุป จะกลับไปแสดงเมนูทั้งหมดเพื่อรองรับการเพิ่มรายการตาม AC-ORDER-08
+- กรณี Guest ยังคงไม่ส่งเมนูที่คลิกก่อน Login ไป UC-03 ตาม Constraint/AC-MENU-02; ผู้ใช้เลือกใหม่หลัง Login
+- เพิ่ม tests ใน `frontend/src/pages/OrderPage.test.jsx` และ `frontend/src/__tests__/AC-MENU-08-09.test.jsx` ครอบคลุมการกรองรายการและการเปิดรายการทั้งหมดเพื่อเพิ่มเมนู
+- ผลตรวจ: เทสต์ที่เกี่ยวข้องผ่าน 19/19; `git diff --check` ผ่าน; ไม่ได้เปลี่ยน spec เพราะไม่เปลี่ยน flow ตาม FR-02/FR-06 และไม่ commit หรือ push
+
+---
+
+## 2569-10-28 คำสั่ง: หลัง Login ให้กลับหน้าเมนูโดยไม่เปิด Popup
+
+- คำขอ: หลัง Login สำเร็จให้กลับหน้า “เมนูเครื่องดื่ม” และไม่เปิด Popup จนกว่าผู้ใช้จะคลิกสั่งซื้อเอง
+- ถามยืนยันเนื่องจากคำขอขัดกับ FR-02/AC-MENU-02 เดิม; ทีมยืนยันให้ปรับข้อกำหนดเดิมภายใต้ ID เดิมด้วย
+- ปรับ `specs/001-Menu/spec.md` เป็น Draft v12: หลัง Login กลับ UC-01 โดยไม่เปิด Popup อัตโนมัติ; คลิก “สั่งซื้อ” อีกครั้งจึงเปิด UC-03 และเลือกเมนูใหม่; เมนูที่คลิกก่อน Login ยังคงไม่ถูกเก็บหรือส่งต่อ
+- ปรับ `frontend/src/AppShell.jsx` ให้ปิดหน้า Login และแสดงหน้าเมนูหลังยืนยันตัวตน โดยไม่สร้าง Order draft/Popup อัตโนมัติ
+- ปรับ tests ใน `frontend/src/__tests__/AC-MENU-08-09.test.jsx` ให้ตรวจ flow ใหม่ และยังทดสอบการเปิด Popup เมื่อคลิกเมนูหลัง Login
+- ผลตรวจ: Frontend tests ที่เกี่ยวข้องผ่าน 20/20; ไม่ได้ commit หรือ push
+
+---
+
+## 2569-10-28 คำสั่ง: แก้ `POST /api/orders/drafts` ตอบ 503
+
+- คำขอ: แก้ปัญหา Backend log แจ้ง `POST /api/orders/drafts` ได้ HTTP 503; ผู้ใช้เลือก SQLite สำหรับเก็บ Order draft
+- สาเหตุ: `get_order_repository()` ใน `backend/app/routes/orders.py` เป็น placeholder ที่ตอบ 503 ทุกครั้ง จึงไม่มี API Order ใช้งานจริง
+- เพิ่ม `backend/app/services/order_repository.py` เป็น SQLite repository รองรับการสร้าง draft และเลขลำดับรายวัน, เพิ่ม/แก้ไข/ลบรายการ, เก็บตัวเลือก, โหลดสรุป และเตรียมสถานะชำระเงิน ตาม FR-06 ถึง FR-10 และ FR-12
+- เชื่อม repository จริงเข้ากับ dependency; ตอบ 404 เมื่ออ้าง draft ที่ไม่มี และ 409 เมื่อเลข Order รายวันครบ 999
+- ฐานข้อมูลเริ่มต้นอยู่ที่ `backend/orders.sqlite3`; ตั้งตำแหน่งอื่นผ่าน `ORDER_DATABASE_PATH`; เพิ่มไฟล์ฐานข้อมูลเริ่มต้นใน `.gitignore`
+- ปรับ `specs/003-Order/plan.md` ให้บันทึกการเลือก SQLite ของผู้ใช้ โดยระบุว่าเป็นการเลือกทีม ไม่ได้มาจาก spec
+- เพิ่มผลติดตาม F-01 ที่แก้แล้วใน `specs/003-Order/rtm.md` โดยคงข้อมูลผลตรวจเดิมเป็นประวัติ
+- เพิ่ม `backend/tests/test_order_repository.py` ทดสอบ API จริงตั้งแต่สร้าง draft → เพิ่มรายการ → preview → แก้/ลบ → สร้าง draft ถัดไป → ยืนยัน
+- ผลตรวจ: `PYTHONPATH=.:backend python -m pytest -q backend/tests/test_order_repository.py backend/tests/test_order_flow.py` ผ่าน 23 tests; ชุด Python ทั้งหมด `PYTHONPATH=.:backend python -m pytest -q backend/tests tests` ผ่าน 42 tests; `py_compile` และ `git diff --check` สำหรับไฟล์ที่แก้ผ่าน
+- ไม่ได้ commit หรือ push
+
+---
+
+## 2569-10-28 คำสั่ง: แก้ merge conflicts ใน Menu และ Order
+
+- คำขอ: รวม conflict ใน `prompt-log.md`, `.gitignore`, `specs/003-Order/rtm.md` และ backend routes/models โดยรักษาการเปลี่ยนแปลงจากทั้งสอง branch
+- เลือกใช้ `SqliteMenuRepository`/`SqliteOrderRepository` ที่เชื่อม `SessionLocal` ร่วมกัน; คงข้อมูล description, image, promotion และ effective price ใน API เมนู
+- ย้าย shared Menu models ไว้ใน `backend/app/models/` และยืนยันการลบ `backend/app/models.py` ซึ่งชนกับ package ชื่อเดียวกัน
+- รวม prompt log ของ T-06 ถึง T-08 และผล RTM ของ F-01 ถึง F-06/F-09 ถึง F-11 โดยไม่ลบประวัติเดิม
+- รองรับ `ORDER_DATABASE_PATH` เดิมควบคู่กับ `ORDER_DATABASE_URL` เพื่อให้ config ฐานข้อมูลของสอง branch ทำงานร่วมกัน
+- ผลตรวจ: Backend ผ่าน 36 tests; Frontend ผ่าน 67 tests; `npm run build` ผ่าน; `git diff --check` ผ่าน; ไม่เหลือ conflict markers
+- ไม่มีการ commit หรือ push
+
+---
+
+## 2569-10-28 คำสั่ง: แก้เมนูที่เพิ่มใน Admin ไม่แสดงบนหน้าลูกค้า
+
+- คำขอ: เพิ่มเมนูชาเขียวแล้วไม่พบในหน้าเมนู
+- ตรวจพบว่า Admin `menu_service` เก็บข้อมูลใน `MENU_STORE` ซึ่งอยู่ในหน่วยความจำ ขณะที่ `/api/menu` อ่านจาก SQLite; ฐานข้อมูลปัจจุบันมีเพียงเมนู seed และไม่มีข้อมูลชาเขียวที่เพิ่มไว้ก่อนหน้า
+- เปลี่ยน Admin list/create/update/status ให้บันทึกเมนูผ่าน SQLite ชุดเดียวกับ Order และหน้า `/api/menu`; เพิ่มคอลัมน์เก็บโปรโมชั่นและ timestamp พร้อม migration สำหรับฐานข้อมูลเดิม
+- เพิ่ม Integration Test `test_AC_MENU_MGMT_02_created_menu_is_visible_in_customer_catalog` ตรวจการเพิ่มเมนูผ่าน Admin API แล้วพบเมนูเดียวกันใน customer API ตาม FR-42/FR-43/FR-47 และ AC-MENU-MGMT-02
+- ผลตรวจ: `PYTHONPATH=.:backend python -m pytest -q backend/tests/test_order_sqlite_repository.py` ผ่าน 10 tests; `compileall` และ `git diff --check` ผ่าน
+- เมนูชาเขียวที่เคยเพิ่มในหน่วยความจำเดิมไม่สามารถกู้คืนจากฐานข้อมูลได้ ต้องเพิ่มใหม่หลังเริ่ม Backend เวอร์ชันนี้
+
+---
+
+- อ่าน `specs/005-Status/spec.md`, `specs/005-Status/tasks.md`, `specs/005-Status/plan.md`, `AGENTS.md` และ mockup ก่อนแก้ไข
+- ทีมเลือกแนวทางให้ใช้เฉพาะรูปแบบหน้าติดตาม Order ที่สอดคล้องกับ spec; ไม่เพิ่ม notification banner หรือ Guest badge เพราะไม่อยู่ใน scope/requirement
+- ปรับ `frontend/src/pages/OrderList.jsx` และ `frontend/src/styles.css` ให้มีพื้นหลังโทนอุ่น, header, panel, order cards, status badge, progress 4 ขั้น และรายละเอียดที่ใช้ข้อมูลจริงจาก API (วันที่/ยอดรวม); คง link ไปหน้า Order detail
+- ใช้ชื่อ status ตาม FR-21 ใน spec และไม่ hardcode ข้อมูล Order ตัวอย่างจาก mockup; เพิ่ม assertions สำหรับโครงหน้า/ลำดับ progress ใน `frontend/src/pages/OrderList.test.jsx`
+- ผล `cd frontend && npm test -- src/pages/OrderList.test.jsx`: ผ่าน 4/4; `cd frontend && npm run build`: ผ่าน; `git diff --check`: ผ่าน
+- build สร้าง output ใหม่ใน `frontend/dist/`; พยายามตรวจด้วย browser แต่ Playwright ไม่มี Chromium executable ในสภาพแวดล้อมนี้ จึงยืนยันผ่าน component tests และ production build แทน
+- จุดที่ยึด spec แทน mockup: ไม่แสดง Guest badge หรือแถบ Notification; รายละเอียดสินค้าไม่จำลองในรายการเพราะ endpoint รายการไม่ได้ส่งสินค้าแต่ละ Order และ FR-22 กำหนดข้อมูลรายการสินค้าในรายละเอียด Order
+
+## 2026-10-27 คำสั่ง: แสดงชื่อเมนูจาก Order data และปรับสไตล์หน้ารายละเอียด
+
+- ตรวจ `specs/005-Status/spec.md`, `specs/005-Status/plan.md`, `AGENTS.md` และโค้ด Order/API ก่อนแก้
+- พบว่า `GET /api/orders` เดิมส่งเพียง Order ID/สถานะ/วันที่/ยอดรวม ไม่ได้ส่งรายการสินค้า; เพิ่มรายการ `items` จาก snapshot ในฐานข้อมูลด้วย owner-scoped LEFT JOIN ใน service เพื่อให้ frontend แสดงชื่อเมนู จำนวน และราคาที่บันทึก โดยไม่ยิง request แยกราย Order
+- แก้หน้า Order ให้ใช้ชื่อเมนูจาก `items` เป็นหัวข้อ และแสดง Order ID เป็นข้อมูลรอง; แก้ Order detail ให้ใช้พื้นหลัง การ์ด ป้ายสถานะและสีเดียวกับหน้า list
+- เพิ่ม backend/UI assertions ว่าข้อมูลชื่อสินค้าและรายละเอียดดึงจาก API/ข้อมูลที่บันทึก และเพิ่ม class assertions สำหรับการจัดรูปแบบหน้า detail
+- ผล `python -m unittest backend.tests.test_orders`: ผ่าน 9/9; `cd frontend && npm test -- src/pages/OrderList.test.jsx src/pages/OrderDetail.test.jsx src/components/OrderItems.test.jsx src/components/OrderStatusTimeline.test.jsx`: ผ่าน 12/12; `cd frontend && npm run build`: ผ่าน; `git diff --check`: ผ่าน
+- ข้อจำกัดของข้อมูลทดสอบที่ตรวจพบ: `orders.sqlite` ปัจจุบันมี `menu_name` เป็น “รายการตัวอย่าง 1/2” ตาม seed ไม่ใช่ชื่อ Order ID แล้ว; UI จะแสดงค่าที่บันทึกจริงตามนี้จนกว่าจะมีข้อมูล Order ที่มีชื่อเมนูจริง
+- ไม่แก้ `orders.sqlite` หรือสร้างชื่อเมนูแทนข้อมูลจริง; backend listing ยังคงกรองเจ้าของตาม NFR-SEC-02 และอ่านชื่อจาก item snapshot ที่บันทึกใน Order
+
+## 2026-10-27 คำสั่ง: เปลี่ยนชื่อเมนูใน Order ตัวอย่าง
+
+- ทีมระบุชื่อเมนูตัวอย่างที่ต้องการเป็น “ชาไทย” และ “มัทฉะลาเต้”
+- ปรับ `backend/seed.py` สำหรับ Order ตัวอย่างให้บันทึกชื่อทั้งสองเป็น item snapshot; ไม่เปลี่ยนโครงสร้างหรือพฤติกรรมของ Order จริง ตาม FR-22 และ FR-49
+- อัปเดตเฉพาะรายการ `sample-item-older` และ `sample-item-newer` ใน `orders.sqlite` ซึ่งเป็นข้อมูลตัวอย่างที่แสดงในหน้า Order
+
+## 2026-10-27 คำสั่ง: `/testcases AC-STATUS-01 specs/005-Status/spec.md`
+
+- โหมดร่าง: ยังไม่มี `specs/005-Status/test-cases.md` และยังไม่มีแถว test case สำหรับ AC-STATUS-01
+- ตรวจ spec.md, plan.md ส่วนแผนทดสอบ, tasks.md, AGENTS.md และคำสั่ง testcases; T-03, T-04, T-05 ที่ตรวจด้วย AC นี้มีสถานะ “เสร็จ”
+- สร้าง `specs/005-Status/test-cases.md` พร้อม TC-STATUS-01-1 ถึง TC-STATUS-01-3 เป็นสถานะ “ร่าง”; ครอบคลุมทางปกติ, กรณีมี Order คนอื่นตาม NFR-SEC-02, และกรณีลูกค้าไม่มี Order
+- กรณีไม่มี Order: spec ไม่ได้กำหนดเนื้อหา/รูปแบบ empty state จึงไม่กำหนด expected behavior และเสนอให้ทีมตัดสินใจ
+- ยังไม่ได้เขียนหรือรันโค้ด test เพราะแถวทั้งหมดอยู่ในสถานะ “ร่าง”
+
+## 2026-10-27 คำสั่ง: `/testcases AC-STATUS-02 specs/005-Status/spec.md`
+
+- โหมดร่าง: ไม่พบแถว test case สำหรับ AC-STATUS-02 ใน `specs/005-Status/test-cases.md`
+- ตรวจ spec.md, plan.md ส่วนแผนทดสอบ, tasks.md, AGENTS.md และคำสั่ง testcases; T-09, T-10, T-11 ที่ตรวจด้วย AC นี้มีสถานะ “เสร็จ” หรือ “เสร็จ รอทีมตรวจ”
+- เพิ่ม TC-STATUS-02-1 ถึง TC-STATUS-02-3 สถานะ “ร่าง”: การเลือก Order ปกติ, Order ที่อยู่สถานะสุดท้ายตาม FR-21, และการพยายามเข้าดู Order ของผู้อื่นตาม NFR-SEC-02
+- กรณีไม่มีสิทธิ์เข้าถึง Order อื่น: spec ระบุให้ผู้ใช้เข้าถึงเฉพาะข้อมูลของตน แต่ไม่ได้กำหนดรหัสหรือข้อความตอบกลับ; test case จำกัด expected result ว่าไม่เปิดเผยรายละเอียด/สถานะเท่านั้น
+- ยังไม่ได้เขียนหรือรันโค้ด test เพราะแถวทั้งหมดอยู่ในสถานะ “ร่าง”
+
+## 2026-10-27 คำสั่ง: `/testcases AC-STATUS-03 specs/005-Status/spec.md`
+
+- โหมดร่าง: ไม่พบแถว test case สำหรับ AC-STATUS-03 ใน `specs/005-Status/test-cases.md`
+- ตรวจ spec.md, plan.md ส่วนแผนทดสอบ, tasks.md, AGENTS.md และคำสั่ง testcases; T-12, T-13, T-14 ที่ตรวจด้วย AC นี้มีสถานะ “เสร็จ”
+- เพิ่ม TC-STATUS-03-1 ถึง TC-STATUS-03-3 สถานะ “ร่าง”: ตรวจลำดับสถานะ 4 ขั้น, ตรวจเวลาและสถานะล่าสุดเมื่อถึง “พร้อมรับสินค้า”, และตรวจไม่แสดงสถานะที่ไม่มีการบันทึก/ยืนยันตาม NFR-REL-03
+- กรณีไม่มีสถานะที่ยืนยันแล้ว: spec กำหนดห้ามแสดงสถานะที่ไม่ยืนยัน แต่ไม่ได้ระบุ empty state ของ timeline จึงบันทึกเป็นข้อที่ต้องให้ทีมพิจารณา
+- ยังไม่ได้เขียนหรือรันโค้ด test เพราะแถวทั้งหมดอยู่ในสถานะ “ร่าง”
+
+## 2026-10-27 คำสั่ง: `/testcases AC-STATUS-04 specs/005-Status/spec.md`
+
+- โหมดร่าง: ไม่พบแถว test case สำหรับ AC-STATUS-04 ใน `specs/005-Status/test-cases.md`
+- ตรวจ spec.md, plan.md ส่วนแผนทดสอบ, tasks.md, AGENTS.md และคำสั่ง testcases; T-15, T-16, T-17 ที่ตรวจด้วย AC นี้มีสถานะ “เสร็จ”
+- เพิ่ม TC-STATUS-04-1 ถึง TC-STATUS-04-3 สถานะ “ร่าง”: กรณีปกติ, Order ที่มีสินค้า 2 รายการซึ่งเป็นขอบล่างของช่วง 2-3 รายการตามแผนทดสอบ, และกรณียังไม่ได้เลือก Order
+- กรณียังไม่ได้เลือก Order: spec ไม่ได้กำหนดผลเมื่อเงื่อนไข Given ไม่เป็นจริง จึงเสนอให้ทีมตัดสินใจ
+- ยังไม่ได้เขียนหรือรันโค้ด test เพราะแถวทั้งหมดอยู่ในสถานะ “ร่าง”
+
+## 2026-10-27 คำสั่ง: `/testcases AC-STATUS-05 specs/005-Status/spec.md`
+
+- โหมดร่าง: ไม่พบแถว test case สำหรับ AC-STATUS-05 ใน `specs/005-Status/test-cases.md`
+- ตรวจ spec.md, plan.md ส่วนแผนทดสอบ, tasks.md, AGENTS.md และคำสั่ง testcases; T-06, T-07, T-08 ที่ตรวจด้วย AC นี้มีสถานะ “เสร็จ”
+- เพิ่ม TC-STATUS-05-1 ถึง TC-STATUS-05-3 สถานะ “ร่าง”: กรณีปกติที่มีหลาย Order, กรณีขอบที่มี 2 Order เรียงใหม่ไปเก่า, และกรณีมี Order เดียว
+- กรณีมี Order เดียว: AC-STATUS-05 ไม่กำหนดพฤติกรรมนี้โดยตรง จึงระบุว่า spec ไม่ได้บอกและเสนอให้ทีมตัดสินใจ
+- ยังไม่ได้เขียนหรือรันโค้ด test เพราะแถวทั้งหมดอยู่ในสถานะ “ร่าง”
+
+## 2026-10-27 คำสั่ง: `/testcases AC-STATUS-01 specs/005-Status/spec.md`
+
+- โหมดเขียน test: ทีมเปลี่ยน TC-STATUS-01-1 และ TC-STATUS-01-2 เป็น “ใช้ได้”; TC-STATUS-01-3 เป็น “ใช้ได้” แต่ระบุ `ตรวจด้วย: คน` จึงไม่นำไปเขียนเป็นโค้ด
+- เพิ่ม `backend/tests/test_AC_STATUS_01.py` พร้อม `test_TC_STATUS_01_1_customer_sees_own_orders` และ `test_TC_STATUS_01_2_hides_other_customers_orders`; เพิ่ม Vitest ตามแถวใน `frontend/src/__tests__/TC-STATUS-01-1.test.jsx` และ `frontend/src/__tests__/TC-STATUS-01-2.test.jsx`
+- ทดสอบคนตาม TC-STATUS-01-3: เตรียมให้ลูกค้าไม่มี Order, เปิดหน้ารายการ Order และตรวจว่าหน้าแสดงข้อความ “ไม่พบ order” ตามที่ทีมระบุในตาราง
+- ผล `cd frontend && npm test`: ผ่าน 35/35 ใน 11 test files
+- ผล `.venv/bin/python -m pytest -v backend/tests`: ผ่าน 11 tests (รวม 2 test ใหม่) และ 2 subtests; มี Starlette deprecation warning เกี่ยวกับ httpx
+- ก่อนรัน backend suite พบว่า pytest ไม่มีใน `.venv`; ติดตั้ง pytest ใน virtualenv เพื่อรันทดสอบ โดยไม่เปลี่ยน dependency manifest
+- TC-STATUS-01-3 ยังต้องให้คนลองจริง; จากการอ่านหน้า `OrderList.jsx` ข้อความ empty state ปัจจุบันคือ “ไม่มีรายการ Order” ซึ่งต่างจากข้อความที่แถวอนุมัติระบุว่า “ไม่พบ order”
+- `git diff --check` ผ่าน; เพิ่ม 2 test ต่อแถวที่ต้องตรวจทั้ง pytest และ vitest (รวมเพิ่ม 4 test); ไม่แก้ test-cases.md หรือโค้ดระบบ
+
+## 2026-10-27 คำสั่ง: `/testcases AC-STATUS-01 specs/005-Status/spec.md` (รันซ้ำหลังทีมอนุมัติ)
+
+- สถานะตาราง: TC-STATUS-01-1 และ TC-STATUS-01-2 เป็น “ใช้ได้” และมี test code อยู่แล้ว จึงไม่เพิ่ม test ซ้ำ; TC-STATUS-01-3 ระบุ “คน” จึงคงเป็นการตรวจด้วยคน
+- รัน `.venv/bin/python -m pytest -v backend/tests/test_AC_STATUS_01.py`: ผ่าน 2/2; มี Starlette deprecation warning เกี่ยวกับ httpx
+- รัน `cd frontend && npm test -- src/__tests__/TC-STATUS-01-1.test.jsx src/__tests__/TC-STATUS-01-2.test.jsx`: ผ่าน 2/2
+- TC-STATUS-01-3 ให้คนทดสอบด้วยการเปิดหน้ารายการขณะไม่มี Order และตรวจข้อความ “ไม่พบ order”; ยังไม่ได้ทำ manual run ใน browser. จากโค้ดหน้าจอปัจจุบันพบข้อความ “ไม่มีรายการ Order” ซึ่งไม่ตรงกับข้อความที่ระบุในแถวอนุมัติ จึงต้องให้ทีมพิจารณาแยกต่างหาก
+- ไม่มีการแก้ test-cases.md หรือโค้ดระบบในรอบรันซ้ำนี้
+
+## 2026-10-27 คำสั่ง: `/testcases AC-STATUS-02 specs/005-Status/spec.md`
+
+- โหมดเขียน test: TC-STATUS-02-1, TC-STATUS-02-2 และ TC-STATUS-02-3 อยู่สถานะ “ใช้ได้” และไม่มี test ชื่อตาม TC ใน codebase
+- เพิ่ม backend pytest ใน `backend/tests/test_AC_STATUS_02.py` และ UI Vitest แยกไฟล์ `frontend/src/__tests__/TC-STATUS-02-1.test.jsx`, `TC-STATUS-02-2.test.jsx`, `TC-STATUS-02-3.test.jsx`; แต่ละ test ตรวจรายละเอียด/status ของ Order ที่เลือก, สถานะ “รับสินค้าแล้ว”, และไม่เปิดเผยข้อมูล Order ของเจ้าของอื่นตาม NFR-SEC-02
+- จำนวน test ก่อน/หลัง: backend TC tests 0 → 3; UI TC tests 0 → 3 (เพิ่ม 6 tests ตรงกับ 3 แถวที่ต้องตรวจทั้ง pytest และ vitest)
+- ผล `.venv/bin/python -m pytest -v backend/tests`: ผ่าน 14 tests และ 2 subtests; มี Starlette deprecation warning เกี่ยวกับ httpx
+- ผล `cd frontend && npm test -- src/__tests__/TC-STATUS-02-1.test.jsx src/__tests__/TC-STATUS-02-2.test.jsx src/__tests__/TC-STATUS-02-3.test.jsx`: ผ่าน 3/3
+- Full frontend suite `cd frontend && npm test`: 37 passed, 1 failed ใน test เดิม `src/pages/OrderDetail.test.jsx > test_AC_STATUS_04_show_order_items_and_latest_status`; ขาด list “ลำดับสถานะ Order”. ไม่ใช่ test ที่เพิ่มในงานนี้ และไม่แก้ test/ระบบนอกขอบเขตตามคำสั่ง
+- TC-STATUS-02-3 ตรวจ API ด้วย response ที่ไม่สำเร็จและไม่มีข้อมูล Order/status/items; UI ตรวจไม่แสดง detail, latest status, หรือ timeline ที่ไม่ได้รับอนุญาต โดยไม่ยืนยันรหัส/ข้อความตอบกลับเฉพาะ
+
+## 2026-10-27 คำสั่ง: `/testcases AC-STATUS-03 specs/005-Status/spec.md`
+
+- โหมดเขียน test: TC-STATUS-03-1, TC-STATUS-03-2 และ TC-STATUS-03-3 อยู่สถานะ “ใช้ได้” และยังไม่มี test ชื่อตาม TC
+- เพิ่ม pytest ทั้งสามกรณีใน `backend/tests/test_AC_STATUS_03.py`; เพิ่ม UI Vitest แยกไฟล์ `frontend/src/__tests__/TC-STATUS-03-1.test.jsx`, `TC-STATUS-03-2.test.jsx`, `TC-STATUS-03-3.test.jsx`
+- Test ตรวจลำดับสถานะ 4 ขั้น, เวลา/สถานะเมื่อถึง “พร้อมรับสินค้า”, และไม่แสดงสถานะที่ไม่มีการยืนยัน ตาม NFR-REL-03; เพิ่ม 3 test ต่อฝั่งตาม 3 แถว
+- ผลทดสอบและข้อสังเกตจะเติมหลังรัน full suites
+
+## 2026-10-27 ผลรันต่อ: `/testcases AC-STATUS-03 specs/005-Status/spec.md`
+
+- ปรับ assertion ใน UI tests TC-STATUS-03-1 และ TC-STATUS-03-2 ให้ตรวจข้อความแต่ละขั้นโดยตรง เพื่อไม่ตัดข้อความของสถานะที่ไม่มี timestamp
+- ผล focused backend: `.venv/bin/python -m pytest -v backend/tests/test_AC_STATUS_03.py` ผ่าน 3/3; มี Starlette deprecation warning เกี่ยวกับ httpx
+- ผล focused UI: `cd frontend && npm test -- src/__tests__/TC-STATUS-03-1.test.jsx src/__tests__/TC-STATUS-03-2.test.jsx src/__tests__/TC-STATUS-03-3.test.jsx` ผ่าน 3/3
+- ผล full backend: `.venv/bin/python -m pytest -v backend/tests` ผ่าน 17 tests และ 2 subtests; มี Starlette deprecation warning เกี่ยวกับ httpx
+- ผล full UI: `cd frontend && npm test` ผ่าน 41/41 tests ใน 17 test files
+- จำนวน test ตาม TC: pytest 0 → 3 และ vitest 0 → 3 ตรงกับ 3 แถวที่อนุมัติ (แต่ละแถวตรวจทั้งสองฝั่ง)
+- `git diff --check` ผ่าน; ไม่แก้โค้ดระบบหรือ test-cases.md
+
+## 2026-10-27 คำสั่ง: `/testcases AC-STATUS-04 specs/005-Status/spec.md`
+
+- โหมดเขียน test: TC-STATUS-04-1 และ TC-STATUS-04-2 สถานะ “ใช้ได้” และยังไม่มี test ตาม TC ID; T-15, T-16 และ T-17 ใน `tasks.md` ระบุ “เสร็จ”
+- เพิ่ม pytest ใน `backend/tests/test_AC_STATUS_04.py` และ Vitest ใน `frontend/src/__tests__/TC-STATUS-04-1.test.jsx`, `TC-STATUS-04-2.test.jsx` ตรวจสถานะล่าสุด รายการสินค้า จำนวน และราคา โดย TC-STATUS-04-2 ตรวจ Order ที่มีสินค้า 2 รายการ
+- จำนวน test ใหม่ตาม TC ก่อน/หลัง: pytest 0 → 2 และ vitest 0 → 2 สำหรับ 2 แถวอัตโนมัติที่อนุมัติ
+- ผล full backend: `.venv/bin/python -m pytest -v backend/tests` ผ่าน 19 tests และ 2 subtests; มี Starlette deprecation warning เกี่ยวกับ httpx
+- ผล focused UI: `cd frontend && npm test -- src/__tests__/TC-STATUS-04-1.test.jsx src/__tests__/TC-STATUS-04-2.test.jsx` ผ่าน 2/2
+- ผล full UI: `cd frontend && npm test` มี 42 ผ่าน และ 1 ไม่ผ่านใน test เดิม `src/pages/OrderDetail.test.jsx > OrderDetailPage > test_AC_STATUS_04_show_order_items_and_latest_status`; ไม่พบ list “ลำดับสถานะ Order”. ไม่แก้ test เดิมหรือโค้ดระบบนอกขอบเขต
+- TC-STATUS-04-3 เป็นการตรวจด้วยคน แต่แถวระบุว่า spec ไม่ได้บอกผลเมื่อยังไม่ได้เลือก Order จึงยังไม่มีผลคาดหวังให้ตรวจ; ต้องให้ทีมกำหนดก่อนทดลองยืนยันผล
+- ไม่แก้ `test-cases.md` หรือโค้ดระบบ
+- คำถามติดตามสำหรับ TC-STATUS-04-3: “ผลที่ต้องการเมื่อไม่มี Order ถูกเลือกคืออะไร?” คำตอบทีม: “แสดงข้อความ กรุณาเลือก Order ที่ต้องการติดตาม”
+- ข้อความจากคำตอบทีมยังไม่มีใน `spec.md`; ไม่เพิ่ม assertion หรือเปลี่ยนแถวที่อนุมัติในรอบนี้ เพื่อให้ข้อกำหนดและ test ยังคงอ้างอิง spec เดียวกัน ต้องนำข้อความนี้ไปปรับ spec ก่อนจึงจะเขียน/ยืนยัน test สำหรับ TC-STATUS-04-3 ได้
+
+## 2026-10-27 คำสั่ง: `/testcases AC-STATUS-05 specs/005-Status/spec.md`
+
+- โหมดเขียน test: TC-STATUS-05-1 และ TC-STATUS-05-2 สถานะ “ใช้ได้” และยังไม่มี test ตาม TC ID; T-06, T-07 และ T-08 ใน `tasks.md` ระบุ “เสร็จ”
+- เพิ่ม pytest ใน `backend/tests/test_AC_STATUS_05.py` และ Vitest ใน `frontend/src/__tests__/TC-STATUS-05-1.test.jsx`, `TC-STATUS-05-2.test.jsx` เพื่อตรวจรายการ Order หลายรายการที่เลือกได้ และลำดับวันที่สร้างใหม่ก่อน รวมถึงกรณีขอบที่มี 2 Order
+- จำนวน test ใหม่ตาม TC ก่อน/หลัง: pytest 0 → 2 และ vitest 0 → 2 สำหรับ 2 แถวอัตโนมัติที่อนุมัติ
+- ผล full backend: `.venv/bin/python -m pytest -v backend/tests` ผ่าน 21 tests และ 2 subtests; มี Starlette deprecation warning เกี่ยวกับ httpx
+- ผล full UI: `cd frontend && npm test` ผ่าน 45/45 tests ใน 21 test files
+- `git diff --check` ผ่าน; ไม่แก้ `test-cases.md` หรือโค้ดระบบ
+- TC-STATUS-05-3 ให้คนตรวจ: Given ลูกค้ามี Order เพียงรายการเดียว; When เปิดหน้าติดตามสถานะ Order; Then ตารางระบุว่า spec ไม่ได้บอกว่าต้องแสดงตัวเลือกติดตามหรือจัดลำดับอย่างไร จึงยังไม่มีผลคาดหวังสำหรับสรุปผ่าน/ไม่ผ่าน
+
+---
+
+## 2026-10-28 คำสั่ง: แก้ merge conflicts สำหรับ Order Status
+
+- คำขอ: แก้ conflicts ใน `backend/app/main.py`, `backend/app/routes/orders.py`, `frontend/dist/index.html`, `frontend/src/main.jsx`, `prompt-log.md` และ `requirements.txt`
+- รวม Order Status routes สำหรับ FR-19 ถึง FR-23 เข้ากับ Order routes เดิม โดยใช้ `tracking_router` แยกจาก draft/order router และคง Menu/Account app เป็นหน้าเริ่มต้นพร้อม route `/orders/status` และ `/orders/{id}/details`
+- คง SQLAlchemy dependency สำหรับ Menu/Order persistence; สร้าง `frontend/dist` ใหม่จาก frontend entry ที่รวมแล้ว
+- รวมทั้งสองฝั่งของ conflict ใน prompt log โดยรักษาประวัติเดิม
+- ปรับ test validation เมนูให้ตรวจรายการจาก SQLite แทน `MENU_STORE` ที่ถูกถอดออกเมื่อเปลี่ยนเป็น persistent storage
+- ผลตรวจ: Frontend 91 tests ผ่าน; Python tests `PYTHONPATH=.:backend python -m pytest -q backend/tests tests` ผ่าน 80 tests และ 2 subtests; build ผ่าน; compile และ `git diff --check` ผ่าน
+- ยังไม่ได้ commit หรือ push
+
+---
+
+## 2026-10-28 คำสั่ง: เอาข้อมูลทดสอบออกจากหน้า Admin Menu
+
+- คำขอ: หน้า Admin Menu แสดงข้อมูลทดสอบ เช่น “เมนู API สำหรับแก้ไข” ปะปนกับรายการจริง
+- ตรวจพบรายการชื่อทดสอบ 30 แถวใน `backend/order.sqlite3` จาก API tests ซึ่งใช้ฐานข้อมูลจริงร่วมกัน; ตรวจแล้วว่าไม่มี Order อ้างอิงรายการเหล่านี้ และเก็บเมนู “ชาเขียว” ของผู้ใช้ไว้
+- ลบเฉพาะแถว fixture ที่ยืนยันได้จากชื่อใน tests และเพิ่ม `tests/conftest.py` ให้ tests ของ Menu Management ใช้ SQLite ชั่วคราวและคืนการตั้งค่าฐานข้อมูลหลังทดสอบ ตาม FR-42/FR-43 และ AC-MENU-MGMT-02
+- ผลตรวจ: `PYTHONPATH=.:backend python -m pytest -q tests` ผ่าน 22 tests; หลังทดสอบฐานข้อมูลจริงยังมีเพียง “เมนูตัวอย่าง” และ “ชาเขียว”; `git diff --check` ผ่าน
+
+---
+
+## 2026-10-28 คำสั่ง: /clarify Order Status button navigation
+
+- เครื่องมือ: Copilot in VS Code
+- ไฟล์: `specs/005-Status/spec.md` (Draft v2)
+
+### คำถามที่ AI ถาม
+
+1. ต้องการวางปุ่ม “Status” ตรงไหนและควรเห็นเมื่อใด โดยให้เลือกตำแหน่งแถบนำทางหลัก/การ์ด Order/ทั้งสองแบบ, การแสดงหลัง Login หรือทุกเวลา, และปลายทางหน้ารายการ Order หรือรายละเอียด Order โดยตรง
+
+### คำตอบของทีมและเหตุผล
+
+1. วางปุ่ม “Status” ในแถบนำทางหลัก แสดงเฉพาะหลัง Login และนำไปหน้ารายการ Order ก่อนให้เลือก Order เพื่อเปิดรายละเอียด
+
+### สิ่งที่แก้ใน spec.md (Draft v2 เป็น Draft v3)
+
+- ปรับ FR-19, Constraint และ AC-STATUS-01 ให้ระบุปุ่ม “Status” ในแถบนำทางหลักหลังเข้าสู่ระบบ และเปิดหน้ารายการ Order
+- เพิ่ม ASM-13 บันทึกการตัดสินใจของทีม โดยไม่เปลี่ยน FR/AC IDs เดิม
+
+## 2026-10-28 คำสั่ง: เพิ่มปุ่ม Status ในแถบนำทาง
+
+- คำขอ: ปุ่ม Status ตามตำแหน่งในภาพยังไม่แสดง
+- เพิ่มลิงก์ “Status” ในแถบนำทางหลักหลัง Login และเชื่อมไป `/orders/status` ตาม FR-19 และ AC-STATUS-01
+- เพิ่ม test ยืนยันว่าปุ่มซ่อนก่อน Login และแสดงพร้อมปลายทางหน้ารายการ Order หลัง Login
+- ผลตรวจ: Frontend 92 tests ผ่าน; `npm run build` และ `git diff --check` ผ่าน
+- ยังไม่ได้ commit หรือ push
+
+## 2026-10-28 คำสั่ง: แก้หน้าเมนูไม่โหลดข้อมูลจาก Backend
+
+- คำขอ: หน้า Customer Menu ไม่แสดงข้อมูลเมนูจาก Backend
+- ตรวจพบว่าคำสั่ง Backend ก่อนหน้าใช้ `ORDER_DATABASE_PATH=backend/orders.sqlite3` ซึ่งชี้ไปคนละไฟล์กับฐานข้อมูลเมนูจริง `backend/order.sqlite3`; ไฟล์แรกมี schema ตาราง `menu_items` ไม่ครบ ส่วนไฟล์จริงมีเมนู “ชาเขียว”
+- ทดสอบ `GET /api/menu` ผ่าน TestClient ด้วย `ORDER_DATABASE_PATH=backend/order.sqlite3` ได้ HTTP 200 และพบรายการเมนู
+- ยังไม่ได้แก้โค้ดหรือ commit; ให้ใช้ path `backend/order.sqlite3` หรือไม่กำหนด `ORDER_DATABASE_PATH` เพื่อใช้ค่าเริ่มต้น
+
+## 2026-10-28 คำสั่ง: แก้ Order Status 500 จาก schema ฐานข้อมูลไม่ตรงกัน
+
+- คำขอ: แก้ `sqlite3.OperationalError: no such column: o.user_id` ที่ `GET /api/orders`
+- สาเหตุ: Status query ใช้ schema คนละชุดกับ Order/เมนูจริง; ตาราง Order จริงใช้ `(order_date, order_id)` และไม่มีเจ้าของ ขณะที่ query เดิมคาด `user_id` และ `menu_name` ที่ไม่มีในฐานข้อมูลนั้น
+- คำถามและคำตอบของทีม: เลือกใช้ Mock identity สำหรับต้นแบบ และซ่อน Order เก่าที่ไม่มีเจ้าของ; ผูก Order ใหม่กับ Mock account ปัจจุบัน
+- ปรับ Draft ของ `specs/005-Status/spec.md` เป็น v4 โดยไม่สร้างหรือเปลี่ยน FR/AC IDs
+- เพิ่ม nullable owner และเวลาเปลี่ยนสถานะให้ Order โดย migration เก็บ Order เดิมเป็น owner ว่าง; API Status อ่าน schema Order ปัจจุบัน กรองตาม owner และแสดงเฉพาะ Order ที่ชำระสำเร็จและมีสถานะติดตามได้
+- ส่ง Mock account ID จาก Frontend ใน `X-Test-User` เฉพาะ flow development/test และเพิ่ม tests สำหรับ owner filtering, hidden legacy orders และ order draft ownership
+- ยังไม่ได้ commit หรือ push
+
+## 2026-10-28 คำสั่ง: แก้การเปิด Order ซ้ำเลขต่างวันในหน้า Status
+
+- คำขอ: ตรวจและแก้ปัญหาหน้า Status หลังแจ้ง `GET /api/orders` ล้มเหลวจาก schema ไม่ตรงกัน
+- ตรวจเพิ่มพบว่า SPEC-ORDER-001 กำหนดให้หมายเลข Order เริ่มใหม่ทุกวัน จึงมี Order ID ซ้ำได้ และการเปิดรายละเอียดด้วย `order_id` อย่างเดียวอาจเลือก Order คนละวัน
+- ปรับรายการ Status ให้แยก Order ด้วย `(order_date, order_id)` และส่งวันที่ไปกับลิงก์/คำขอรายละเอียดและสถานะ ตาม FR-20, FR-21, FR-23 และ AC-STATUS-02/05/06
+- เพิ่ม backend/frontend tests สำหรับเลข Order ซ้ำข้ามวัน; ผลตรวจ Backend 60 tests และ Frontend 95 tests ผ่าน และ `npm run build` ผ่าน
+- ยังไม่ได้ commit หรือ push
+
+## 2026-10-28 คำสั่ง: โหลดเมนูใหม่เมื่อกลับจาก Admin Menu
+
+- คำขอ: หลังเพิ่มเมนูใหม่แล้วกลับหน้า Customer Menu ต้องเห็นรายการใหม่ทันที โดยไม่ต้องรีเฟรช Browser
+- สาเหตุ: หน้า Customer Menu ยังคง mount อยู่ใน AppShell ระหว่างเปิดหน้า Admin และโหลดข้อมูลเฉพาะตอน mount ครั้งแรก
+- ปรับให้หน้า Customer Menu โหลดเมนูและโปรโมชั่นใหม่เมื่อกลับมา active; ป้องกันผลตอบกลับจากคำขอเก่ามาทับข้อมูลที่โหลดใหม่
+- เพิ่ม regression test ครอบคลุมการเพิ่มเมนูจาก Admin แล้วกลับหน้า Customer เพื่อยืนยันว่าเมนูใหม่แสดงทันที ตาม FR-01, FR-47 และ AC-MENU-MGMT-02/06
+- ผลตรวจ: Frontend tests ที่เกี่ยวข้อง 11 tests ผ่าน และ `git diff --check` ผ่าน
+- ยังไม่ได้ commit หรือ push
+
+## 2026-10-28 คำสั่ง: แสดง Order ใน Status หลังจำลองชำระเงินสำเร็จ
+
+- คำขอ: หลังยืนยัน Order และชำระเงินแล้ว ต้องเปิดหน้า Status แล้วเห็นรายการสั่งซื้อ
+- ตรวจพบว่า endpoint ยืนยัน Order คง `payment_status` เป็น `pending`, UI ไม่มี action ที่ทำให้เกิดผลชำระสำเร็จ และ Status แสดงเฉพาะ Order ที่ `payment_status='success'`
+- ตามคำตอบของทีม เพิ่ม flow จำลองชำระเงินสำเร็จเฉพาะ development/test พร้อมตรวจเจ้าของ Order, ป้องกันการบันทึกซ้ำ, บันทึกผลจำลอง และกำหนดสถานะแรกเป็น `PENDING_ACCEPT`
+- หลังจำลองสำเร็จ UI แสดงปุ่มไปหน้า Status; Order ที่ยัง pending ยังคงไม่แสดง
+- ปรับข้อกำหนด Payment/Status ให้บันทึกการใช้ mock สำเร็จเฉพาะต้นแบบและไม่แทนการชำระเงินจริง โดยไม่เปลี่ยน FR/AC IDs
+- เพิ่ม backend/frontend integration tests ครอบคลุมการชำระสำเร็จ การแสดง Order ใน Status การป้องกันเจ้าของอื่น/ชำระซ้ำ และปิดใช้ใน production
+- ยังไม่ได้ commit หรือ push
+
+## 2569-10-25 คำสั่ง: สร้าง Frontend ต้นแบบครบ 6 กลุ่ม
+
+- คำสั่ง: เพิ่ม `index.html`, `menu.css` และ `menu.js` ให้แต่ละกลุ่มเมนู, บัญชี, สั่งซื้อ/ชำระเงิน, ติดตาม/แจ้งเตือน, พนักงาน และจัดการเมนู/รายงาน โดยให้ข้อมูลครบถ้วนตาม spec
+- คำถามที่ AI ถาม: ต้องการต้นแบบ UI ด้วยข้อมูลจำลอง, เฉพาะหน้าจอ หรือเชื่อมต่อ Backend ที่มีอยู่
+- คำตอบของทีม: เลือกต้นแบบครบตาม spec ใช้ข้อมูลจำลอง; ไม่ทำ auth/payment/LINE หรือบันทึกข้อมูลจริง
+- สร้างหน้า Frontend 6 กลุ่มใน `features/`; แสดงป้ายข้อมูลจำลองและระบุ SPEC/FR/AC ที่เกี่ยวข้อง
+- เพิ่มแบบจำลองการค้นหาและสถานะเมนู, สมัคร/เข้าสู่ระบบและเชื่อม LINE แบบจำลอง, สั่งซื้อ/ตัวเลือกเครื่องดื่ม/QR หมดอายุ, ติดตามสถานะ/บันทึกแจ้งเตือน, คิวและอัปเดต Order ของพนักงาน, จัดการเมนู/สิทธิ์จำลอง/รายงานจากข้อมูลชำระสำเร็จ
+- ใช้ `shared/styles.css` เป็นสไตล์พื้นฐานของหน้าใหม่ และแก้ path ไป `app.js` ใน `shared/index.html` ให้ถูกต้องหลังย้ายหน้า
+- คงการลบ `index.html` และ `styles.css` ที่ root ตามการยืนยันของทีม; ไม่กู้คืนหรือเปลี่ยนไฟล์ดังกล่าว
+- ปรับ `tests/AC-MENU-02.test.cjs` ให้ตรวจหน้าเมนูที่ `shared/index.html` ตามตำแหน่งปัจจุบัน; `node --test tests/*.test.cjs` ผ่าน 10/10, `node --check` สำหรับ JS ทั้ง 6 ไฟล์และตรวจ path/ID ใน HTML ผ่าน
+- ข้อมูลในทุกหน้าคือข้อมูลตัวอย่างฝั่ง browser ไม่เชื่อมต่อ Backend, Payment Gateway หรือ LINE จริง; ไม่แก้ spec และไม่ commit/push
+
+---
+
+## 2569-10-25 คำสั่ง: รวมรูปแบบ CSS ของทั้ง 6 กลุ่ม
+
+- คำสั่ง: ปรับให้ทุกหน้าใช้รูปแบบ CSS เดียวกันจากไฟล์ส่วนกลาง
+- ย้าย theme, navigation, hero, panel, form, button, state และ responsive layout ของทั้ง 6 กลุ่มมารวมใน `shared/styles.css`
+- ปรับ `features/*/index.html` ให้โหลด `../../shared/styles.css` โดยตรง และลบ `features/*/menu.css` ที่มีรูปแบบซ้ำกัน
+- คง `shared/index.html` ให้โหลด `shared/styles.css` สำหรับหน้าเมนูเดิม
+- ไม่แก้พฤติกรรม JavaScript หรือข้อกำหนดใน spec
+
+---
+
+## 2569-10-26 คำสั่ง: /tasks สำหรับ specs/002-Register/spec.md
+
+- อ่าน [spec.md](specs/002-Register/spec.md), [plan.md](specs/002-Register/plan.md), [AGENTS.md](AGENTS.md) และตรวจแล้วว่าไม่มี `specs/000-shared/` หรือ mockup ของฟีเจอร์นี้
+- แจ้งทีมว่า spec ยังเป็น `Draft v2` และมี Open Questions; ทีมเลือกให้ทำต่อโดยคง task ที่เกี่ยวข้องเป็น `รอ Q-xx`
+- สร้าง [specs/002-Register/tasks.md](specs/002-Register/tasks.md) เป็น 6 เฟส 14 tasks แบบ vertical slice ครอบคลุม AC-ACCOUNT-01 ถึง AC-ACCOUNT-06, FR, NFR และ Constraints
+- แยก T-11 ถึง T-14 ไว้เฟส `รอคำตอบ` สำหรับ Q-01 ถึง Q-03 และไม่เดารูปแบบ LINE หรือพฤติกรรมที่ยังไม่มีคำตอบ
+- ยังไม่เริ่มทำ task ใด ๆ และไม่แก้โค้ด
+
+---
+
+## 2569-10-26 คำสั่ง: /implement T-01 ของ specs/002-Register/tasks.md
+
+- ทีมอนุญาตให้ T-01 แตะไฟล์เพิ่มเติม 3 ไฟล์ และเพิ่มรายการดังกล่าวในช่อง “ไฟล์ที่แตะ” ของ T-01 ก่อนดำเนินการ
+- ไฟล์ที่สร้าง/แก้: `tests/AC-ACCOUNT-01.test.cjs`, `specs/002-Register/tasks.md`; ตรวจโครงสร้างเดิมของ `features/account/index.html` และ `shared/styles.css` แล้วไม่ต้องแก้สองไฟล์ดังกล่าว
+- เพิ่ม test `test_T01_account_page_structure_and_shared_css` เพื่อตรวจเฉพาะ `#login-form`, `#register-form`, `#line-panel`, script `menu.js`, link ไป `../../shared/styles.css`, การมีอยู่ของ shared CSS และการไม่อ้าง React/Vite
+- ผล test: `node --test tests/AC-ACCOUNT-01.test.cjs` ผ่าน 1/1
+- เปลี่ยนสถานะเฉพาะ T-01 เป็น `เสร็จ รอทีมตรวจ`; ไม่ทดสอบการสมัครสมาชิกสำเร็จของ AC-ACCOUNT-01 และไม่เริ่ม task อื่น
+- สิ่งที่เกือบต้องเดา: ไม่มี; ยึด selector และ path ที่มีอยู่จริงในหน้า account และ plan.md
+
+---
+
+## 2569-10-26 คำสั่ง: /implement T-02 ของ specs/002-Register/tasks.md
+
+- ทีมอนุญาตให้ T-02 แตะ `specs/002-Register/tasks.md` และ `prompt-log.md` เพิ่มเติม และเพิ่มไฟล์ทั้งสองในช่อง “ไฟล์ที่แตะ” ของ T-02 ก่อนดำเนินการ
+- สร้าง/ปรับเฉพาะ `tests/AC-ACCOUNT-01.test.cjs` ถึง `tests/AC-ACCOUNT-06.test.cjs` ให้ตรวจ path, โครงสร้างหน้า account, asset `menu.js`/`shared/styles.css` และการค้นพบ test
+- ไม่ทดสอบการสมัครสมาชิก, login สำเร็จ, การจำลอง LINE หรือพฤติกรรมทางธุรกิจของ AC ใด ๆ
+- ผล test: `node --test tests/AC-ACCOUNT-*.test.cjs` ผ่าน 6/6
+- เปลี่ยนสถานะเฉพาะ T-02 เป็น `เสร็จ รอทีมตรวจ`; ไม่แก้ `spec.md`, `plan.md`, feature อื่น หรือ shared CSS
+- สิ่งที่เกือบต้องเดา: ไม่มี; ใช้ path และ selector ที่มีอยู่จริงใน `features/account/` และ `shared/`
+
+---
+
+## 2569-10-26 คำสั่ง: /implement T-03 ของ specs/002-Register/tasks.md
+
+- ทีมอนุญาตให้ T-03 แตะ `tests/AC-ACCOUNT-01.test.cjs`, `specs/002-Register/tasks.md` และ `prompt-log.md` เพิ่มเติม และเพิ่มไฟล์ดังกล่าวในช่อง “ไฟล์ที่แตะ” ของ T-03 ก่อนดำเนินการ
+- ตรวจ `features/account/menu.js` และพบว่า Mock Register Flow ตาม FR-01/FR-02/FR-04 ทำงานตามขอบเขตอยู่แล้ว จึงไม่ต้องแก้โค้ดใน `features/account/menu.js` หรือ `features/account/index.html`
+- เพิ่ม `test_AC_ACCOUNT_01_register_success` โดยจำลอง Given กรอก Email/password, When submit register form และ Then บัญชีถูกเพิ่มใน memory, แสดง “สมัครสมาชิกสำเร็จ”, เปิด flow ต่อ และระบุว่าเข้าสู่ระบบได้ทันที
+- ผล test: `node --test tests/AC-ACCOUNT-01.test.cjs` ผ่าน 2/2
+- เปลี่ยนสถานะเฉพาะ T-03 เป็น `เสร็จ รอทีมตรวจ`; ไม่เริ่ม T-04 และไม่ทดสอบ LINE
+- สิ่งที่เกือบต้องเดา: ไม่มี; ใช้ selector และข้อความที่มีอยู่จริงในหน้า account กับ menu.js
+
+---
+
+## 2569-10-26 คำสั่ง: /implement T-04 ของ specs/002-Register/tasks.md
+
+- ทีมอนุญาตให้ T-04 แตะ `tests/AC-ACCOUNT-02.test.cjs`, `specs/002-Register/tasks.md` และ `prompt-log.md` เพิ่มเติม และเพิ่มไฟล์ดังกล่าวในช่อง “ไฟล์ที่แตะ” ของ T-04 ก่อนดำเนินการ
+- ตรวจ `features/account/menu.js` และพบว่า Mock Login Flow ด้วยบัญชีตัวอย่างทำงานตาม FR-02/FR-03 อยู่แล้ว จึงไม่ต้องแก้ `features/account/menu.js` หรือ `features/account/index.html`
+- เพิ่ม `test_AC_ACCOUNT_02_login_success` โดยจำลอง Given มีบัญชีตัวอย่างและข้อมูลถูกต้อง, When submit login form และ Then แสดงสถานะเข้าสู่ระบบสำเร็จแบบจำลอง
+- ผล test: `node --test tests/AC-ACCOUNT-02.test.cjs` ผ่าน 2/2
+- เปลี่ยนสถานะเฉพาะ T-04 เป็น `เสร็จ รอทีมตรวจ`; ไม่เริ่ม T-05 และไม่ทดสอบ LINE
+- สิ่งที่เกือบต้องเดา: ไม่มี; ใช้บัญชีตัวอย่างและข้อความที่มีอยู่จริงใน `features/account/menu.js`
+
+---
+
+## 2569-10-26 คำสั่ง: /implement T-05 ของ specs/002-Register/tasks.md
+
+- ทีมอนุญาตให้ T-05 แตะ `tests/AC-ACCOUNT-03.test.cjs`, `specs/002-Register/tasks.md` และ `prompt-log.md` เพิ่มเติม และเพิ่มไฟล์ดังกล่าวในช่อง “ไฟล์ที่แตะ” ของ T-05 ก่อนดำเนินการ
+- ตรวจ `features/account/menu.js` และพบว่า validation ของ login/register และ duplicate check ทำงานตาม FR-01/FR-02/FR-04 อยู่แล้ว จึงไม่ต้องแก้ `features/account/menu.js` หรือ `features/account/index.html`
+- เพิ่ม `test_AC_ACCOUNT_03_login_invalid_input` เพื่อตรวจ login ว่าง/ไม่ตรงไม่เปิดสถานะสำเร็จและแสดง “กรุณากรอกข้อมูลให้ถูกต้อง”
+- เพิ่ม `test_AC_ACCOUNT_03_register_duplicate_identifier` เพื่อตรวจ Email ซ้ำไม่สร้างบัญชีและแสดง “อีเมล/เบอร์โทรศัพท์นี้ถูกใช้งานแล้ว”
+- ผล test: `node --test tests/AC-ACCOUNT-03.test.cjs` ผ่าน 3/3
+- เปลี่ยนสถานะเฉพาะ T-05 เป็น `เสร็จ รอทีมตรวจ`; ไม่เริ่ม T-06 และไม่ทดสอบ LINE
+- สิ่งที่เกือบต้องเดา: ไม่มี; ใช้ข้อความและ Mock Data ที่มีอยู่จริงใน `features/account/menu.js`
+
+---
+
+## 2569-10-26 คำสั่ง: /implement T-06 ของ specs/002-Register/tasks.md
+
+- ทีมอนุญาตให้ T-06 แตะ `tests/AC-ACCOUNT-05.test.cjs`, `tests/AC-ACCOUNT-06.test.cjs`, `specs/002-Register/tasks.md` และ `prompt-log.md` เพิ่มเติม และเพิ่มไฟล์ดังกล่าวในช่อง “ไฟล์ที่แตะ” ของ T-06 ก่อนดำเนินการ
+- ตรวจ `features/account/menu.js` และ `features/account/index.html` แล้วพบว่าปุ่มข้าม LINE และ failure fallback แบบจำลองทำงานตาม FR-05 และ NFR-REL-01 อยู่แล้ว จึงไม่ต้องแก้ production code
+- เพิ่ม `test_AC_ACCOUNT_05_skip_line_connection` เพื่อตรวจว่าการข้าม LINE ปิด panel และยังใช้งาน prototype ต่อได้
+- เพิ่ม `test_AC_ACCOUNT_06_line_connect_failure` เพื่อตรวจว่า failure แบบจำลองแสดงข้อความและไม่ขัดขวาง flow หลัก
+- ผล test: `node --test tests/AC-ACCOUNT-05.test.cjs tests/AC-ACCOUNT-06.test.cjs` ผ่าน 4/4
+- เปลี่ยนสถานะเฉพาะ T-06 เป็น `เสร็จ รอทีมตรวจ`; ไม่เริ่ม T-07 และไม่ทดสอบ LINE จริง
+- สิ่งที่เกือบต้องเดา: ไม่มี; ใช้ข้อความและ event handler ที่มีอยู่จริงใน `features/account/menu.js`
+
+---
+
+## 2569-10-26 คำสั่ง: /implement T-07 ของ specs/002-Register/tasks.md
+
+- ทีมอนุญาตให้ T-07 แตะ `specs/002-Register/tasks.md` และ `prompt-log.md` เพิ่มเติม และเพิ่มไฟล์ดังกล่าวในช่อง “ไฟล์ที่แตะ” ของ T-07 ก่อนดำเนินการ
+- เพิ่ม Mock LINE User ID `mock-line-user-001` ใน `features/account/menu.js` โดยเก็บใน Browser Memory และผูกกับ `activeAccount` ที่ Login/Register สำเร็จเท่านั้น
+- ปรับ `features/account/index.html` ให้ `#line-panel` มี state สำหรับ Mock LINE User ID ใน UI โดยไม่เชื่อมต่อ LINE API จริง
+- เพิ่ม `test_AC_ACCOUNT_04_line_connect_success` เพื่อตรวจ login ก่อนเชื่อมต่อ, สถานะ success และ Mock LINE User ID
+- ผล test: `node --test tests/AC-ACCOUNT-04.test.cjs` ผ่าน 2/2
+- เปลี่ยนสถานะเฉพาะ T-07 เป็น `เสร็จ รอทีมตรวจ`; ไม่เริ่ม T-08 และไม่ทำ Q-02/Q-03
+- สิ่งที่เกือบต้องเดา: ไม่มี; ใช้ Mock LINE User ID และเงื่อนไขการผูกบัญชีตามคำตอบ Q-01 ที่ทีมยืนยันแล้ว
+
+---
+
+## 2569-10-26 คำสั่ง: /implement T-08 ของ specs/002-Register/tasks.md
+
+- ทีมอนุญาตให้ T-08 แตะ `specs/002-Register/tasks.md` และ `prompt-log.md` เพิ่มเติม และเพิ่มไฟล์ดังกล่าวในช่อง “ไฟล์ที่แตะ” ของ T-08 ก่อนดำเนินการ
+- ตรวจ `features/account/menu.js` แล้วพบว่า failure handler ไม่สร้างหรือแก้ความสัมพันธ์กับ Mock LINE User ID และไม่กระทบสถานะ account success จึงไม่ต้องแก้ production code
+- ปรับ `test_AC_ACCOUNT_06_line_connect_failure` ให้ตรวจว่า failure ไม่สร้าง Mock LINE User ID ใหม่ โดย `#line-panel.dataset.lineUserId` ยังคงว่าง
+- ผล test: `node --test tests/AC-ACCOUNT-06.test.cjs` ผ่าน 2/2
+- เปลี่ยนสถานะเฉพาะ T-08 เป็น `เสร็จ รอทีมตรวจ`; ไม่เริ่ม T-09 หรือ T-10
+- สิ่งที่เกือบต้องเดา: ไม่มี; ใช้ failure behavior และ state ของ Mock LINE Connection ตามคำตอบ Q-01 ที่ทีมยืนยันแล้ว
+## 2569-10-26 09:39 คำสั่ง: /implement T-05 (เพิ่ม Automated Tests ปิด Coverage Gaps)
+
+- อ้างอิง: `specs/002-Register/spec.md` v3, `plan.md`, `tasks.md`, `rtm.md`, `AGENTS.md`
+- ไฟล์ Test ที่แก้:
+  - `tests/AC-ACCOUNT-01.test.cjs`
+  - `tests/AC-ACCOUNT-02.test.cjs`
+  - `tests/AC-ACCOUNT-03.test.cjs`
+  - `tests/AC-ACCOUNT-04.test.cjs`
+- ไฟล์เอกสารที่แก้หลัง Test ผ่าน:
+  - `specs/002-Register/rtm.md`
+  - `prompt-log.md`
+- เพิ่ม Test:
+  - `test_AC_ACCOUNT_01_register_phone_only_success`
+  - `test_AC_ACCOUNT_02_login_phone_only_account`
+  - `test_AC_ACCOUNT_03_register_duplicate_phone`
+  - `test_AC_ACCOUNT_04_line_requires_login_or_register`
+  - `test_AC_ACCOUNT_04_no_line_password_input_or_storage`
+- ไม่แก้ Production Code เพราะ behavior เดิมรองรับกรณีที่ต้องการทดสอบอยู่แล้ว
+- ผลทดสอบ: `node --test tests/AC-ACCOUNT-*.test.cjs` ผ่าน `18/18`
+- NFR-SEC-01 ยังระบุเป็นหลักฐานระดับ Mock Prototype และยังไม่ถือว่าผ่านครบ
+- ไม่ได้เพิ่ม Backend, Database, LINE API, OAuth หรือ Authentication จริง
+
+## 2569-10-27 คำสั่ง: /implement T-01 specs/007-StaffOrder/tasks.md
+
+- ไฟล์ระบบที่แก้: `backend/app/main.py`, `backend/app/routes/staff_orders.py`, `backend/app/middleware/auth_guard.py`, `backend/app/auth.py` (เพิ่มหลังทีมอนุญาต), `tests/test_staff_orders_require_staff.py`
+- ไฟล์ปิด task: `specs/007-StaffOrder/tasks.md` (เปลี่ยนสถานะ T-01 เป็น `เสร็จ รอทีมตรวจ`), `prompt-log.md`
+- เพิ่ม route `GET /api/staff/orders` และ Staff-only guard; เพิ่ม mock identity สำหรับ Staff ส่วน route ตอบ `501` อย่างชัดเจนจนกว่า T-02 จะทำ API อ่านรายการจริง
+- ผล test: `test_staff_orders_require_staff` ผ่าน 1/1; `test_AC_MENU_MGMT_13_non_admin_is_blocked` ผ่าน 1/1; `git diff --check` ผ่าน
+- สิ่งที่เกือบต้องเดา: ไม่มี Staff identity ใน mock auth เดิม; หยุดถามและทีมอนุญาตให้แก้ `backend/app/auth.py` ก่อนดำเนินการ
+- สิ่งที่ควรตรวจด้วยตา: ยืนยันว่า `X-User-Id: staff` เป็น identity จำลองที่เหมาะกับ prototype และยอมรับ `501` ชั่วคราวก่อน T-02
+- ไม่ได้เริ่ม task ถัดไป และไม่มีการ commit หรือ push
+
+## 2569-10-27 คำสั่ง: /implement T-02 specs/007-StaffOrder/tasks.md
+
+- ไฟล์ระบบที่แก้: `backend/app/routes/staff_orders.py`, `backend/app/services/staff_order_service.py`, `backend/app/config.py`
+- ไฟล์ test ที่แก้/สร้าง: `tests/test_AC_STAFF_ORDER_01_api_returns_staff_order_list.py`; แก้ assertion ใน `tests/test_staff_orders_require_staff.py` เพิ่มเติมหลังได้รับอนุญาตจากทีม เพราะ test เดิมคาด status 501 จาก placeholder ก่อน T-02
+- ไฟล์ปิด task: `specs/007-StaffOrder/tasks.md` (เปลี่ยนสถานะ T-02 เป็น `เสร็จ รอทีมตรวจ`), `prompt-log.md`
+- ทำ API `GET /api/staff/orders` จาก in-memory prototype store, กรอง Order เกิน 7 วันโดยใช้ `STAFF_ORDER_RETENTION_DAYS` ใน config; Staff guard จาก T-01 ยังคงครอบ route
+- ผล test: `test_AC_STAFF_ORDER_01_api_returns_staff_order_list` ผ่าน 1/1; `test_staff_orders_require_staff` ผ่าน 1/1; `test_AC_MENU_MGMT_13_non_admin_is_blocked` ผ่าน 1/1; `git diff --check` ผ่าน มี Starlette deprecation warning เรื่อง `httpx` จาก TestClient แต่ไม่มี test ล้มเหลว
+- สิ่งที่เกือบต้องเดา: backend ไม่มี Order storage จึงถามทีมและได้รับคำตอบให้ทำ in-memory prototype store ที่ test ป้อนข้อมูล ไม่เชื่อม database; ไม่ได้สร้าง seed orders เพิ่ม
+- มีการแก้ `tests/test_staff_orders_require_staff.py` เพิ่มเติมโดยได้รับอนุญาต เพื่อเปลี่ยน expected status ของ Staff จาก 501 เป็น 200; assertion non-Staff=403 และ unauthenticated=401 คงเดิม
+- ไม่ได้เริ่ม T-03 และไม่มีการ commit หรือ push
+
+## 2569-10-27 คำสั่ง: /implement T-03 specs/007-StaffOrder/tasks.md
+
+- ไฟล์ระบบที่แก้: `frontend/src/api/client.js`, `frontend/src/pages/StaffOrdersPage.jsx`, `frontend/src/App.jsx`
+- ไฟล์ test ที่สร้าง: `frontend/src/pages/StaffOrdersPage.test.jsx`
+- ไฟล์ปิด task: `specs/007-StaffOrder/tasks.md` (เปลี่ยนสถานะ T-03 เป็น `เสร็จ รอทีมตรวจ`), `prompt-log.md`
+- เพิ่ม `getStaffOrders()` ผ่าน API client, หน้าแสดงรายการที่ route `/staff/orders` และทดสอบด้วย client จำลองตาม AC-STAFF-ORDER-01
+- ผล test: `npm test -- --environment jsdom src/pages/StaffOrdersPage.test.jsx` ผ่าน 1/1; `npm run build` ผ่าน; `git diff --check` ผ่าน
+- รันทั้งชุด `npm test -- --environment jsdom` แล้ว 15 test เดิมใน 4 ไฟล์ล้มเหลวเพราะไม่มีการโหลด `src/test-setup.js` จึงไม่มี matcher `jest-dom`; test T-03 ผ่านในคำสั่ง focused และไม่แก้ config/test ที่อยู่นอก task
+- ติดตั้ง frontend dependencies ด้วย `npm ci` หลังทีมอนุญาต; พบ engine warnings จาก Node v22.15.0 และ audit รายงาน 6 vulnerabilities (3 moderate, 1 high, 2 critical)
+- สิ่งที่เกือบต้องเดา: route UI ให้เข้าโดยตรงที่ `/staff/orders` ซึ่งสอดคล้องกับ plan; ไม่มี mockup/UI ID จึงใช้ style/component ที่มีอยู่และแสดงหมายเลขรายการ Order ที่ API ส่งมา
+- สิ่งที่ควรตรวจด้วยตา: การเข้าหน้า `/staff/orders` ใน prototype และการแสดงเฉพาะ Order ID ในเฟสนี้; รายละเอียด/สถานะ/empty state อยู่ใน task เฟสถัดไป
+- ไม่ได้เริ่ม task ถัดไป และไม่มีการ commit หรือ push
+
+## 2569-10-27 คำสั่ง: /implement T-04 specs/007-StaffOrder/tasks.md
+
+- ไฟล์ระบบที่แก้: `backend/app/services/staff_order_service.py`; `backend/app/routes/staff_orders.py` มี route ที่ใช้ service อยู่แล้ว จึงไม่ต้องแก้
+- ไฟล์ test ที่สร้าง: `tests/test_AC_STAFF_ORDER_02_api_order_number_and_sequence.py`
+- ไฟล์ปิด task: `specs/007-StaffOrder/tasks.md` (เปลี่ยนสถานะ T-04 เป็น `เสร็จ รอทีมตรวจ`), `prompt-log.md`
+- เพิ่ม `order_number` โดยใช้ `order_id` และ `sequence_no` ตาม created_at จากเก่าสุดเป็น 1; จำกัด sequence ให้นับเฉพาะ Order ในช่วง 7 วัน และใช้ order_id เรียงน้อยไปมากเมื่อเวลาเท่ากัน ตามคำยืนยันของทีม
+- ไม่เปลี่ยนลำดับรายการที่ API ส่งกลับ; การจัดเรียง Order ใน response เป็น T-12
+- ผล test: `test_AC_STAFF_ORDER_02_api_order_number_and_sequence` ผ่าน 1/1; `test_AC_STAFF_ORDER_01_api_returns_staff_order_list` ผ่าน 1/1; `git diff --check` ผ่าน มี Starlette deprecation warning เกี่ยวกับ `httpx` จาก TestClient
+- สิ่งที่เกือบต้องเดา: รูปแบบหมายเลขและการคำนวณ sequence ไม่ได้กำหนดครบใน spec จึงถามทีม; ทีมยืนยันใช้ order_id เป็น order_number และ oldest-first ภายใน 7 วันพร้อม tie-break ด้วย order_id
+- สิ่งที่ควรตรวจด้วยตา: ตรวจสอบว่าการนับ sequence เริ่ม 1 จาก Order เก่าสุดในช่วง 7 วันและ tie-break ตาม order_id ตรงกับความคาดหวังทีม
+- ไม่ได้เริ่ม T-05 และไม่มีการ commit หรือ push
+
+## 2569-10-27 คำสั่ง: /implement T-05 specs/007-StaffOrder/tasks.md
+
+- ไฟล์ระบบที่แก้: `frontend/src/pages/StaffOrdersPage.jsx`
+- ไฟล์ test ที่สร้าง: `frontend/src/__tests__/StaffOrdersPage.test.jsx`
+- ไฟล์ปิด task: `specs/007-StaffOrder/tasks.md` (เปลี่ยนสถานะ T-05 เป็น `เสร็จ รอทีมตรวจ`), `prompt-log.md`
+- หน้า Staff แสดง `order_number` เป็นหมายเลข Order (fallback ไป `order_id` สำหรับ response จาก test/client เก่า) และแสดง `sequence_no` เป็นลำดับคิวเมื่อมีค่า ตาม FR-30
+- ผล test: `test_AC_STAFF_ORDER_02_show_order_number_and_sequence` ผ่าน 1/1; regression `test_AC_STAFF_ORDER_01_show_order_list_for_staff` ผ่าน 1/1; `git diff --check` ผ่าน
+- สิ่งที่เกือบต้องเดา: ไม่มี; T-04 และคำตอบทีมก่อนหน้าได้กำหนด `order_number`/`sequence_no` แล้ว
+- สิ่งที่ควรตรวจด้วยตา: ตรวจข้อความหมายเลข Order และลำดับคิวบนหน้า `/staff/orders` ให้เห็นชัดเจน
+- ไม่ได้เริ่ม T-06 และไม่มีการ commit หรือ push
+
+## 2569-10-27 คำสั่ง: /implement T-06 specs/007-StaffOrder/tasks.md
+
+- ไฟล์ระบบที่แก้: `backend/app/routes/staff_orders.py`, `backend/app/services/staff_order_service.py`
+- ไฟล์ test ที่สร้าง: `tests/test_AC_STAFF_ORDER_03_api_order_details.py`
+- ไฟล์ปิด task: `specs/007-StaffOrder/tasks.md` (เปลี่ยนสถานะ T-06 เป็น `เสร็จ รอทีมตรวจ`), `prompt-log.md`
+- เพิ่ม `GET /api/staff/orders/{order_id}` คืน `order_id` และรายการ `items` จากข้อมูล Order จริง โดยแต่ละรายการมี `order_item_id`, `menu_item_name`, `quantity`, `selected_options` ตามโมเดล OrderItem ใน plan
+- จำกัดการอ่าน Order ตามช่วงย้อนหลัง 7 วัน; router ยังคงใช้ Staff guard เดิม
+- กรณีไม่พบ Order หรืออยู่นอกช่วงย้อนหลัง 7 วัน ทีมยืนยันให้ตอบ HTTP 404
+- ผล test: `test_AC_STAFF_ORDER_03_api_order_details`, `test_order_details_are_staff_only_and_within_retention_window`, `test_AC_STAFF_ORDER_02_api_order_number_and_sequence`, `test_AC_STAFF_ORDER_01_api_returns_staff_order_list`, `test_staff_orders_require_staff` ผ่าน 5/5; มี Starlette deprecation warning เกี่ยวกับ `httpx` จาก TestClient
+- สิ่งที่เกือบต้องเดา: ผลตอบกลับเมื่อไม่พบ Order หรือ Order เกิน 7 วันไม่ได้ระบุใน spec จึงถามทีม; ทีมยืนยัน HTTP 404 ทั้งสองกรณี
+- สิ่งที่ควรตรวจด้วยตา: ตรวจว่า API ส่งรายการเครื่องดื่ม จำนวน และตัวเลือกตรงกับ Order ที่เลือก และไม่ส่งข้อมูลลูกค้าหรือข้อมูลนอก scope
+- ไม่ได้เริ่ม T-07 และไม่มีการ commit หรือ push
+
+## 2569-10-27 คำสั่ง: /implement T-07 specs/007-StaffOrder/tasks.md
+
+- ไฟล์ระบบที่แก้: `frontend/src/api/client.js`, `frontend/src/pages/StaffOrdersPage.jsx`
+- ไฟล์ test ที่แก้: `frontend/src/__tests__/StaffOrdersPage.test.jsx`
+- ไฟล์ปิด task: `specs/007-StaffOrder/tasks.md` (เปลี่ยนสถานะ T-07 เป็น `เสร็จ รอทีมตรวจ`), `prompt-log.md`
+- เพิ่ม `getStaffOrderDetails(orderId)` เรียก detail API ของ Staff ด้วย Staff header; หน้าแสดงปุ่มเปิด/ซ่อนรายละเอียด และเมื่อเปิดจะแสดงชื่อเครื่องดื่ม จำนวน และตัวเลือกจาก client โดยไม่แสดงรายละเอียดที่ไม่ตรงกับ Order ที่เลือก
+- ผล test: `test_AC_STAFF_ORDER_03_show_order_details_items_and_options` และ regression `test_AC_STAFF_ORDER_02_show_order_number_and_sequence` ผ่าน 2/2 ด้วย `npm test -- --environment jsdom src/__tests__/StaffOrdersPage.test.jsx`
+- ผล build: `npm run build` ผ่าน; `git diff --check` ผ่าน; ไม่พบปัญหาในไฟล์ที่แก้
+- หมายเหตุการรัน test: คำสั่งแรกที่ไม่กำหนด environment ล้มเหลวเพราะ Vitest ไม่ได้ตั้งค่า DOM (`document is not defined`); รันซ้ำโดยกำหนด `--environment jsdom` แล้วผ่าน
+- สิ่งที่เกือบต้องเดา: ไม่มี; T-07 ระบุการเลือก/เปิด Order และ T-06 กำหนด shape ของรายการรายละเอียดไว้แล้ว
+- สิ่งที่ควรตรวจด้วยตา: เปิดรายละเอียด Order หลายรายการและตรวจว่าชื่อเครื่องดื่ม จำนวน และตัวเลือกปรากฏใต้ Order ที่ถูกต้อง; ตรวจการเปิด/ซ่อนด้วยแป้นพิมพ์
+- ไม่ได้เริ่ม T-08 และไม่มีการ commit หรือ push
+
+## 2569-10-27 คำสั่ง: /implement T-08 specs/007-StaffOrder/tasks.md
+
+- ไฟล์ test ที่สร้าง: `tests/test_AC_STAFF_ORDER_04_api_current_status.py`
+- ไฟล์ปิด task: `specs/007-StaffOrder/tasks.md` (เปลี่ยนสถานะ T-08 เป็น `เสร็จ รอทีมตรวจ`), `prompt-log.md`
+- ตรวจพบว่า API `GET /api/staff/orders` ส่งค่า `status` จากข้อมูล Order ปัจจุบันอยู่แล้วผ่าน service `list_staff_orders()` และ route `get_staff_orders()`; จึงไม่เปลี่ยน route/service หรือรูปแบบ response เดิม
+- ผล test: `test_AC_STAFF_ORDER_04_api_current_status` ผ่าน 1/1; regression `python -m unittest discover -s tests -p 'test_AC_STAFF_ORDER_*.py' -v` ผ่าน 5/5; มี Starlette deprecation warning เกี่ยวกับ `httpx` จาก TestClient
+- สิ่งที่เกือบต้องเดา: ไม่มี; AC-STAFF-ORDER-04 ระบุให้ตรวจสถานะจากข้อมูล Order จริง และ API มีฟิลด์ `status` อยู่แล้ว
+- สิ่งที่ควรตรวจด้วยตา: ยืนยันค่า status ที่ API ส่งให้แต่ละ Order ตรงกับ Order ปัจจุบันก่อนเริ่ม T-09
+- ไม่ได้เริ่ม T-09 และไม่มีการ commit หรือ push
+
+<<<<<<< HEAD
+## 2569-10-27 คำสั่ง: /implement T-09 specs/007-StaffOrder/tasks.md
+
+- ไฟล์ระบบที่แก้: `frontend/src/pages/StaffOrdersPage.jsx`
+- ไฟล์ test ที่แก้: `frontend/src/__tests__/StaffOrdersPage.test.jsx`
+- ไฟล์ปิด task: `specs/007-StaffOrder/tasks.md` (เปลี่ยนสถานะ T-09 เป็น `เสร็จ รอทีมตรวจ`), `prompt-log.md`
+- เพิ่มการแสดง `status` ที่มาจาก client จำลองใต้หมายเลขและลำดับของ Order แต่ละรายการตาม FR-32 โดยไม่แปลงค่าหรือกำหนด mapping สถานะเพิ่มเติมที่ spec ไม่ได้ระบุ
+- เพิ่ม `test_AC_STAFF_ORDER_04_show_current_status_for_each_order` ครอบคลุม Order มากกว่าหนึ่งรายการที่มี status ต่างกัน
+- ผล test: `test_AC_STAFF_ORDER_04_show_current_status_for_each_order` พร้อม regression ของ AC-02 และ AC-03 ผ่าน 3/3 ด้วย `npm test -- --environment jsdom src/__tests__/StaffOrdersPage.test.jsx`
+- ผล build: `npm run build` ผ่าน; `git diff --check` ผ่าน; ไม่พบปัญหาในไฟล์ที่แก้
+- สิ่งที่เกือบต้องเดา: ไม่มี; แสดงค่า status ดิบที่ API ส่งมา โดยไม่สร้างชื่อ/สี mapping ของสถานะที่ไม่มีใน spec
+- สิ่งที่ควรตรวจด้วยตา: ตรวจว่าค่า status ใต้แต่ละ Order อ่านชัดเจนและตรงกับค่าปัจจุบันที่ระบบส่งมา
+- ไม่ได้เริ่ม T-10 และไม่มีการ commit หรือ push
+
+## 2569-10-27 คำสั่ง: /implement T-10 specs/007-StaffOrder/tasks.md
+
+- ไฟล์ test ที่สร้าง: `tests/test_AC_STAFF_ORDER_09_api_visible_order_fields.py`
+- ไฟล์ปิด task: `specs/007-StaffOrder/tasks.md` (เปลี่ยนสถานะ T-10 เป็น `เสร็จ รอทีมตรวจ`), `prompt-log.md`
+- ตรวจพบว่า `GET /api/staff/orders` ส่ง `order_number`, `sequence_no` และ `status` จาก `list_staff_orders()` อยู่แล้ว จึงไม่เปลี่ยน route/service หรือ response ที่ใช้อยู่
+- ผล test: `test_AC_STAFF_ORDER_09_api_visible_order_fields` ผ่าน 1/1; regression `python -m unittest discover -s tests -p 'test_AC_STAFF_ORDER_*.py' -v` ผ่าน 6/6; มี Starlette deprecation warning เกี่ยวกับ `httpx` จาก TestClient
+- สิ่งที่เกือบต้องเดา: ไม่มี; test ยืนยันหมายเลข ลำดับตาม created_at และ status ด้วยข้อมูล Order ที่กำหนดตรงใน fixture
+- สิ่งที่ควรตรวจด้วยตา: ตรวจ response ของ API ว่าค่า order_number, sequence_no และ status ตรงกับ Order และพร้อมให้หน้าแสดงได้
+- ไม่ได้เริ่ม T-11 และไม่มีการ commit หรือ push
+
+## 2569-10-27 คำสั่ง: /implement T-11 specs/007-StaffOrder/tasks.md
+
+- ไฟล์ระบบที่แก้: `frontend/src/pages/StaffOrdersPage.jsx`
+- ไฟล์ test ที่แก้: `frontend/src/__tests__/StaffOrdersPage.test.jsx`
+- ไฟล์ปิด task: `specs/007-StaffOrder/tasks.md` (เปลี่ยนสถานะ T-11 เป็น `เสร็จ รอทีมตรวจ`), `prompt-log.md`
+- ปรับ label “ลำดับคิว” และ “สถานะ” ให้เด่นด้วยตัวหนา และคงหมายเลข Order เป็น heading; เพิ่ม `test_AC_STAFF_ORDER_09_order_number_sequence_status_are_visible` ตรวจว่าหมายเลข ลำดับ และสถานะที่ client ส่งมาเห็นได้ใน Order แต่ละรายการ ตาม NFR-USE-01
+- ผล test: test AC-09 และ regression ของ AC-02, AC-03, AC-04 ผ่าน 4/4 ด้วย `npm test -- --environment jsdom src/__tests__/StaffOrdersPage.test.jsx`; `npm run build` ผ่าน; `git diff --check` ผ่าน; ไม่พบปัญหาในไฟล์ที่แก้
+- หมายเหตุการทดสอบ: รอบแรกมี 3 test ล้มเหลวจาก matcher แบบข้อความเดิมไม่รองรับ `<strong>` ที่ใช้เน้น label; ปรับ matcher ให้ตรวจข้อความเต็มใน paragraph และรันซ้ำจนผ่าน 4/4
+- สิ่งที่เกือบต้องเดา: ไม่มี; ไม่ทำ mapping ชื่อ สี หรือลำดับสถานะที่ spec ไม่ได้กำหนด
+- สิ่งที่ควรตรวจด้วยตา: ตรวจว่าหมายเลข Order, ลำดับคิว และสถานะอ่านแยกกันได้ชัดเจนและสัมพันธ์กับ Order แต่ละรายการ
+- ไม่ได้เริ่ม T-12 และไม่มีการ commit หรือ push
+
+## 2569-10-28 คำสั่ง: แก้ merge conflicts โดยยึด branch sunita
+
+- แก้ conflicts โดยคงแอปหลัก Menu/Order/Account ของ `sunita` และรวม Staff Orders เป็น route และ API แยก
+- เลือก dependency manifest/lockfile และ Vite config ฝั่ง `sunita`; สร้างไฟล์ใน `frontend/dist/` ใหม่จาก source
+- แก้ regression test ของ Staff Orders ให้ render `AppShell` ซึ่งเป็นตัวจัดการ route จริง แทนหน้า Account `App`
+- ผลตรวจ: Backend ผ่าน 62 tests; Frontend ผ่าน 104 tests; Frontend build ผ่าน; ไม่พบ conflict markers
+- ไม่มีการ commit หรือ push
+
+## 2569-10-28 คำสั่ง: /implement T-12 specs/007-StaffOrder/tasks.md
+
+- ไฟล์ระบบที่แก้: `backend/app/services/staff_order_service.py`
+- ไฟล์ test ที่สร้าง: `tests/test_AC_STAFF_ORDER_05_api_order_sorting.py`
+- ไฟล์ปิด task: `specs/007-StaffOrder/tasks.md` (เปลี่ยนสถานะ T-12 เป็น `เสร็จ รอทีมตรวจ`), `prompt-log.md`
+- ปรับ API ให้เรียง Order ที่ยังไม่สิ้นสุดตาม `created_at` ล่าสุดก่อน และวางสถานะ “รับสินค้าแล้ว”/“ยกเลิก” ไว้ท้ายรายการโดยยังคงส่งกลับ; `sequence_no` ยังคงอิงลำดับเวลาของ Order
+- ผล test: test AC-05 ใหม่และ regression รายการ/หมายเลข/สถานะผ่าน 5/5; มี Starlette deprecation warning เกี่ยวกับ `httpx` จาก TestClient
+- หมายเหตุการทดสอบ: รอบแรกพบกรณีเวลาเท่ากันต้องรักษาลำดับเดิมของข้อมูล; ปรับ sort ให้ stable แล้วรันซ้ำผ่าน
+- สิ่งที่เกือบต้องเดา: ไม่มี; ยึดค่า `picked_up` ที่ใช้ในระบบเดิมและชื่อสถานะภาษาไทยตาม spec
+- สิ่งที่ทีมควรตรวจด้วยตา: ตรวจว่า Order ปกติอยู่ก่อนรายการที่รับสินค้าแล้วหรือยกเลิก และรายการสิ้นสุดยังคงอยู่ท้ายรายการ
+- ไม่มีการ commit หรือ push
+
+## 2569-10-28 คำสั่ง: /implement T-13 specs/007-StaffOrder/tasks.md
+
+- ไฟล์ระบบที่แก้: `frontend/src/pages/StaffOrdersPage.jsx` (เพิ่มการอ้าง FR-33 ใน component comment; การ render ใช้ลำดับจาก API อยู่แล้ว)
+- ไฟล์ test ที่แก้: `frontend/src/__tests__/StaffOrdersPage.test.jsx`
+- ไฟล์ปิด task: `specs/007-StaffOrder/tasks.md` (เปลี่ยนสถานะ T-13 เป็น `เสร็จ รอทีมตรวจ`), `prompt-log.md`
+- เพิ่ม `test_AC_STAFF_ORDER_05_queue_is_sorted_by_created_time` โดย mock API ที่ส่ง Order ตามลำดับใหม่ก่อนและ Order สิ้นสุดไว้ท้าย แล้วตรวจลำดับ heading ที่ render จริง
+- ผล test: `npm --prefix frontend test -- --run src/__tests__/StaffOrdersPage.test.jsx` ผ่าน 6 tests
+- สิ่งที่เกือบต้องเดา: ไม่มี; ใช้ลำดับที่ API ส่งมาโดยไม่เพิ่ม logic sorting ฝั่งหน้าเว็บ
+- สิ่งที่ทีมควรตรวจด้วยตา: ตรวจว่าหน้าแสดง Order ใหม่ก่อน และ Order ที่ยกเลิก/รับสินค้าแล้วอยู่ท้ายตามลำดับของ API
+- ไม่มีการ commit หรือ push
+
+## 2569-10-28 คำสั่ง: /implement T-14 specs/007-StaffOrder/tasks.md
+
+- ไฟล์ test ที่สร้าง: `tests/test_AC_STAFF_ORDER_06_api_empty_orders.py`
+- ตรวจพบว่า route ส่งผลจาก `list_staff_orders()` โดยตรง และ service ส่ง `[]` เมื่อไม่มี Order อยู่แล้ว จึงไม่ต้องเปลี่ยนโค้ดใน `backend/app/routes/staff_orders.py` หรือ `backend/app/services/staff_order_service.py`
+- ไฟล์ปิด task: `specs/007-StaffOrder/tasks.md` (เปลี่ยนสถานะ T-14 เป็น `เสร็จ รอทีมตรวจ`), `prompt-log.md`
+- เพิ่ม test ยืนยันว่า Staff API ตอบ HTTP 200 พร้อม `[]` และไม่สร้างข้อมูลใน `STAFF_ORDER_STORE`
+- ผล test: test AC-06 และ regression ของ API รายการปกติ/การเรียง AC-05 ผ่าน 3/3; มี Starlette deprecation warning เกี่ยวกับ `httpx` จาก TestClient
+- สิ่งที่เกือบต้องเดา: ไม่มี; ยืนยันจาก route/service ปัจจุบันและ test ว่า API ส่งรายการว่างตามข้อมูลจริง
+- สิ่งที่ทีมควรตรวจด้วยตา: เรียก `GET /api/staff/orders` เมื่อไม่มี Order แล้วตรวจ response เป็น `[]`
+- ไม่มีการ commit หรือ push
+
+## 2569-10-28 คำสั่ง: /implement T-15 specs/007-StaffOrder/tasks.md
+
+- ไฟล์ระบบที่แก้: `frontend/src/pages/StaffOrdersPage.jsx`
+- ไฟล์ test ที่แก้: `frontend/src/__tests__/StaffOrdersPage.test.jsx`
+- ไฟล์ปิด task: `specs/007-StaffOrder/tasks.md` (เปลี่ยนสถานะ T-15 เป็น `เสร็จ รอทีมตรวจ`), `prompt-log.md`
+- เพิ่มข้อความสถานะ “ไม่มีรายการ Order ใหม่” เมื่อโหลดรายการสำเร็จและ API ส่ง array ว่าง โดยไม่เปลี่ยนสถานะ loading/error
+- เพิ่ม `test_AC_STAFF_ORDER_06_show_empty_state_when_no_new_orders` ตรวจข้อความ, `role="status"`, การไม่มี Order card และการเรียก API
+- ผล test: `npm --prefix frontend test -- --run src/__tests__/StaffOrdersPage.test.jsx` ผ่าน 7 tests
+- หมายเหตุการทดสอบ: รอบแรก matcher พยายามใช้ข้อความเป็น accessible name ของ role=status; เปลี่ยนเป็นตรวจข้อความและ role แยกกัน แล้วรันทดสอบผ่าน
+- สิ่งที่เกือบต้องเดา: ไม่มี; ใช้ข้อความ “ไม่มีรายการ Order ใหม่” ตามถ้อยคำใน spec/AC-STAFF-ORDER-06
+- สิ่งที่ทีมควรตรวจด้วยตา: จำลอง API ส่ง `[]` แล้วดูว่าหน้าแสดงสถานะว่างแทนรายการ Order
+- ไม่มีการ commit หรือ push
+
+## 2569-10-28 คำสั่ง: /implement T-16 specs/007-StaffOrder/tasks.md
+
+- ไฟล์ระบบที่แก้: `backend/app/routes/staff_orders.py`, `backend/app/services/staff_order_service.py`
+- ไฟล์ test ที่สร้าง: `tests/test_AC_STAFF_ORDER_07_api_load_failure.py`
+- ไฟล์ปิด task: `specs/007-StaffOrder/tasks.md` (เปลี่ยนสถานะ T-16 เป็น `เสร็จ รอทีมตรวจ`), `prompt-log.md`
+- เพิ่มการตรวจ required fields ของ Order list ทั้งชุดก่อนสร้าง response; เมื่อข้อมูลไม่สมบูรณ์ service ส่ง `StaffOrderLoadError` และ API ตอบ HTTP 503 โดยไม่ส่งข้อมูลบางส่วน
+- ผล test: test AC-07 ใหม่และ regression Staff API ทั้งหมดผ่าน 10/10; มี Starlette deprecation warning เกี่ยวกับ `httpx` จาก TestClient
+- สิ่งที่เกือบต้องเดา: spec ไม่กำหนด HTTP status code; ใช้ 503 เพื่อระบุว่า service ไม่สามารถโหลดรายการได้
+- สิ่งที่ทีมควรตรวจด้วยตา: กรณีข้อมูล Order ไม่ครบต้องได้ error response และไม่มีข้อมูล Order ที่สมบูรณ์บางส่วนปะปนใน response
+- ไม่มีการ commit หรือ push
+
+## 2569-10-28 คำสั่ง: /implement T-17 specs/007-StaffOrder/tasks.md
+
+- ไฟล์ระบบที่แก้: `frontend/src/api/client.js`, `frontend/src/pages/StaffOrdersPage.jsx`
+- ไฟล์ test ที่แก้: `frontend/src/__tests__/StaffOrdersPage.test.jsx`
+- ไฟล์ปิด task: `specs/007-StaffOrder/tasks.md` (เปลี่ยนสถานะ T-17 เป็น `เสร็จ รอทีมตรวจ`), `prompt-log.md`
+- เพิ่มปุ่ม “ลองใหม่” ใน error state; กดแล้วเรียก `getStaffOrders()` ซ้ำ แสดง loading state ระหว่างโหลด และไม่คงข้อมูล Order เดิมเมื่อเกิดข้อผิดพลาด
+- ผล test: `npm --prefix frontend test -- --run src/__tests__/StaffOrdersPage.test.jsx` ผ่าน 8 tests; `git diff --check` ผ่าน
+- สิ่งที่เกือบต้องเดา: ไม่มี; ใช้ข้อความและปุ่มตาม AC-STAFF-ORDER-07
+- สิ่งที่ทีมควรตรวจด้วยตา: ทำให้โหลดรายการล้มเหลวเพื่อยืนยันข้อความกับปุ่ม “ลองใหม่”; กดแล้วตรวจว่ารายการแสดงหลังโหลดสำเร็จ
+- ไม่มีการ commit หรือ push
+
+## 2569-10-28 คำสั่ง: เชื่อมรายการ Order ที่ชำระแล้วจาก Status ให้แสดงใน Staff Orders
+
+- คำสั่งจากผู้ใช้: “ไม่มีรายการข้อมูลจากฝั่ง Status ที่สั่งเครื่องดื่มมไปแล้วใน staff order ช่วยทำให้มันแสดงรายการที่สั่งแล้ว”
+- สาเหตุ: Staff API อ่านจาก `STAFF_ORDER_STORE` ในหน่วยความจำที่ไม่มีการเติมข้อมูลจากเส้นทางสั่งซื้อจริง ขณะที่ Status อ่าน Order ที่ชำระสำเร็จจาก SQLite
+- ไฟล์ระบบที่แก้: `backend/app/routes/staff_orders.py`, `backend/app/services/staff_order_service.py`, `frontend/src/api/client.js`, `frontend/src/pages/StaffOrdersPage.jsx`
+- ไฟล์ test ที่แก้/สร้าง: `frontend/src/api/client.test.js`, `frontend/src/__tests__/StaffOrdersPage.test.jsx`, `tests/test_AC_STAFF_ORDER_01_api_returns_staff_order_list.py`, `tests/test_AC_STAFF_ORDER_02_api_order_number_and_sequence.py`, `tests/test_AC_STAFF_ORDER_03_api_order_details.py`, `tests/test_AC_STAFF_ORDER_04_api_current_status.py`, `tests/test_AC_STAFF_ORDER_05_api_order_sorting.py`, `tests/test_AC_STAFF_ORDER_06_api_empty_orders.py`, `tests/test_AC_STAFF_ORDER_07_api_load_failure.py`, `tests/test_AC_STAFF_ORDER_09_api_visible_order_fields.py`, `tests/staff_order_test_support.py`, `tests/test_staff_order_payment_integration.py`
+- ไฟล์ build ที่ปรับ: `frontend/dist/index.html`, `frontend/dist/assets/index-DshWmZ8v.js` (แทน bundle JavaScript เดิมที่ build ไม่ใช้อีก)
+- ไฟล์เอกสารที่แก้: `prompt-log.md`
+- เชื่อม Staff API กับ Order/OrderItem/OrderOption ที่ชำระสำเร็จในฐานข้อมูลเดียวกับ Status; แสดงเฉพาะ Order ในช่วงย้อนหลัง 7 วันตาม Constraint และเปิดรายละเอียดโดยใช้ `order_date` เพื่อแยกหมายเลข Order ที่ซ้ำกันคนละวัน
+- ผล test: Staff backend และ flow ตั้งแต่สร้าง draft/ชำระจำลองจนถึง Staff API ผ่าน 10 tests; Order/Status regression ผ่าน 17 tests; Frontend client และ page ผ่าน 11 tests; `npm --prefix frontend run build` ผ่าน
+- หมายเหตุ: มี Starlette deprecation warnings ใน Backend tests และคำเตือน Vitest เรื่อง jsdom worker; ไม่มี test ล้มเหลว
+- สิ่งที่เกือบต้องเดา: ไม่พบประเด็นค้าง; ใช้ Constraint ใน Status ที่ไม่แสดง Order รอชำระ และข้อกำหนด Staff ที่อ่านข้อมูลล่าสุดจากระบบ
+- สิ่งที่ทีมควรตรวจด้วยตา: สร้าง Order จากหน้า Menu, จำลองชำระสำเร็จ, เปิด Staff Orders แล้วตรวจหมายเลข/สถานะ/รายละเอียดรายการและตัวเลือก
+- ไม่มีการ commit หรือ push
+
+## 2569-10-28 คำสั่ง: เพิ่มปุ่มอัปเดตสถานะ Order ในหน้า Staff Orders และเชื่อมหน้า Status
+
+- คำสั่งจากผู้ใช้: “เพิ่มปุ่มอัพเดทสถานะด้วย รอรับคำสั่งซื้อ กำลังจัดทำ พร้อมรับสินค้า รับสินค้าแล้ว ให้มันเชื่อมกับ หน้า status ด้วย”
+- อ่าน `specs/008-StaffOrderStatus/spec.md`, `specs/008-StaffOrderStatus/plan.md` และ `specs/005-Status/spec.md`; ยึดลำดับสถานะทางเดียวและไม่อนุญาตให้ข้าม/ย้อนสถานะตาม FR-25/FR-26
+- ผู้ใช้เลือกให้หน้า Status polling ทุก 5 วินาที และรอบนี้ทำเฉพาะซิงก์สถานะ ไม่รวม LINE notification
+- ไฟล์ระบบที่แก้: `backend/app/routes/staff_orders.py`, `backend/app/services/staff_order_service.py`, `frontend/src/api/client.js`, `frontend/src/pages/StaffOrdersPage.jsx`, `frontend/src/components/OrderStatusTimeline.jsx`
+- ไฟล์ test ที่แก้/สร้าง: `frontend/src/api/client.test.js`, `frontend/src/__tests__/StaffOrdersPage.test.jsx`, `frontend/src/components/OrderStatusTimeline.test.jsx`, `tests/test_AC_STATUS_01_staff_updates_order_status.py`, `tests/staff_order_test_support.py`
+- ไฟล์ build ที่ปรับ: `frontend/dist/index.html`, `frontend/dist/assets/index-Cw5vq3F6.js`
+- Staff API ตรวจสิทธิ์ staff, บันทึกเฉพาะ transition ถัดไปพร้อมเวลาเปลี่ยนใน transaction และส่งค่าให้ Status API อ่านจาก Order เดียวกัน; Staff UI แสดงสถานะไทยและปุ่มเปลี่ยนได้เฉพาะขั้นถัดไป
+- หน้า Status โหลดสถานะใหม่ทุก 5 วินาทีเมื่อเปิดรายละเอียด Order
+- ผล test: Staff/status backend regression 18 tests ผ่าน; frontend Staff/client/Status tests 27 tests ผ่าน; frontend build ผ่าน; `git diff --check` ผ่าน
+- หมายเหตุ: มี Starlette deprecation warning จาก TestClient และ Vitest แจ้ง jsdom worker overhead; ไม่กระทบผล test
+- สิ่งที่ยังไม่เชื่อม: LINE notification เมื่อเปลี่ยนเป็น “พร้อมรับสินค้า” ตาม FR-28 ยังไม่มี notification service implementation ใน codebase และผู้ใช้เลือกไม่รวมไว้ในรอบนี้
+- ไม่มีการ commit หรือ push
+
+## 2569-10-28 คำสั่ง: เปลี่ยนตัวควบคุมอัปเดตสถานะเป็น dropdown
+
+- คำสั่งจากผู้ใช้: “เอาให้เป็นปุ่มดรอปดาวตัวเลือก”
+- แก้ `frontend/src/pages/StaffOrdersPage.jsx` ให้ใช้ dropdown แทนปุ่มอัปเดตสถานะ; แสดงครบ 4 สถานะตามลำดับ โดยค่า current ถูกเลือกไว้และเปิดให้เลือกได้เฉพาะขั้นถัดไป การเลือกบันทึกทันทีตาม FR-27
+- แก้ `frontend/src/__tests__/StaffOrdersPage.test.jsx` ให้ตรวจรายการตัวเลือก, การปิดกั้นการข้ามขั้น, และการเปลี่ยนสถานะสำเร็จ
+- ผล test: `npm --prefix frontend test -- --run src/__tests__/StaffOrdersPage.test.jsx` ผ่าน 9 tests; `npm --prefix frontend run build` ผ่าน; `git diff --check` ผ่าน
+- ไม่มีการเดาหรือเปลี่ยนกติกา transition; ยึด FR-25/FR-26 จาก `specs/008-StaffOrderStatus/spec.md`
+- ไม่มีการ commit หรือ push
+
+## 2569-10-28 คำสั่ง: /testcases AC-STAFF-ORDER-01 specs/007-StaffOrder/spec.md
+
+- โหมด: ร่าง (ยังไม่มี `specs/007-StaffOrder/test-cases.md`)
+- เพิ่ม 3 แถวใน `specs/007-StaffOrder/test-cases.md`: `TC-STAFF-ORDER-01-1` ทางปกติ, `TC-STAFF-ORDER-01-2` ขอบกรณีมี Order 1 รายการ, `TC-STAFF-ORDER-01-3` ทางผิดกรณีไม่มี Order
+- ทั้งสามแถวสถานะ “ร่าง”; ยังไม่ได้เขียนหรือรัน test ตามขั้นตอนโหมดร่าง
+- ผล test: ไม่ได้รัน (รอทีมตรวจและอนุมัติ test cases)
+- Then กรณีไม่มี Order อ้างพฤติกรรมที่ระบุไว้ใน AC-STAFF-ORDER-06; ไม่พบ Then ที่ spec ไม่ได้บอก
+
+## 2569-10-28 คำสั่ง: /testcases AC-STAFF-ORDER-01 specs/007-StaffOrder/spec.md
+
+- โหมด: เขียน test (ทีมเปลี่ยนทั้ง 3 แถวเป็น “ใช้ได้”)
+- เพิ่ม test หน้าจอ 3 กรณีตาม `TC-STAFF-ORDER-01-1`, `TC-STAFF-ORDER-01-2`, `TC-STAFF-ORDER-01-3` ใน `frontend/src/__tests__/StaffOrdersPage.test.jsx`
+- ไม่เพิ่ม pytest ซ้ำ: API มี test อยู่แล้วใน `tests/test_AC_STAFF_ORDER_01_api_returns_staff_order_list.py` และ `tests/test_AC_STAFF_ORDER_06_api_empty_orders.py`; มีแผนรันทดสอบ backend ที่เกี่ยวข้องและ frontend
+- ผล test: รอผลการรันในรอบคำสั่งนี้
+- ผลสรุป: frontend เพิ่มจาก 9 เป็น 12 tests ในไฟล์ที่เกี่ยวข้อง (+3 ตามจำนวนแถว); `npm --prefix frontend test -- --run` ผ่าน 114 tests จาก 29 files
+- ผล pytest: `PYTHONPATH=.:backend python -m pytest -v` ผ่าน 97 tests และ 2 subtests (มี 3 warnings); การเรียก `pytest -v` ครั้งแรกจาก root เก็บ test ไม่สำเร็จเพราะ import path ไม่พบ `backend`
+- ระหว่างรอบแรกของ Vitest พบ selector ของ test กรณี empty state ระบุ role name ไม่ตรงกับ accessible name ของข้อความ จึงปรับ assertion ให้ตรวจข้อความและ `role="status"` ตามผลที่ spec กำหนด; รอบถัดมาผ่าน
+- `git diff --check` ผ่าน; ไม่มีการแก้โค้ดระบบ
+
+## 2569-10-28 คำสั่ง: /testcases AC-STAFF-ORDER-02 specs/007-StaffOrder/spec.md
+
+- โหมด: ร่าง (AC-STAFF-ORDER-02 ยังไม่มีแถวใน `test-cases.md`)
+- เพิ่ม 3 แถวสถานะ “ร่าง”: `TC-STAFF-ORDER-02-1` ทางปกติ, `TC-STAFF-ORDER-02-2` กรณีมี Order 1 รายการ, `TC-STAFF-ORDER-02-3` กรณีไม่มี Order
+- งาน T-04 และ T-05 ที่ตรวจ AC-STAFF-ORDER-02 มีสถานะ “เสร็จ” ใน `tasks.md`
+- ยังไม่ได้เขียนหรือรัน test ตามโหมดร่าง
+- ประเด็นที่ spec ไม่ได้ระบุ: เกณฑ์ที่วัดได้สำหรับคำว่า “อย่างชัดเจน” และกรณีไม่มี Order จะไม่มีหมายเลข/ลำดับให้แสดง (อ้าง empty state ตาม AC-STAFF-ORDER-06)
+- คำถามให้ทีมพิจารณา: ต้องการเกณฑ์การแสดงว่า “ชัดเจน” แบบใด และกรณี edge ควรทดสอบค่าหรือช่วงเฉพาะของหมายเลข/ลำดับหรือไม่ (FR-30 ไม่กำหนดค่าหรือช่วงตัวเลข)
+
+## 2569-10-28 คำสั่ง: /testcases AC-STAFF-ORDER-02 specs/007-StaffOrder/spec.md
+
+- โหมด: เขียน test (ทีมเปลี่ยนทั้ง 3 แถวเป็น “ใช้ได้”)
+- เพิ่ม test หน้าจอ 3 ตัวตาม `TC-STAFF-ORDER-02-1`, `TC-STAFF-ORDER-02-2`, `TC-STAFF-ORDER-02-3` ต่อท้าย `frontend/src/__tests__/StaffOrdersPage.test.jsx`
+- test ที่เพิ่มตรวจการแสดงหมายเลขและลำดับเมื่อมีหลาย Order, ตรวจทั้งสองค่าเมื่อมี Order เดียว, และตรวจ empty state เมื่อไม่มี Order; ไม่ทดสอบว่าความชัดเจนผ่านเกณฑ์เชิงปริมาณใด เพราะ spec ไม่ได้กำหนดเกณฑ์
+- แถว TC-STAFF-ORDER-02-1 และ TC-STAFF-ORDER-02-2 กำหนด “คน” เพิ่มเติม: ต้องให้ทีมตรวจการมองเห็น/ความชัดเจนบนหน้าจอจริง
+- ผลสรุป: `npm --prefix frontend test -- --run` ผ่าน 117 tests จาก 29 files; เพิ่มจากผลก่อนหน้าที่ 114 tests เท่ากับเพิ่ม 3 tests ตามจำนวนแถว
+- TC-STAFF-ORDER-02-1, TC-STAFF-ORDER-02-2 และ TC-STAFF-ORDER-02-3 ผ่าน; `git diff --check` ผ่าน
+- ไม่มีการรัน pytest เพราะแถว AC นี้กำหนดตรวจด้วย Vitest และคน; ไม่มีการแก้โค้ดระบบ
+
+## 2569-10-28 คำสั่ง: /testcases AC-STAFF-ORDER-03 specs/007-StaffOrder/spec.md
+
+- โหมด: ร่าง (AC-STAFF-ORDER-03 ยังไม่มีแถวใน `test-cases.md`)
+- เพิ่ม 4 แถวสถานะ “ร่าง”: `TC-STAFF-ORDER-03-1` ทางปกติ, `TC-STAFF-ORDER-03-2` กรณี Order มีเครื่องดื่ม 1 รายการ, `TC-STAFF-ORDER-03-3` กรณียังไม่ได้เลือกหรือเปิด Order, และ `TC-STAFF-ORDER-03-4` กรณีโหลดรายละเอียดไม่สำเร็จ
+- งาน T-06 และ T-07 ที่ตรวจ AC-STAFF-ORDER-03 มีสถานะ “เสร็จ” ใน `tasks.md`
+- ยังไม่ได้เขียนหรือรัน test ตามโหมดร่าง
+- ประเด็นที่ spec ไม่ได้ระบุ: ผลที่ต้องเกิดเมื่อพนักงานยังไม่ได้เลือกหรือเปิด Order; กรณีโหลดไม่สำเร็จใช้ Constraint ที่กำหนดว่าห้ามแสดงข้อมูลไม่สมบูรณ์หรือไม่ยืนยัน
+- `git diff --check` ผ่าน
+
+## 2569-10-28 คำสั่ง: /testcases AC-STAFF-ORDER-03 specs/007-StaffOrder/spec.md
+
+- โหมด: เขียน test (ทีมเปลี่ยนทั้ง 4 แถวเป็น “ใช้ได้”)
+- เพิ่ม automated test 3 ตัวใน `frontend/src/__tests__/StaffOrdersPage.test.jsx` ตาม `TC-STAFF-ORDER-03-1`, `TC-STAFF-ORDER-03-2` และ `TC-STAFF-ORDER-03-4`; TC-03-3 กำหนดตรวจด้วย “คน” จึงไม่เขียน test code
+- test ที่เพิ่มตรวจรายละเอียดหลายรายการ, รายการเดียวพร้อมจำนวนและตัวเลือก, และการไม่แสดงรายละเอียดที่โหลดไม่สำเร็จ
+- ผลสรุป: `npm --prefix frontend test -- --run` ผ่าน 120 tests จาก 29 files; เพิ่มจากก่อนหน้า 117 tests เป็น 120 tests (+3 ตามจำนวนแถวที่เขียนเป็น automated)
+- TC-STAFF-ORDER-03-1, TC-STAFF-ORDER-03-2 และ TC-STAFF-ORDER-03-4 ผ่าน; `git diff --check` ผ่าน; ไม่มีการรัน pytest เพราะแถวที่เขียนเป็น test หน้าจอ
+- ขั้นตอนให้คนลองตาม TC-STAFF-ORDER-03-3: Given พนักงานยังไม่ได้เลือกหรือเปิดดู Order; When ระบบโหลดรายละเอียด Order; Then spec ไม่ได้บอกว่าระบบต้องแสดงหรือดำเนินการอย่างไรเมื่อไม่มีการเลือกหรือเปิดดู Order — ขอให้ทีมกำหนดผลที่คาดหวังก่อนใช้เป็นเกณฑ์ตรวจ
+
+## 2569-10-28 คำสั่ง: /testcases AC-STAFF-ORDER-04 specs/007-StaffOrder/spec.md
+
+- โหมด: ร่าง (AC-STAFF-ORDER-04 ยังไม่มีแถวใน `test-cases.md`)
+- เพิ่ม 3 แถวสถานะ “ร่าง”: `TC-STAFF-ORDER-04-1` ทางปกติ, `TC-STAFF-ORDER-04-2` กรณีสถานะสิ้นสุด, `TC-STAFF-ORDER-04-3` กรณีไม่มีสถานะปัจจุบัน
+- งาน T-08 และ T-09 ที่ตรวจ AC-STAFF-ORDER-04 มีสถานะ “เสร็จ” ใน `tasks.md`
+- ยังไม่ได้เขียนหรือรัน test ตามโหมดร่าง
+- ประเด็นที่ spec ไม่ได้ระบุ: ผลที่ระบบต้องแสดงเมื่อ Order ไม่มีสถานะปัจจุบัน; กรณีสถานะ “รับสินค้าแล้ว” หรือ “ยกเลิก” อ้างอิง FR-32 และ Constraint ที่ระบุให้คงแสดง Order ไว้ท้ายรายการ
+- `git diff --check` ผ่าน
+=======
+- ไฟล์ที่สร้าง: frontend/src/components/MenuEditPanel.jsx, frontend/src/components/MenuEditPanel.test.jsx, tests/test_AC_MENU_MGMT_03_admin_can_edit_menu_details.py
+- ไฟล์ที่แก้: backend/app/routes/menu.py, backend/app/services/menu_service.py, frontend/src/pages/AdminMenuPage.jsx, frontend/src/styles.css, specs/009-MenuManagement/tasks.md
+- ผล test: `npm --prefix frontend test` ผ่าน 10 tests; `npm --prefix frontend run build` ผ่าน; `PYTHONPATH=. .venv/bin/python -m unittest discover -s tests -p 'test_AC_MENU_MGMT_*.py'` ผ่าน 10 tests; test เฉพาะ AC-MENU-MGMT-03 ผ่าน 1 test
+- Constraint ที่ทำให้เป็นจริง: PATCH route ตรวจและบันทึกราคา/รายละเอียดตาม FR-44/FR-47; `MenuEditPanel` จัดการ promotion ในหน้าเดียวกับเมนูตาม ASM-07; หน้า Admin แทนรายการด้วยข้อมูลล่าสุดหลังบันทึกสำเร็จ
+- ขอบเขต: ยังไม่ทำ status change หรือ validation วันเวลาโปรโมชั่น เพราะเป็น T-07; promotion รับและแก้ไขฟิลด์ได้ แต่ validation ISO 8601/timezone และ end >= start ให้ T-07 รับผิดชอบ
+- สิ่งที่เกือบต้องเดาแต่ถามแทน: ขออนุญาตเชื่อม `AdminMenuPage`, เพิ่ม tests, และเลือกให้ T-06 แก้ฟิลด์ promotion โดยไม่ย้าย validation วันเวลาเข้ามาซ้ำกับ T-07
+- หมายเหตุ: backend test แสดง StarletteDeprecationWarning เรื่อง `httpx` แต่ test ผ่าน
+- สถานะ task: เสร็จ รอทีมตรวจ
+- แก้ไขส่วนลดให้คำนวณราคาหลังลดและปฏิเสธค่าติดลบ/ส่วนลดเกินราคา รวมทั้งเพิ่ม confirmation ตอนเปลี่ยนเป็น “หมด” และ “เปิดขาย”
+- ปรับ date-time picker ไม่ให้เลือกวันเวลาในอดีต แสดงข้อความ `กรุณาเลือกวัน...` เมื่อยังไม่เลือก และเพิ่มการตรวจสอบซ้ำฝั่ง API
+- แก้การแจ้งเตือนก่อนบันทึกโปรโมชั่น: ต้องเลือกวันเริ่มต้น/สิ้นสุดให้ครบ และวันสิ้นสุดต้องไม่ก่อนวันเริ่มต้น พร้อมกำหนด min ของวันสิ้นสุดตามวันเริ่มต้น
+- แก้ native date-time popup ภาษาอังกฤษที่ทำให้หน้าจอเพี้ยน โดยย้ายการตรวจวันย้อนหลัง/วันสิ้นสุดก่อนวันเริ่มต้นมาไว้ใน onChange และแสดงข้อความภาษาไทยในฟอร์ม
+- เพิ่ม validation ให้โปรโมชั่นต้องมีชื่อก่อนจึงจะใช้ส่วนลดได้ ทั้ง frontend และ backend
+- เพิ่มปุ่ม `ยกเลิก` ในฟอร์มเพิ่มเมนู โดยยกเลิกจะปิดฟอร์มและไม่ส่งข้อมูลบันทึก
+- จัดปุ่ม `ยกเลิก` ให้อยู่ข้างปุ่ม `บันทึกเมนู` ในส่วนท้ายฟอร์ม
+
+---
+
+## 2569-10-27 09:16 คำสั่ง: /testcases AC-MENU-MGMT-01 specs/009-MenuManagement/
+
+- โหมด: ร่าง
+- TC ID ที่เสนอ: TC-MENU-MGMT-01-1, TC-MENU-MGMT-01-2, TC-MENU-MGMT-01-3
+- ผล test: ยังไม่เขียนโค้ด test และยังไม่ได้รัน เนื่องจากแถวอยู่สถานะ "ร่าง"
+- ข้อสังเกต: กรณีไม่มีรายการเมนูใน TC-MENU-MGMT-01-2 ไม่มีผลลัพธ์เฉพาะกรณีระบุไว้ใน spec
+
+---
+
+## 2569-10-27 09:23 คำสั่ง: /testcases AC-MENU-MGMT-01 specs/009-MenuManagement/
+
+- โหมด: เขียน Automated Tests จากแถวสถานะ "ใช้ได้"
+- TC ที่เขียน: TC-MENU-MGMT-01-1, TC-MENU-MGMT-01-2, TC-MENU-MGMT-01-3
+- ไฟล์ที่แก้: frontend/src/pages/AdminMenuPage.test.jsx, tests/test_AC_MENU_MGMT_13_non_admin_is_blocked.py
+- ผล `npm --prefix frontend test`: ผ่าน 23/23 tests
+- ผล `PYTHONPATH=. pytest -v`: ผ่าน 19/19 tests; มี StarletteDeprecationWarning เรื่อง `httpx` แต่ไม่กระทบผล test
+- หมายเหตุ: คำสั่ง `npm test` จาก root ใช้ไม่ได้เนื่องจากไม่มี `package.json` ที่ root; รันด้วยคำสั่งตามโครงสร้างจริงของโปรเจกต์แทน
+
+---
+
+## 2569-10-27 09:26 คำสั่ง: /testcases AC-MENU-MGMT-02 specs/009-MenuManagement/
+
+- โหมด: ร่าง
+- TC ID ที่เสนอ: TC-MENU-MGMT-02-1, TC-MENU-MGMT-02-2, TC-MENU-MGMT-02-3
+- ผล test: ยังไม่เขียนโค้ด test และยังไม่ได้รัน เนื่องจากแถวอยู่สถานะ "ร่าง"
+- ข้อสังเกต: กรณีข้อมูลจำเป็นไม่ครบใน TC-MENU-MGMT-02-3 มีผลลัพธ์เฉพาะอยู่ใน FR-46 และ AC-MENU-MGMT-05 ไม่ได้ระบุซ้ำโดยตรงใน AC-MENU-MGMT-02
+
+---
+
+## 2569-10-27 09:28 คำสั่ง: /testcases AC-MENU-MGMT-02 specs/009-MenuManagement/
+
+- โหมด: เขียน Automated Tests จากแถวสถานะ "ใช้ได้"
+- TC ที่เขียน: TC-MENU-MGMT-02-1, TC-MENU-MGMT-02-2, TC-MENU-MGMT-02-3
+- ไฟล์ที่แก้: frontend/src/pages/AdminMenuPage.test.jsx
+- ผล `npm --prefix frontend test`: ผ่าน 26/26 tests
+
+---
+
+## 2569-10-27 09:30 คำสั่ง: /testcases AC-MENU-MGMT-03 specs/009-MenuManagement/
+
+- โหมด: ร่าง
+- TC ID ที่เสนอ: TC-MENU-MGMT-03-1, TC-MENU-MGMT-03-2, TC-MENU-MGMT-03-3
+- ผล test: ยังไม่เขียนโค้ด test และยังไม่ได้รัน เนื่องจากแถวอยู่สถานะ "ร่าง"
+- ข้อสังเกต: spec ไม่ได้ระบุผลลัพธ์เฉพาะเมื่อแก้ไขเพียงรายการเดียวหรือเมื่อไม่มีเมนูให้แก้ไข
+
+---
+
+## 2569-10-27 09:33 คำสั่ง: /testcases AC-MENU-MGMT-03 specs/009-MenuManagement/
+
+- โหมด: เขียน Automated Tests จากแถวสถานะ "ใช้ได้"
+- TC ที่เขียน: TC-MENU-MGMT-03-1, TC-MENU-MGMT-03-2, TC-MENU-MGMT-03-3
+- ไฟล์ที่แก้: frontend/src/pages/AdminMenuPage.test.jsx, tests/test_AC_MENU_MGMT_03_admin_can_edit_menu_details.py
+- ผล `npm --prefix frontend test`: ผ่าน 28/28 tests
+- ผล `PYTHONPATH=. pytest -v`: ผ่าน 20/20 tests; มี StarletteDeprecationWarning เรื่อง `httpx` แต่ไม่กระทบผล test
+- หมายเหตุ: TC-MENU-MGMT-03-3 ไม่มี assert เนื่องจาก spec ไม่ได้กำหนดผลลัพธ์ของการแก้ไขเมนูที่ไม่มีอยู่
+
+---
+
+## 2569-10-27 09:37 คำสั่ง: /testcases AC-MENU-MGMT-04 specs/009-MenuManagement/
+
+- โหมด: ร่าง
+- TC ID ที่เสนอ: TC-MENU-MGMT-04-1, TC-MENU-MGMT-04-2, TC-MENU-MGMT-04-3
+- ผล test: ยังไม่เขียนโค้ด test และยังไม่ได้รัน เนื่องจากแถวอยู่สถานะ "ร่าง"
+- ข้อสังเกต: spec ไม่ได้ระบุผลลัพธ์เฉพาะเมื่อไม่มีเมนูให้เปลี่ยนสถานะ
+
+---
+
+## 2569-10-27 09:41 คำสั่ง: /testcases AC-MENU-MGMT-05 specs/009-MenuManagement/
+
+- โหมด: ร่าง
+- TC ID ที่เสนอ: TC-MENU-MGMT-05-1, TC-MENU-MGMT-05-2, TC-MENU-MGMT-05-3
+- ผล test: ยังไม่เขียนโค้ด test และยังไม่ได้รัน เนื่องจากแถวอยู่สถานะ "ร่าง"
+- ข้อสังเกต: ผลลัพธ์กรณีข้อมูลถูกต้องใน TC-MENU-MGMT-05-2 อ้างอิง AC-MENU-MGMT-06 และ FR-43 เนื่องจาก AC-MENU-MGMT-05 ระบุผลลัพธ์เมื่อข้อมูลไม่ถูกต้องเป็นหลัก
+
+---
+
+## 2569-10-27 09:39 คำสั่ง: /testcases AC-MENU-MGMT-04 specs/009-MenuManagement/
+
+- โหมด: เขียน Automated Tests จากแถวสถานะ "ใช้ได้"
+- TC ที่เขียน: TC-MENU-MGMT-04-1, TC-MENU-MGMT-04-2, TC-MENU-MGMT-04-3
+- ไฟล์ที่แก้: frontend/src/components/StatusToggle.test.jsx, tests/test_AC_MENU_MGMT_04_admin_can_change_status.py
+- ผล `npm --prefix frontend test`: ผ่าน 30/30 tests
+- ผล `PYTHONPATH=. pytest -v`: ผ่าน 21/21 tests; มี StarletteDeprecationWarning เรื่อง `httpx` แต่ไม่กระทบผล test
+- หมายเหตุ: TC-MENU-MGMT-04-3 ไม่มี assert เนื่องจาก spec ไม่ได้กำหนดผลลัพธ์ของการเปลี่ยนสถานะเมนูที่ไม่มีอยู่
+>>>>>>> origin/feature-MenuManagement
+
+---
+
+## 2569-10-28 09:40 คำสั่ง: /testcases AC-STAFF-ORDER-07 specs/007-StaffOrder/
+
+- โหมด: ร่าง
+- TC ที่เสนอ: TC-STAFF-ORDER-07-1, TC-STAFF-ORDER-07-2, TC-STAFF-ORDER-07-3
+- ผล test: ยังไม่เขียนโค้ด test และยังไม่ได้รัน เนื่องจากแถวอยู่สถานะ "ร่าง"
+- ข้อสังเกต: spec ระบุ "แสดงข้อความว่าไม่สามารถโหลดรายการ Order ได้ และมีปุ่ม ลองใหม่" แต่ไม่ได้ระบุว่าหลังโหลดล้มเหลวแล้วมีข้อมูลเก่าเดิมควรคงแสดงต่อ หรือควรล้างข้อมูล ดังนั้น TC-STAFF-ORDER-07-2 จึงถูกค้างไว้เป็นรอ Q-xx; TC-STAFF-ORDER-07-3 ใช้เงื่อนไขว่าข้อมูลที่กลับมามีส่วนที่ไม่สมบูรณ์ และระบบควรไม่แสดงข้อมูลนั้น แต่ยังต้องการการยืนยันจากทีมว่าเป็นข้อกำหนด หรือแยกเป็น Open Question
+
+---
+
+## 2569-10-28 14:26 คำสั่ง: /testcases AC-STAFF-ORDER-07 specs/007-StaffOrder/spec.md
+
+- โหมด: ร่าง
+- TC ที่พบในตาราง: TC-STAFF-ORDER-07-1, TC-STAFF-ORDER-07-2, TC-STAFF-ORDER-07-3
+- สถานะ: ทั้งสามแถวอยู่ในสถานะ "ร่าง" ไม่ใช่ "ใช้ได้"
+- ผล test: ยังไม่เขียนโค้ด test และยังไม่ได้รัน เนื่องจากต้องมีแถวสถานะ "ใช้ได้" ก่อน
+- ข้อสังเกต: AC ระบุว่าต้องแสดงข้อความผิดพลาดพร้อมปุ่ม “ลองใหม่” แต่ยังไม่มีความชัดเจนว่าเมื่อมีข้อมูลเก่าก่อนหน้าและโหลดใหม่ล้มเหลวควรคงข้อมูลเก่า หรือล้างข้อมูล ดังนั้นคงค้างเป็นรอ Q-xx จนกว่าทีมจะตรวจแถวและยืนยัน
+
+---
+
+## 2569-10-28 14:28 คำสั่ง: /testcases AC-STAFF-ORDER-08 specs/007-StaffOrder/spec.md
+
+- โหมด: ร่าง
+- TC ที่เสนอ: TC-STAFF-ORDER-08-1, TC-STAFF-ORDER-08-2, TC-STAFF-ORDER-08-3
+- ผล test: ยังไม่เขียนโค้ด test และยังไม่ได้รัน เนื่องจากแถวอยู่สถานะ "ร่าง"
+- ข้อสังเกต: AC-STAFF-ORDER-08 เป็น NFR performance และ spec ระบุเฉพาะ “ภายในเวลาที่เหมาะสมต่อการปฏิบัติงาน” แต่ไม่ได้กำหนดค่ามาตรฐานเวลา / benchmark / การจัดการเมื่อโหลดช้า; จึงค้างเป็นรอ Q-xx เพื่อให้ทีมกำหนด threshold หรือทางเลือกการจัดการผลลัพธ์ก่อนเขียน test
+- หมายเหตุ: tasks.md ระบุว่า AC-STAFF-ORDER-08 ไม่รวมใน prototype และไม่มี task ที่ทำให้จริง จึงคงเป็น Draft เท่านั้นจนกว่าทีมจะยืนยันขอบเขตใหม่
+
+---
+
+## 2569-10-28 14:29 คำสั่ง: /testcases AC-STAFF-ORDER-08 specs/007-StaffOrder/spec.md
+
+- โหมด: ร่าง
+- TC ที่เสนอ: TC-STAFF-ORDER-08-1, TC-STAFF-ORDER-08-2, TC-STAFF-ORDER-08-3
+- สถานะ: แถวทั้งหมดยังเป็น "ร่าง" ไม่ใช่ "ใช้ได้"
+- ผล test: ยังไม่เขียนโค้ด test และยังไม่ได้รัน เนื่องจากต้องมีแถวสถานะ "ใช้ได้" ก่อน
+- ข้อสังเกต: AC-STAFF-ORDER-08 เป็น NFR performance ที่ระบุเฉพาะคำว่า “ภายในเวลาที่เหมาะสมต่อการปฏิบัติงาน” แต่ไม่มี threshold / benchmark / outcome ที่ชัดเจนใน spec; จึงยังต้องถามทีมต่อก่อนยอมรับ test case
+
+---
+
+## 2569-10-28 14:31 คำสั่ง: /testcases AC-STAFF-ORDER-09 specs/007-StaffOrder/spec.md
+
+- โหมด: ร่าง
+- TC ที่เสนอ: TC-STAFF-ORDER-09-1, TC-STAFF-ORDER-09-2, TC-STAFF-ORDER-09-3
+- ผล test: ยังไม่เขียนโค้ด test และยังไม่ได้รัน เนื่องจากแถวอยู่สถานะ "ร่าง"
+- ข้อสังเกต: AC-STAFF-ORDER-09 ระบุชัดว่า "หมายเลข Order ลำดับ และสถานะต้องสามารถมองเห็นและระบุได้อย่างชัดเจน" แต่ spec ไม่ได้กำหนดว่าควรแสดงอย่างไรเมื่อ Order ขาดข้อมูลสำคัญอย่างใดอย่างหนึ่ง จึงค้างเป็นรอ Q-xx และต้องให้ทีมตรวจแถวก่อนเปลี่ยนเป็น "ใช้ได้"
+
+---
+
+## 2569-10-28 14:33 คำสั่ง: /verify specs/007-StaffOrder/spec.md
+
+- โหมด: ตรวจ requirement แบบตามรอยไปข้างหน้าและย้อนกลับ
+- ผล test: Backend 62 ผ่าน, Frontend 120 ผ่าน, รวม 182 ผ่าน 0 ไม่ผ่าน
+- จำนวนแถวตามรอยไปข้างหน้า: ครบ 6, ยังไม่ถึง 1, รอ 0, ช่องโหว่ 0
+- ข้อค้นพบ: ไม่มีข้อค้นพบใหม่
+- ไฟล์ที่สร้าง: specs/007-StaffOrder/rtm.md
+
+---
+
+## 2569-10-28 15:55 คำสั่ง: /testcases AC-MENU-03 specs/001-Menu/spec.md
+
+- โหมด: ร่าง
+- TC ที่เสนอ: TC-MENU-03-1, TC-MENU-03-2, TC-MENU-03-3
+- ผล: เพิ่มแถวร่างใน `specs/001-Menu/test-cases.md` สำหรับ AC-MENU-03 และหยุดก่อนเขียนโค้ด test เพราะแถวยังอยู่ในสถานะ "ร่าง"
+- สถานะ: แถวทั้งสามยังเป็น "ร่าง" ไม่ได้เปลี่ยนเป็น "ใช้ได้" และยังไม่ได้รัน test หรือเขียนโค้ด test
+- หมายเหตุ: AC-MENU-03 ระบุชัดเจนว่าเมื่อค้นหาจากชื่อเมนู ต้องใช้ partial match แบบไม่แยกตัวพิมพ์เล็ก/ใหญ่ และเมื่อไม่พบรายการต้องแสดงข้อความ “ไม่พบเมนู”; อย่างไรก็ตาม ทีมยังต้องตรวจแถวและเปลี่ยนสถานะเป็น "ใช้ได้" ก่อน จากนั้นจึงสั่ง /testcases อีกครั้งเพื่อเริ่มเขียน test ตามแถวที่ตรวจแล้ว
+
+---
+
+## 2569-10-28 15:28 คำสั่ง: /testcases AC-MENU-03 specs/001-Menu/spec.md
+
+- โหมด: ร่าง
+- TC ที่เสนอ: TC-MENU-03-1, TC-MENU-03-2, TC-MENU-03-3
+- ผล: ตรวจพบว่า `specs/001-Menu/test-cases.md` มีแถวสำหรับ AC-MENU-03 แต่ทั้งหมดอยู่ในสถานะ "ร่าง" ดังนั้นจึงหยุดตามโหมดร่างของ /testcases
+- สถานะ: ยังไม่เขียนโค้ด test และยังไม่รัน test เนื่องจากต้องตรวจแถวและเปลี่ยนสถานะเป็น "ใช้ได้" ก่อน
+- ข้อสังเกต: AC-MENU-03 ระบุให้ค้นหาแบบ partial match ไม่แยกตัวพิมพ์เล็ก/ใหญ่ และแสดงข้อความ “ไม่พบเมนู” เมื่อไม่พบรายการ; แต่สิ่งที่ยังขาดคือการตรวจความถูกต้องของแถวในตารางและการยืนยันสถานะ "ใช้ได้" จากทีม
+- รายงาน: ตรวจแถวในตาราง แก้ได้ตามต้องการ แล้วเปลี่ยนสถานะเป็น "ใช้ได้" ก่อน จากนั้นสั่ง /testcases อีกครั้ง

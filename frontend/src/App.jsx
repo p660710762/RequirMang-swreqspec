@@ -130,7 +130,12 @@ export function useAccountPrototypeState() {
 }
 
 // รองรับ FR-02 และ NFR-USE-01: แสดงโครงหน้า Login/Register หน้าเดียว
-export default function App() {
+export default function App({
+  pendingSelection = null,
+  onAuthenticated = () => {},
+  onLoginFailed = () => {},
+  onCancelLogin = () => {},
+}) {
   const {
     accounts,
     setAccounts,
@@ -162,6 +167,7 @@ export default function App() {
     if (!result.account) {
       setRegisterError(result.error);
       setRegisterSuccess('');
+      onLoginFailed();
       return;
     }
 
@@ -169,6 +175,7 @@ export default function App() {
     setCurrentAccount(result.account);
     setRegisterError('');
     setRegisterSuccess('สมัครสมาชิกสำเร็จ และเข้าสู่ระบบแล้ว');
+    onAuthenticated(result.account);
   };
 
   const handleLogin = (event) => {
@@ -182,11 +189,13 @@ export default function App() {
       setCurrentAccount(account);
       setLoginSuccess('เข้าสู่ระบบสำเร็จ');
       setLoginError('');
+      onAuthenticated(account);
       return;
     }
 
     setLoginSuccess('');
     setLoginError('กรุณากรอกข้อมูลให้ถูกต้อง');
+    onLoginFailed();
   };
 
   const handleMockLineConnect = () => {
@@ -214,7 +223,6 @@ export default function App() {
     setLineError(result.error);
   };
 
-  
   return (
     <main className="account-page">
       <div className="account-container">
@@ -227,6 +235,18 @@ export default function App() {
               : 'ยังไม่มีผู้ใช้ปัจจุบัน'}
           </p>
         </header>
+
+        {pendingSelection && (
+          <section className="account-card" aria-label="เมนูที่เลือกไว้">
+            <p>
+              กรุณาเข้าสู่ระบบก่อนเพิ่ม <strong>{pendingSelection.name}</strong> เข้า Order
+            </p>
+            <p>เข้าสู่ระบบสำเร็จแล้วระบบจะนำเมนูนี้ไปยัง Order</p>
+            <button className="account-button" type="button" onClick={onCancelLogin}>
+              ยกเลิกและกลับไปหน้าเมนู
+            </button>
+          </section>
+        )}
 
         {currentAccount && (
           <section className="account-card" aria-labelledby="line-heading">

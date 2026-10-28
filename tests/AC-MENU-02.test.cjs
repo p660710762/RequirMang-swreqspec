@@ -5,7 +5,7 @@ const { runInNewContext } = require('node:vm');
 const { test } = require('node:test');
 
 const appScript = readFileSync(resolve(__dirname, '../app.js'), 'utf8');
-const indexHtml = readFileSync(resolve(__dirname, '../index.html'), 'utf8');
+const indexHtml = readFileSync(resolve(__dirname, '../shared/index.html'), 'utf8');
 const menuListElement = { innerHTML: '' };
 
 runInNewContext(appScript, {
@@ -29,7 +29,7 @@ function getMenuItemMarkup(name) {
 
 test('AC-MENU-02: หน้าเมนูโหลด app.js และมีพื้นที่แสดงรายการเมนู', () => {
   assert.match(indexHtml, /<div id="menu-list"/);
-  assert.match(indexHtml, /<script src="app\.js"><\/script>/);
+  assert.match(indexHtml, /<script src="\.\.\/app\.js"><\/script>/);
   assert.match(menuListElement.innerHTML, /<article class="menu-item"/);
 });
 
