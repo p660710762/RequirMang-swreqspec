@@ -200,10 +200,10 @@ export default function AppShell() {
         </button>
         <button
           type="button"
-          className={page === 'admin' ? 'app-switcher__button active' : 'app-switcher__button'}
-          onClick={() => handleNavigate('admin')}
+          className={page === 'account' ? 'app-switcher__button active' : 'app-switcher__button'}
+          onClick={() => handleNavigate('account')}
         >
-          Admin Menu
+          Login / Register
         </button>
         <button
           type="button"
@@ -211,6 +211,13 @@ export default function AppShell() {
           onClick={() => handleNavigate('staffOrders')}
         >
           Staff Orders
+        </button>
+        <button
+          type="button"
+          className={page === 'admin' ? 'app-switcher__button active' : 'app-switcher__button'}
+          onClick={() => handleNavigate('admin')}
+        >
+          Admin Menu
         </button>
         {/* FR-19, AC-STATUS-01: expose order tracking after login. */}
         {isLoggedIn && (
@@ -224,13 +231,6 @@ export default function AppShell() {
             Status
           </button>
         )}
-        <button
-          type="button"
-          className={page === 'account' ? 'app-switcher__button active' : 'app-switcher__button'}
-          onClick={() => handleNavigate('account')}
-        >
-          Login / Register
-        </button>
       </nav>
 
       <div hidden={page !== 'customer'}>

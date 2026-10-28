@@ -1,50 +1,31 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-const SAMPLE_MENU = [
-  {
-    id: 1,
-    name: 'ชาไทย',
-    price: 45,
-    description: 'ชาล้วนเข้มข้น กลิ่นหอมอ่อน ๆ เหมาะสำหรับมื้อเช้าแบบสดชื่น',
-    status: 'open',
-    image_url:
-      'https://images.unsplash.com/photo-1515823064-d6e0c04616a7?auto=format&fit=crop&w=900&q=80',
-    promotion: { id: 1, title: 'ลด 10 บาท', discount_value: 10, status: 'active' },
-  },
-  {
-    id: 2,
-    name: 'มัทฉะลาเต้',
-    price: 75,
-    description: 'นมข้นหวานผสมมัทฉะสูตรเข้มข้น พร้อมฟองนมเนียนละมุน',
-    status: 'open',
-    image_url:
-      'https://images.unsplash.com/photo-1572490122747-3968b75cc699?auto=format&fit=crop&w=900&q=80',
-    promotion: { id: 1, title: 'ลด 10 บาท', discount_value: 10, status: 'active' },
-  },
-  {
-    id: 3,
-    name: 'น้ำส้มคั้น',
-    price: 55,
-    description: 'รสเปรี้ยวสดชื่นจากส้มคั้นบริสุทธิ์ ไม่หวานเกินไป',
-    status: 'sold_out',
-    image_url:
-      'https://images.unsplash.com/photo-1621506289937-a8e4df240d0b?auto=format&fit=crop&w=900&q=80',
-  },
-  {
-    id: 4,
-    name: 'กาแฟเย็น',
-    price: 65,
-    description: 'กาแฟคั่วอ่อนเข้มข้น ดื่มคู่กับนมและน้ำเชื่อมแบบเรียบลื่น',
-    status: 'open',
-    image_url:
-      'https://images.unsplash.com/photo-1497636567773-8a2a14c6d28e?auto=format&fit=crop&w=900&q=80',
-  },
-];
-
-const SAMPLE_PROMOTIONS = [
-  { id: 1, title: 'ลด 10 บาท สำหรับเมนูที่มีโปรโมชั่น', discount_value: 10, status: 'active' },
-  { id: 2, title: 'โปรโมชั่นพิเศษสัปดาห์นี้', discount_value: 15, status: 'inactive' },
-];
+const MENU_IMAGES = {
+  ชานมไต้หวัน:
+    'https://images-ext-1.discordapp.net/external/0aCCY_6ziq2qKpjZeyW9nYufczvYmLmHLNic_4jifuc/https/www.bluemochatea.com/wp-content/uploads/2020/03/%25E0%25B8%258A%25E0%25B8%25B2%25E0%25B9%2580%25E0%25B8%2582%25E0%25B8%25B5%25E0%25B8%25A2%25E0%25B8%25A7%25E0%25B8%259B%25E0%25B8%25B1%25E0%25B8%2594%25E0%25B9%2580%25E0%25B8%259B%25E0%25B9%2588%25E0%25B8%25B2.jpg?format=webp',
+  ชาแอปเปิ้ล:
+    'https://media.discordapp.net/attachments/1555975574030123132/1565084510905958521/coconut_coffee_in_cafe_1024x1024.png?ex=6ae39e09&is=6ae24c89&hm=332a1454b095f8927d405c744a61d359c34674ea2542939131c803ed3d6254bc&=&format=webp&quality=lossless',
+  ชานมบราวน์ชูก้า:
+    'https://media.discordapp.net/attachments/1555975574030123132/1565084188468711636/9qouf4swhzge.png?ex=6ae39dbc&is=6ae24c3c&hm=8ef1fd3eeee6540fdc8f20893a02375e43f83f7053bfd3df423e5d84029724f7&=&format=webp&quality=lossless',
+  นมสด:
+    'https://media.discordapp.net/attachments/1555975574030123132/1565083139968204860/BANNER_E0B884E0B8B2E0B89BE0B8B9E0B88AE0B8B4E0B982E0B899E0B98820E0B980E0B8A2E0B987E0B89920540x40020px.png?ex=6ae39cc2&is=6ae24b42&hm=53d78096820e595cb2b308ebb622581abde873d952719a560548f3afce36b940&=&format=webp&quality=lossless',
+  ชาไทย:
+    'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSzxW3AItEUHEaBKRkHRJLAfaSVh9v9VuoPgX5-MCl4Xc1zl3-chHMvp8Al&s=10',
+  โกโก้:
+    'https://media.discordapp.net/attachments/1555975574030123132/1565083905525284864/images.png?ex=6ae39d78&is=6ae24bf8&hm=02db45ab96c5695b474f7f8486c41dfc54b2afab382e2cb81e58042d04fdfe82&=&format=webp&quality=lossless',
+  ชานมไต้หวัน:
+    'https://media.discordapp.net/attachments/1555975574030123132/1565086191597002802/image.png?ex=6ae39f99&is=6ae24e19&hm=c05e6aee069400af465fb1e4a7bdd7d43957d4aef62995b199730a5f728192c2&=&format=webp&quality=lossless&width=768&height=1024',
+  ชาแอปเปิ้ล:
+    'https://images-ext-1.discordapp.net/external/hHIzEQ5swfgEtN6s-H5HcSp4ST5T7XTMi7Aon82-kcA/https/img.wongnai.com/p/256x256/2022/09/29/0c9bbc0a782b4c23924dcdc4f8541ee3.jpg?format=webp',
+  ชานมบราวน์ชูก้า:
+    'https://media.discordapp.net/attachments/1555975574030123132/1565088727708074106/images.png?ex=6ae3a1f6&is=6ae25076&hm=dc7fab010ec9328a34c7c5ab7d1e2671f4acf5eb612b6e6e3433ebfaa1fe74ed&=&format=webp&quality=lossless',
+  นมสด:
+    'https://images-ext-1.discordapp.net/external/wpi1wMKa7QQm9WrwQ72bFqnhFcBZWmcEWpjBYGJ76Rs/%3Fq%3Dtbn%3AANd9GcTx_VZwMDbs1cqb11g9QkoOkkMVuAZfKIsBRZMpD3yQEa3O7sKmXvIzsnzH%26s%3D10/https/encrypted-tbn0.gstatic.com/images?format=webp',
+  โกโก้:
+    'https://media.discordapp.net/attachments/1555975574030123132/1565087819905507529/image.png?ex=6ae3a11e&is=6ae24f9e&hm=9384d376acdd3111524224d105d59cbd101136ce0e403bf6e0186076e7e5e6d3&=&format=webp&quality=lossless&width=1024&height=1024',
+  ชาเขียว:
+    'https://media.discordapp.net/attachments/1555975574030123132/1565085730504441887/images.png?ex=6ae39f2c&is=6ae24dac&hm=120adc6d44ad0699dcfacb0d5d66d181810a2816d6c8d401307909d97798c606&=&format=webp&quality=lossless',
+};
 
 function formatPrice(value) {
   return new Intl.NumberFormat('th-TH', {
@@ -160,8 +141,11 @@ export default function CustomerMenuPage({
       <section className="customer-page__shell">
         <header className="customer-page__header">
           <div>
-            <p className="customer-page__eyebrow">OWL CHA</p>
+            <p className="customer-page__eyebrow">OWL CHA / FRESHLY BREWED</p>
             <h1>เมนูเครื่องดื่ม</h1>
+            <p className="customer-page__intro">
+              เลือกเครื่องดื่มแก้วโปรด แล้วเริ่มต้นช่วงเวลาดี ๆ ของคุณ
+            </p>
           </div>
           <div className="customer-page__meta">
             <span>{filteredItems.length} รายการ</span>
@@ -196,7 +180,7 @@ export default function CustomerMenuPage({
 
         {activePromotions.length > 0 && (
           <section className="customer-page__promo" aria-label="โปรโมชั่นที่กำลังใช้งาน">
-            <h2>โปรโมชั่น</h2>
+            <h2>โปรโมชัน</h2>
             <div className="customer-page__promo-list">
               {activePromotions.map((promotion) => (
                 <div key={promotion.id} className="promo-badge">
@@ -221,20 +205,17 @@ export default function CustomerMenuPage({
                 const isSoldOut = item.status === 'sold_out' || item.status === 'out_of_stock';
                 const discountedPrice = getDiscountedPrice(item);
                 const hasPromotion = item.promotion && item.promotion.status === 'active';
-                const cardImage = item.image_url || item.imageUrl || item.image || null;
+                const cardImage = item.image_url || item.imageUrl || item.image || MENU_IMAGES[item.name];
 
                 return (
                   <article key={item.menu_id ?? item.id} className="menu-card">
                     {cardImage ? (
                       <img className="menu-card__image" src={cardImage} alt={item.name} />
                     ) : (
-                      <div className="menu-card__mark menu-card__mark--image" aria-hidden="true">
-                        {item.name.slice(0, 1)}
-                      </div>
+                      <div className="menu-card__image menu-card__image--placeholder" aria-hidden="true" />
                     )}
 
                     <div className="menu-card__head">
-                      <div className="menu-card__mark" aria-hidden="true">{item.name.slice(0, 1)}</div>
                       <div>
                         <h2>{item.name}</h2>
                         <p className="menu-card__meta">
@@ -263,13 +244,13 @@ export default function CustomerMenuPage({
                 );
               })}
             </div>
-
-            <aside className="customer-page__order">
-              <h3>Order</h3>
-              <button type="button" className="primary-button customer-page__checkout-button" onClick={handleContinueToOrder}>
-                ดำเนินการต่อไปยัง UC-03
-              </button>
-            </aside>
+            <button
+              type="button"
+              className="sr-only"
+              onClick={handleContinueToOrder}
+            >
+              ดำเนินการต่อไปยัง UC-03
+            </button>
           </div>
         )}
       </section>

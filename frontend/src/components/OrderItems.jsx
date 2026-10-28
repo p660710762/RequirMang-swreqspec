@@ -1,4 +1,4 @@
-// FR-22: display the selected order's saved product names, quantities, and unit prices.
+// FR-22, FR-31: display saved product details and the customer's selected options.
 export default function OrderItems({ items }) {
   return (
     <section className="order-detail-section" aria-labelledby="order-items-title">
@@ -9,6 +9,14 @@ export default function OrderItems({ items }) {
             <h4 className="order-item-card__name">{item.menu_name}</h4>
             <p>จำนวน: {item.quantity}</p>
             <p>ราคา: {item.unit_price}</p>
+            <div className="order-item-card__options" aria-label={`ตัวเลือก ${item.menu_name}`}>
+              <span>ตัวเลือกเครื่องดื่ม</span>
+              <p>ความหวาน: {item.sweetness_level || 'ไม่ระบุ'}</p>
+              <p>น้ำแข็ง: {item.ice_level || 'ใส่น้ำแข็งปริมาณปกติ'}</p>
+              <p>
+                Topping: {item.toppings?.length ? item.toppings.join(', ') : 'ไม่เลือก'}
+              </p>
+            </div>
           </li>
         ))}
       </ul>

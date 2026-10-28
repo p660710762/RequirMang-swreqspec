@@ -120,10 +120,15 @@ export default function StaffOrdersPage() {
   }, [selectedOrder]);
 
   return (
-    <main className="admin-page">
-      <section className="page-content" aria-labelledby="staff-orders-title">
-        <div className="page-heading">
-          <h1 id="staff-orders-title">รายการ Order</h1>
+    <main className="admin-page staff-orders-page">
+      <section className="page-content staff-orders-panel" aria-labelledby="staff-orders-title">
+        <div className="page-heading staff-orders-heading">
+          <div>
+            <p className="staff-orders-eyebrow">STAFF WORKSPACE</p>
+            <h1 id="staff-orders-title">รายการ Order</h1>
+            <p className="staff-orders-subtitle">จัดคิวเครื่องดื่มและอัปเดตสถานะให้ลูกค้า</p>
+          </div>
+          <span className="staff-orders-count">{orders.length} รายการ</span>
         </div>
 
         {loadState === 'loading' && (
@@ -135,7 +140,7 @@ export default function StaffOrdersPage() {
             <p className="page-state page-state--error" role="alert">
               ไม่สามารถโหลดรายการ Order ได้
             </p>
-            <button type="button" onClick={retryLoadingOrders}>
+            <button className="staff-orders-retry" type="button" onClick={retryLoadingOrders}>
               ลองใหม่
             </button>
           </>
@@ -153,8 +158,8 @@ export default function StaffOrdersPage() {
                   const orderKey = `${order.order_date ?? ''}-${order.order_id}`;
                   const detailsId = `order-details-${orderKey}`;
                   return (
-                    <article className="menu-row" key={orderKey}>
-                      <div>
+                    <article className="menu-row staff-order-card" key={orderKey}>
+                      <div className="staff-order-card__summary">
                         <h2>Order #{order.order_number ?? order.order_id}</h2>
                         {order.sequence_no != null && (
                           <p className="menu-row__summary">
@@ -168,7 +173,7 @@ export default function StaffOrdersPage() {
                         )}
                       </div>
                       {NEXT_ORDER_STATUS[order.status] && (
-                        <label>
+                        <label className="staff-order-card__status-control">
                           อัปเดตสถานะ
                           <select
                             aria-label={`อัปเดตสถานะ Order ${order.order_number ?? order.order_id}`}
@@ -202,7 +207,7 @@ export default function StaffOrdersPage() {
                       {isSelected && (
                         <div
                           id={detailsId}
-                          className="menu-row__description"
+                          className="menu-row__description staff-order-card__details"
                           aria-label={`รายละเอียด Order ${order.order_number ?? order.order_id}`}
                         >
                           {detailsLoadState === 'loading' && (

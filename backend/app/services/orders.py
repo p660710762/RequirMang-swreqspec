@@ -3,6 +3,7 @@
 References: FR-19, FR-22, FR-23, NFR-SEC-02, AC-STATUS-01.
 """
 
+import json
 import sqlite3
 
 ORDER_STATUS_LABELS = {
@@ -11,6 +12,17 @@ ORDER_STATUS_LABELS = {
     "READY_FOR_PICKUP": "พร้อมรับสินค้า",
     "PICKED_UP": "รับสินค้าแล้ว",
 }
+
+def _decode_toppings(value):
+    if value in (None, ""):
+        return []
+    if isinstance(value, list):
+        return value
+    try:
+        decoded = json.loads(value)
+    except (TypeError, json.JSONDecodeError):
+        return []
+    return decoded if isinstance(decoded, list) else []
 
 
 # Supports FR-19, FR-22, FR-23, and NFR-SEC-02 with owner-scoped order summaries and item snapshots.
@@ -159,9 +171,11 @@ def get_order_detail_for_user(
         items = connection.execute(
             """
             SELECT i.order_item_id, i.menu_item_id, m.name AS menu_name,
-                   i.quantity, i.unit_price, i.line_total
+                   i.quantity, i.unit_price, i.line_total,
+                   o.sweetness_level, o.toppings, o.ice_level
             FROM order_items AS i
             LEFT JOIN menu_items AS m ON m.menu_id = i.menu_item_id
+            LEFT JOIN order_options AS o ON o.order_item_id = i.order_item_id
             WHERE i.order_date = ? AND i.order_id = ?
             """,
             (order["order_date"], order_id),
@@ -181,6 +195,7 @@ def get_order_detail_for_user(
                 {
                     **dict(item),
                     "menu_name": item["menu_name"] or "รายการสินค้า",
+                    "toppings": _decode_toppings(item["toppings"]),
                 }
                 for item in items
             ],
