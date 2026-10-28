@@ -4,16 +4,6 @@ import { getOrderDetails } from '../api/client.js';
 import OrderItems from '../components/OrderItems.jsx';
 import OrderStatusTimeline from '../components/OrderStatusTimeline.jsx';
 
-// FR-22: format the selected Order's saved creation time.
-function formatOrderDate(value) {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
-  return new Intl.DateTimeFormat('th-TH', {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  }).format(date);
-}
-
 // FR-20, FR-22: show the selected order, saved item details, and latest confirmed status.
 export default function OrderDetailPage({ orderId }) {
   const [order, setOrder] = useState(null);
@@ -79,7 +69,6 @@ export default function OrderDetailPage({ orderId }) {
                     : `Order: ${order.order_id}`}
                 </h2>
                 {order.items.length > 0 && <p>Order: {order.order_id}</p>}
-                {order.created_at && <p>วันที่สั่ง: {formatOrderDate(order.created_at)}</p>}
               </div>
               {latestConfirmedStatus && (
                 <span className="tracking-status-badge">
@@ -88,15 +77,6 @@ export default function OrderDetailPage({ orderId }) {
               )}
             </header>
             <OrderItems items={order.items} />
-            {order.total_amount !== null && order.total_amount !== undefined && (
-              <p className="order-detail-total">
-                ยอดรวม {new Intl.NumberFormat('th-TH', {
-                  style: 'currency',
-                  currency: 'THB',
-                  maximumFractionDigits: 2,
-                }).format(order.total_amount)}
-              </p>
-            )}
             <OrderStatusTimeline
               orderId={orderId}
               onStatusChange={handleStatusChange}

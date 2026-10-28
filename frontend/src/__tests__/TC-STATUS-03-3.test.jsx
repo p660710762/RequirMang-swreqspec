@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import OrderDetailPage from '../pages/OrderDetail.jsx';
@@ -37,9 +37,11 @@ describe('TC-STATUS-03-3', () => {
     // Then ระบบไม่แสดงสถานะที่ไม่ถูกบันทึกหรือไม่ผ่านการยืนยัน ตาม NFR-REL-03
     expect(await screen.findByRole('heading', { name: 'Order: order-status' }))
       .toBeInTheDocument();
-    expect(screen.queryByText('สถานะล่าสุด: รับสินค้าแล้ว')).not.toBeInTheDocument();
-    expect(screen.queryByText('รับสินค้าแล้ว')).not.toBeInTheDocument();
-    expect(screen.queryByRole('list', { name: 'ลำดับสถานะ Order' }))
-      .not.toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.queryByText('สถานะล่าสุด: รับสินค้าแล้ว')).not.toBeInTheDocument();
+      expect(screen.queryByText('รับสินค้าแล้ว')).not.toBeInTheDocument();
+      expect(screen.queryByRole('list', { name: 'ลำดับสถานะ Order' }))
+        .not.toBeInTheDocument();
+    });
   });
 });

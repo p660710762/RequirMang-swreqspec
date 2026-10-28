@@ -16,8 +16,8 @@ def list_orders_for_user(
             o.order_id,
             o.user_id,
             o.created_at,
-            o.status,
-            o.last_status_change_at AS last_updated_at,
+            confirmed.status_code AS status,
+            confirmed.changed_at AS last_updated_at,
             o.total_amount,
             i.order_item_id,
             i.menu_name,
@@ -25,6 +25,15 @@ def list_orders_for_user(
             i.unit_price
         FROM orders AS o
         LEFT JOIN order_items AS i ON i.order_id = o.order_id
+        LEFT JOIN order_status_history AS confirmed
+            ON confirmed.order_id = o.order_id
+            AND confirmed.is_confirmed = 1
+            AND confirmed.changed_at = (
+                SELECT MAX(history.changed_at)
+                FROM order_status_history AS history
+                WHERE history.order_id = o.order_id
+                    AND history.is_confirmed = 1
+            )
         WHERE o.user_id = ?
         ORDER BY o.created_at DESC, i.order_item_id
         """,

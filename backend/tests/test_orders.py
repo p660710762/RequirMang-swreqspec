@@ -89,6 +89,38 @@ class TestOrderListOwnership(unittest.TestCase):
                         [{"menu_name": "ชาไทย", "quantity": 2, "unit_price": 45}],
                     )
 
+    def test_NFR_REL_03_order_list_uses_latest_confirmed_status(self):
+        connection = connect_database(os.environ["ORDER_DATABASE_PATH"])
+        with connection:
+            connection.execute(
+                "UPDATE orders SET status = ? WHERE order_id = ?",
+                ("PICKED_UP", "order-a"),
+            )
+            connection.executemany(
+                """
+                INSERT INTO order_status_history (
+                    status_log_id, order_id, status_code, status_name,
+                    changed_at, is_confirmed
+                ) VALUES (?, ?, ?, ?, ?, ?)
+                """,
+                [
+                    ("list-confirmed", "order-a", "PREPARING", "กำลังเตรียม", "2026-10-25T10:00:00", 1),
+                    ("list-unconfirmed", "order-a", "PICKED_UP", "รับสินค้าแล้ว", "2026-10-25T11:00:00", 0),
+                ],
+            )
+        connection.close()
+
+        response = self.client.get(
+            "/api/orders",
+            headers={"X-Test-User": "customer-a"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        order = next(item for item in response.json() if item["order_id"] == "order-a")
+        self.assertEqual(order["status"], "PREPARING")
+        self.assertEqual(order["last_updated_at"], "2026-10-25T10:00:00")
+        self.assertNotEqual(order["status"], "PICKED_UP")
+
     # Verifies NFR-SEC-02 exposes only the current mock-authenticated user's orders.
     def test_AC_STATUS_09_show_only_authorized_orders(self):
         response = self.client.get(
@@ -354,6 +386,21 @@ class TestOrderListOwnership(unittest.TestCase):
             failed_response.json()["detail"],
             "Unable to load confirmed order status",
         )
+
+    def test_constraint_customer_cannot_change_order_status(self):
+        response = self.client.patch(
+            "/api/orders/order-a/status",
+            headers={"X-Test-User": "customer-a"},
+            json={"status": "PICKED_UP"},
+        )
+
+        self.assertEqual(response.status_code, 405)
+        status_response = self.client.get(
+            "/api/orders/order-a/status",
+            headers={"X-Test-User": "customer-a"},
+        )
+        self.assertEqual(status_response.status_code, 200)
+        self.assertIsNone(status_response.json()["current_status"])
 
     # Verifies FR-21, NFR-REL-03, and NFR-SEC-02 for the confirmed owner status history.
     def test_AC_STATUS_03_display_4_step_status_flow(self):

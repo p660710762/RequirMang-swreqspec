@@ -1,4 +1,5 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { useState } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import OrderDetailPage from './OrderDetail.jsx';
@@ -10,6 +11,13 @@ afterEach(() => {
 });
 
 describe('OrderDetailPage', () => {
+  function OrderTrackingFlow() {
+    const [selectedOrderId, setSelectedOrderId] = useState(null);
+    return selectedOrderId
+      ? <OrderDetailPage orderId={selectedOrderId} />
+      : <OrderListPage onOrderSelect={setSelectedOrderId} />;
+  }
+
   it('test_AC_STATUS_02_select_order_and_view_detail', async () => {
     vi.stubGlobal('fetch', vi.fn()
       .mockResolvedValueOnce({
@@ -47,12 +55,11 @@ describe('OrderDetailPage', () => {
         }),
       }));
 
-    render(<OrderListPage />);
+    render(<OrderTrackingFlow />);
 
     const detailsLink = await screen.findByRole('link', { name: 'ดูรายละเอียด' });
     expect(detailsLink).toHaveAttribute('href', '/orders/order-123/details');
-
-    render(<OrderDetailPage orderId="order-123" />);
+    fireEvent.click(detailsLink);
 
     expect(await screen.findByRole('heading', { name: 'Order: order-123' }))
       .toBeInTheDocument();
@@ -126,7 +133,7 @@ describe('OrderDetailPage', () => {
     expect(itemsList).toHaveTextContent('ราคา: 50');
     expect(screen.getByRole('main')).toHaveClass('tracking-page');
     expect(screen.getByLabelText('Order: order-456')).toHaveClass('order-detail-content');
-    expect(screen.getByRole('list', { name: 'ลำดับสถานะ Order' }))
+    expect(await screen.findByRole('list', { name: 'ลำดับสถานะ Order' }))
       .toHaveClass('order-detail-progress');
   });
 

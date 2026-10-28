@@ -999,3 +999,41 @@
 - ผล full UI: `cd frontend && npm test` ผ่าน 45/45 tests ใน 21 test files
 - `git diff --check` ผ่าน; ไม่แก้ `test-cases.md` หรือโค้ดระบบ
 - TC-STATUS-05-3 ให้คนตรวจ: Given ลูกค้ามี Order เพียงรายการเดียว; When เปิดหน้าติดตามสถานะ Order; Then ตารางระบุว่า spec ไม่ได้บอกว่าต้องแสดงตัวเลือกติดตามหรือจัดลำดับอย่างไร จึงยังไม่มีผลคาดหวังสำหรับสรุปผ่าน/ไม่ผ่าน
+
+## 2026-10-27 คำสั่ง: `/verify specs/005-Status/`
+
+- สร้าง `specs/005-Status/rtm.md` ตามรอย FR, NFR และ Constraints ไปยัง AC, task, โค้ด และ test พร้อมตรวจโค้ดย้อนกลับ; ไม่แก้ source code, tests, spec, plan หรือ tasks
+- ผล `cd backend && pytest -v`: collection ไม่ผ่านเนื่องจาก import `backend` ไม่พบเมื่อรันจากโฟลเดอร์ backend; รันซ้ำจาก repository root ด้วย `.venv/bin/python -m pytest -v backend/tests` ผ่าน 21 tests และ 2 subtests
+- ผล `cd frontend && npm test`: ผ่าน 44 tests และไม่ผ่าน 1 test เดิม `OrderDetail.test.jsx > test_AC_STATUS_04_show_order_items_and_latest_status` ที่ assertion ลำดับสถานะ; รวมผลที่รายงาน 67 ผ่าน 1 ไม่ผ่าน (รวม 2 subtests ผ่าน)
+- ตารางตามรอยไปข้างหน้ามี 13 แถว: ครบ 5, ยังไม่ถึง 1, รอ 0, ช่องโหว่ 7
+- ข้อค้นพบใหม่: F-01 ถึง F-08 (F-08 เป็นประเด็นภาพ mockup นอกขอบเขต feature); ให้ทีมตรวจและกรอกช่อง “ทีมตัดสิน” ใน `rtm.md`
+
+## 2026-10-28 คำสั่ง: ตรวจสอบและจัดการ F-01 ถึง F-08
+
+- ตรวจ `spec.md`, `plan.md`, `tasks.md`, `test-cases.md` และ `rtm.md` ก่อนแก้ไข; ไม่แก้ `spec.md` และไม่เพิ่ม feature นอกข้อกำหนด
+- แก้ F-01 ใน `backend/app/services/orders.py` ให้รายการ Order ใช้ status และเวลาเปลี่ยนล่าสุดจาก `order_status_history` ที่ `is_confirmed = 1`; เพิ่ม regression test กรณี `orders.status` ไม่ตรงกับสถานะยืนยันล่าสุด
+- แก้ F-03 ใน `frontend/src/pages/OrderDetail.test.jsx` ให้รอ timeline ด้วย `findByRole` หลัง status request เสร็จจริง
+- แก้ F-05 ใน `frontend/src/pages/OrderDetail.jsx` โดยลบวันที่สั่งและยอดรวมออกจากหน้า detail ให้ตรง ASM-10 เหลือรายการสินค้า จำนวน ราคา และสถานะล่าสุด
+- แก้ F-06 ใน `backend/tests/test_orders.py` โดยเพิ่ม test ว่าคำขอ PATCH เปลี่ยนสถานะจากลูกค้าได้ 405 และข้อมูลสถานะไม่เปลี่ยน
+- F-02, F-04, F-07 และ F-08 ยังรอทีมตัดสินใจตามรายละเอียดใน `specs/005-Status/rtm.md`; ไม่เดาพฤติกรรม real-time, empty confirmed status หรือเกณฑ์ integration test เพิ่ม
+- ผล focused backend: 23 ผ่าน และ 2 subtests ผ่าน
+- ผล focused frontend: 12 ผ่าน
+- ผล full backend: 23 ผ่าน, 1 warning, 2 subtests ผ่าน
+- ผล full frontend: 45 ผ่าน จาก 21 test files
+- ตรวจ NFR-22/T-25 แยกแล้ว: ยังไม่พบไฟล์ benchmark/load test และยังไม่มีผล p95 ภายใต้ 100 concurrent users; สถานะยังเป็น “ยังไม่ถึง” และต้องให้ทีมตัดสินใจเครื่องมือ/วิธีทดสอบก่อนเริ่ม T-25
+
+## 2026-10-28 คำสั่ง: แก้ข้อค้นพบที่เหลือ
+
+- คำตัดสินทีม: F-02 เมื่อไม่มี confirmed status ให้ไม่แสดง timeline และไม่แสดงข้อความเพิ่มเติม
+- คำตัดสินทีม: F-04 ต้องเพิ่ม integration test สำหรับการคลิกจากรายการไปหน้า detail
+- คำตัดสินทีม: F-07 ใช้ polling ทุก 5 วินาที
+- คำตัดสินทีม: F-08 ยึด spec เดิม ไม่ทำ notification และปิด finding เป็นไม่ใช่ปัญหา; ไม่แก้ `spec.md` หรือ mockup
+- คำตัดสินทีม: NFR-22/T-25 ใช้ pytest ยิงทั้งสาม endpoint ผ่าน uvicorn local server ด้วย 100 concurrent users
+- แก้ F-02 โดยรอ status request ให้เสร็จใน test และไม่ render timeline เมื่อ `status_history` ว่าง
+- แก้ F-04 โดยเพิ่ม `OrderTrackingFlow` integration test ที่คลิก link จากรายการแล้ว render detail ของ Order ที่เลือก
+- แก้ F-07 โดยเพิ่ม polling interval 5 วินาทีและ cleanup timer เมื่อ component unmount
+- เพิ่ม `backend/tests/test_NFR_22_response_time.py` สำหรับ 100 concurrent requests และ p95 ไม่เกิน 2 วินาที
+- ผล NFR-22: `test_NFR_22_response_time` ผ่าน
+- ผล full frontend: 45 ผ่าน จาก 21 test files
+- ผล full backend หลังแก้ทั้งหมด: 24 ผ่าน, 1 warning, 2 subtests ผ่าน
+- เพิ่ม `check_same_thread=False`, busy timeout และ initialize schema แบบครั้งเดียวต่อ database path เพื่อให้ benchmark uvicorn 100 concurrent ทำงานได้โดยไม่เกิด SQLite thread/lock error

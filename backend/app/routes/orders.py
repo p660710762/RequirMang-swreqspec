@@ -5,6 +5,7 @@ References: FR-19, NFR-SEC-02, AC-STATUS-01.
 
 import os
 import sqlite3
+from threading import Lock
 from collections.abc import Iterator
 
 from fastapi import APIRouter, Depends, Header, HTTPException
@@ -24,6 +25,8 @@ MOCK_USERS: dict[str, dict[str, str]] = {
 
 # Development/test fixtures only; this mock identity mechanism must never authenticate production requests.
 router = APIRouter(prefix="/api/orders", tags=["orders"])
+_INITIALIZED_DATABASES: set[str] = set()
+_DATABASE_INIT_LOCK = Lock()
 
 
 # Supports NFR-SEC-02 by resolving an allowlisted test identity only outside production.
@@ -46,7 +49,10 @@ def get_order_database() -> Iterator[sqlite3.Connection]:
 
     connection = connect_database(database_path)
     try:
-        initialize_database(connection)
+        with _DATABASE_INIT_LOCK:
+            if database_path not in _INITIALIZED_DATABASES:
+                initialize_database(connection)
+                _INITIALIZED_DATABASES.add(database_path)
         yield connection
     finally:
         connection.close()

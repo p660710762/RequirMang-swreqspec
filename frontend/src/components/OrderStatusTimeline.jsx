@@ -10,6 +10,7 @@ const ORDER_STATUS_STEPS = [
 ];
 
 const TIMED_STATUS_CODES = new Set(['READY_FOR_PICKUP', 'PICKED_UP']);
+const STATUS_POLL_INTERVAL_MS = 5000;
 
 // FR-21: display the four order status steps and confirmed timestamps for the final two steps.
 export default function OrderStatusTimeline({ orderId, onStatusChange }) {
@@ -18,28 +19,35 @@ export default function OrderStatusTimeline({ orderId, onStatusChange }) {
   const requestGeneration = useRef(0);
 
   useEffect(() => {
-    const generation = ++requestGeneration.current;
+    let isCurrent = true;
 
-    getOrderStatus(orderId)
-      .then((result) => {
-        if (generation === requestGeneration.current) {
+    async function loadStatus() {
+      const generation = ++requestGeneration.current;
+      try {
+        const result = await getOrderStatus(orderId);
+        if (isCurrent && generation === requestGeneration.current) {
           setStatus(result);
           onStatusChange?.(
             result.status_history[result.status_history.length - 1] ?? null,
           );
           setLoadState('ready');
         }
-      })
-      .catch(() => {
-        if (generation === requestGeneration.current) {
+      } catch {
+        if (isCurrent && generation === requestGeneration.current) {
           setStatus(null);
           onStatusChange?.(null);
           setLoadState('error');
         }
-      });
+      }
+    }
+
+    loadStatus();
+    const pollingTimer = window.setInterval(loadStatus, STATUS_POLL_INTERVAL_MS);
 
     return () => {
+      isCurrent = false;
       requestGeneration.current += 1;
+      window.clearInterval(pollingTimer);
     };
   }, [onStatusChange, orderId]);
 
@@ -77,7 +85,7 @@ export default function OrderStatusTimeline({ orderId, onStatusChange }) {
     );
   }
 
-  if (loadState !== 'ready' || !status) {
+  if (loadState !== 'ready' || !status || status.status_history.length === 0) {
     return null;
   }
 

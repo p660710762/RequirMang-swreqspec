@@ -31,7 +31,7 @@ function formatOrderTotal(value) {
 }
 
 // FR-19, FR-22, and FR-23: show owner-scoped Orders, saved items, and status progression.
-export default function OrderListPage() {
+export default function OrderListPage({ onOrderSelect }) {
   const [orders, setOrders] = useState([]);
   const [loadState, setLoadState] = useState('loading');
   const [errorMessage, setErrorMessage] = useState('');
@@ -152,6 +152,12 @@ export default function OrderListPage() {
                   <a
                     className="tracking-order-card__link"
                     href={`/orders/${encodeURIComponent(order.order_id)}/details`}
+                    onClick={(event) => {
+                      if (onOrderSelect) {
+                        event.preventDefault();
+                        onOrderSelect(order.order_id);
+                      }
+                    }}
                   >
                     ดูรายละเอียด
                   </a>

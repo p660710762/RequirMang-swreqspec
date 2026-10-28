@@ -38,9 +38,10 @@ CREATE TABLE IF NOT EXISTS order_status_history (
 
 # Supports FR-19, FR-20, FR-21, FR-22, FR-23, and NFR-SEC-02 with a relational store.
 def connect_database(database_path: str | Path) -> sqlite3.Connection:
-    connection = sqlite3.connect(database_path)
+    connection = sqlite3.connect(database_path, timeout=10, check_same_thread=False)
     connection.row_factory = sqlite3.Row
     connection.execute("PRAGMA foreign_keys = ON")
+    connection.execute("PRAGMA busy_timeout = 10000")
     return connection
 
 
