@@ -601,6 +601,24 @@
 
 ---
 
+## 2569-10-27 คำสั่ง: /tasks specs/007-StaffOrder/spec.md
+
+- ไฟล์ที่สร้าง/แก้: specs/007-StaffOrder/tasks.md; เพิ่มบันทึกนี้ท้าย prompt-log.md
+- ผลลัพธ์: แตก plan เป็น 11 เฟส รวม 21 task; ครอบคลุม AC-STAFF-ORDER-01 ถึง AC-STAFF-ORDER-09 และ FR-29 ถึง FR-33
+- มี 3 task รอคำตอบ Open Questions ตามลำดับข้อ เนื่องจาก spec ไม่มี Q-ID; ไม่สร้าง ID ใหม่และไม่เริ่มทำ task หรือเขียนโค้ด
+- เฟสแรกที่ลองใช้งานได้จริงคือเฟส 1 (แสดงรายการ Order); กลไก Real-time รอคำตอบเรื่องวิธีอัปเดต/แจ้งเตือน
+- ตรวจพบว่า Constraints ไม่มี ID, ไม่มี mockup/UI ID, NFR-22 ไม่มี AC โดยตรง และ plan.md ไม่ระบุคำสั่งเปิดระบบ; บันทึกช่องว่างเหล่านี้ใน tasks.md โดยไม่เดาเพิ่ม
+- ตรวจ tasks.md แล้วไม่พบข้อผิดพลาดจากตัวตรวจไฟล์; ไม่มีการ commit หรือ push
+
+## 2569-10-27 แก้รอบที่ 1: ปรับ tasks.md ตามขอบเขต prototype
+
+- ทีมยืนยันให้ตัด T-18 เดิมออกทั้งหมด เพราะเป็นเพียง prototype รวมถึงไม่ทดสอบ AC-STAFF-ORDER-08 และ NFR-22 (100 concurrent users, p95 ไม่เกิน 2 วินาที)
+- ลบเฟสทดสอบภาระงาน ปรับ task ที่รอ Open Questions เป็น T-18 ถึง T-20 และอัปเดตจำนวนเฟส/งานกับตารางอ้างอิงใน tasks.md
+- ระบุ AC-STAFF-ORDER-08/NFR-22 ว่าไม่รวมใน prototype โดยไม่แก้ spec; spec ยังมีข้อกำหนดเดิม จึงควรปรับ spec ให้ตรงกับขอบเขตที่ทีมยืนยันก่อนใช้เป็น baseline
+- ยังไม่ได้เริ่มทำ task หรือเขียนโค้ด; ไม่มีการ commit หรือ push
+
+---
+
 ## 2569-10-12 คำสั่ง: แก้ F-04/F-05 ผ่าน CR-MENU-003
 
 - ไฟล์ที่สร้าง/แก้: specs/changes/CR-MENU-003.md, specs/001-Menu/spec.md, specs/CHANGELOG.md, specs/001-Menu/rtm.md; เพิ่มบันทึกนี้ท้าย prompt-log.md
@@ -798,3 +816,131 @@
 - ผลทดสอบ: `node --test tests/AC-ACCOUNT-*.test.cjs` ผ่าน `18/18`
 - NFR-SEC-01 ยังระบุเป็นหลักฐานระดับ Mock Prototype และยังไม่ถือว่าผ่านครบ
 - ไม่ได้เพิ่ม Backend, Database, LINE API, OAuth หรือ Authentication จริง
+
+## 2569-10-27 คำสั่ง: /implement T-01 specs/007-StaffOrder/tasks.md
+
+- ไฟล์ระบบที่แก้: `backend/app/main.py`, `backend/app/routes/staff_orders.py`, `backend/app/middleware/auth_guard.py`, `backend/app/auth.py` (เพิ่มหลังทีมอนุญาต), `tests/test_staff_orders_require_staff.py`
+- ไฟล์ปิด task: `specs/007-StaffOrder/tasks.md` (เปลี่ยนสถานะ T-01 เป็น `เสร็จ รอทีมตรวจ`), `prompt-log.md`
+- เพิ่ม route `GET /api/staff/orders` และ Staff-only guard; เพิ่ม mock identity สำหรับ Staff ส่วน route ตอบ `501` อย่างชัดเจนจนกว่า T-02 จะทำ API อ่านรายการจริง
+- ผล test: `test_staff_orders_require_staff` ผ่าน 1/1; `test_AC_MENU_MGMT_13_non_admin_is_blocked` ผ่าน 1/1; `git diff --check` ผ่าน
+- สิ่งที่เกือบต้องเดา: ไม่มี Staff identity ใน mock auth เดิม; หยุดถามและทีมอนุญาตให้แก้ `backend/app/auth.py` ก่อนดำเนินการ
+- สิ่งที่ควรตรวจด้วยตา: ยืนยันว่า `X-User-Id: staff` เป็น identity จำลองที่เหมาะกับ prototype และยอมรับ `501` ชั่วคราวก่อน T-02
+- ไม่ได้เริ่ม task ถัดไป และไม่มีการ commit หรือ push
+
+## 2569-10-27 คำสั่ง: /implement T-02 specs/007-StaffOrder/tasks.md
+
+- ไฟล์ระบบที่แก้: `backend/app/routes/staff_orders.py`, `backend/app/services/staff_order_service.py`, `backend/app/config.py`
+- ไฟล์ test ที่แก้/สร้าง: `tests/test_AC_STAFF_ORDER_01_api_returns_staff_order_list.py`; แก้ assertion ใน `tests/test_staff_orders_require_staff.py` เพิ่มเติมหลังได้รับอนุญาตจากทีม เพราะ test เดิมคาด status 501 จาก placeholder ก่อน T-02
+- ไฟล์ปิด task: `specs/007-StaffOrder/tasks.md` (เปลี่ยนสถานะ T-02 เป็น `เสร็จ รอทีมตรวจ`), `prompt-log.md`
+- ทำ API `GET /api/staff/orders` จาก in-memory prototype store, กรอง Order เกิน 7 วันโดยใช้ `STAFF_ORDER_RETENTION_DAYS` ใน config; Staff guard จาก T-01 ยังคงครอบ route
+- ผล test: `test_AC_STAFF_ORDER_01_api_returns_staff_order_list` ผ่าน 1/1; `test_staff_orders_require_staff` ผ่าน 1/1; `test_AC_MENU_MGMT_13_non_admin_is_blocked` ผ่าน 1/1; `git diff --check` ผ่าน มี Starlette deprecation warning เรื่อง `httpx` จาก TestClient แต่ไม่มี test ล้มเหลว
+- สิ่งที่เกือบต้องเดา: backend ไม่มี Order storage จึงถามทีมและได้รับคำตอบให้ทำ in-memory prototype store ที่ test ป้อนข้อมูล ไม่เชื่อม database; ไม่ได้สร้าง seed orders เพิ่ม
+- มีการแก้ `tests/test_staff_orders_require_staff.py` เพิ่มเติมโดยได้รับอนุญาต เพื่อเปลี่ยน expected status ของ Staff จาก 501 เป็น 200; assertion non-Staff=403 และ unauthenticated=401 คงเดิม
+- ไม่ได้เริ่ม T-03 และไม่มีการ commit หรือ push
+
+## 2569-10-27 คำสั่ง: /implement T-03 specs/007-StaffOrder/tasks.md
+
+- ไฟล์ระบบที่แก้: `frontend/src/api/client.js`, `frontend/src/pages/StaffOrdersPage.jsx`, `frontend/src/App.jsx`
+- ไฟล์ test ที่สร้าง: `frontend/src/pages/StaffOrdersPage.test.jsx`
+- ไฟล์ปิด task: `specs/007-StaffOrder/tasks.md` (เปลี่ยนสถานะ T-03 เป็น `เสร็จ รอทีมตรวจ`), `prompt-log.md`
+- เพิ่ม `getStaffOrders()` ผ่าน API client, หน้าแสดงรายการที่ route `/staff/orders` และทดสอบด้วย client จำลองตาม AC-STAFF-ORDER-01
+- ผล test: `npm test -- --environment jsdom src/pages/StaffOrdersPage.test.jsx` ผ่าน 1/1; `npm run build` ผ่าน; `git diff --check` ผ่าน
+- รันทั้งชุด `npm test -- --environment jsdom` แล้ว 15 test เดิมใน 4 ไฟล์ล้มเหลวเพราะไม่มีการโหลด `src/test-setup.js` จึงไม่มี matcher `jest-dom`; test T-03 ผ่านในคำสั่ง focused และไม่แก้ config/test ที่อยู่นอก task
+- ติดตั้ง frontend dependencies ด้วย `npm ci` หลังทีมอนุญาต; พบ engine warnings จาก Node v22.15.0 และ audit รายงาน 6 vulnerabilities (3 moderate, 1 high, 2 critical)
+- สิ่งที่เกือบต้องเดา: route UI ให้เข้าโดยตรงที่ `/staff/orders` ซึ่งสอดคล้องกับ plan; ไม่มี mockup/UI ID จึงใช้ style/component ที่มีอยู่และแสดงหมายเลขรายการ Order ที่ API ส่งมา
+- สิ่งที่ควรตรวจด้วยตา: การเข้าหน้า `/staff/orders` ใน prototype และการแสดงเฉพาะ Order ID ในเฟสนี้; รายละเอียด/สถานะ/empty state อยู่ใน task เฟสถัดไป
+- ไม่ได้เริ่ม task ถัดไป และไม่มีการ commit หรือ push
+
+## 2569-10-27 คำสั่ง: /implement T-04 specs/007-StaffOrder/tasks.md
+
+- ไฟล์ระบบที่แก้: `backend/app/services/staff_order_service.py`; `backend/app/routes/staff_orders.py` มี route ที่ใช้ service อยู่แล้ว จึงไม่ต้องแก้
+- ไฟล์ test ที่สร้าง: `tests/test_AC_STAFF_ORDER_02_api_order_number_and_sequence.py`
+- ไฟล์ปิด task: `specs/007-StaffOrder/tasks.md` (เปลี่ยนสถานะ T-04 เป็น `เสร็จ รอทีมตรวจ`), `prompt-log.md`
+- เพิ่ม `order_number` โดยใช้ `order_id` และ `sequence_no` ตาม created_at จากเก่าสุดเป็น 1; จำกัด sequence ให้นับเฉพาะ Order ในช่วง 7 วัน และใช้ order_id เรียงน้อยไปมากเมื่อเวลาเท่ากัน ตามคำยืนยันของทีม
+- ไม่เปลี่ยนลำดับรายการที่ API ส่งกลับ; การจัดเรียง Order ใน response เป็น T-12
+- ผล test: `test_AC_STAFF_ORDER_02_api_order_number_and_sequence` ผ่าน 1/1; `test_AC_STAFF_ORDER_01_api_returns_staff_order_list` ผ่าน 1/1; `git diff --check` ผ่าน มี Starlette deprecation warning เกี่ยวกับ `httpx` จาก TestClient
+- สิ่งที่เกือบต้องเดา: รูปแบบหมายเลขและการคำนวณ sequence ไม่ได้กำหนดครบใน spec จึงถามทีม; ทีมยืนยันใช้ order_id เป็น order_number และ oldest-first ภายใน 7 วันพร้อม tie-break ด้วย order_id
+- สิ่งที่ควรตรวจด้วยตา: ตรวจสอบว่าการนับ sequence เริ่ม 1 จาก Order เก่าสุดในช่วง 7 วันและ tie-break ตาม order_id ตรงกับความคาดหวังทีม
+- ไม่ได้เริ่ม T-05 และไม่มีการ commit หรือ push
+
+## 2569-10-27 คำสั่ง: /implement T-05 specs/007-StaffOrder/tasks.md
+
+- ไฟล์ระบบที่แก้: `frontend/src/pages/StaffOrdersPage.jsx`
+- ไฟล์ test ที่สร้าง: `frontend/src/__tests__/StaffOrdersPage.test.jsx`
+- ไฟล์ปิด task: `specs/007-StaffOrder/tasks.md` (เปลี่ยนสถานะ T-05 เป็น `เสร็จ รอทีมตรวจ`), `prompt-log.md`
+- หน้า Staff แสดง `order_number` เป็นหมายเลข Order (fallback ไป `order_id` สำหรับ response จาก test/client เก่า) และแสดง `sequence_no` เป็นลำดับคิวเมื่อมีค่า ตาม FR-30
+- ผล test: `test_AC_STAFF_ORDER_02_show_order_number_and_sequence` ผ่าน 1/1; regression `test_AC_STAFF_ORDER_01_show_order_list_for_staff` ผ่าน 1/1; `git diff --check` ผ่าน
+- สิ่งที่เกือบต้องเดา: ไม่มี; T-04 และคำตอบทีมก่อนหน้าได้กำหนด `order_number`/`sequence_no` แล้ว
+- สิ่งที่ควรตรวจด้วยตา: ตรวจข้อความหมายเลข Order และลำดับคิวบนหน้า `/staff/orders` ให้เห็นชัดเจน
+- ไม่ได้เริ่ม T-06 และไม่มีการ commit หรือ push
+
+## 2569-10-27 คำสั่ง: /implement T-06 specs/007-StaffOrder/tasks.md
+
+- ไฟล์ระบบที่แก้: `backend/app/routes/staff_orders.py`, `backend/app/services/staff_order_service.py`
+- ไฟล์ test ที่สร้าง: `tests/test_AC_STAFF_ORDER_03_api_order_details.py`
+- ไฟล์ปิด task: `specs/007-StaffOrder/tasks.md` (เปลี่ยนสถานะ T-06 เป็น `เสร็จ รอทีมตรวจ`), `prompt-log.md`
+- เพิ่ม `GET /api/staff/orders/{order_id}` คืน `order_id` และรายการ `items` จากข้อมูล Order จริง โดยแต่ละรายการมี `order_item_id`, `menu_item_name`, `quantity`, `selected_options` ตามโมเดล OrderItem ใน plan
+- จำกัดการอ่าน Order ตามช่วงย้อนหลัง 7 วัน; router ยังคงใช้ Staff guard เดิม
+- กรณีไม่พบ Order หรืออยู่นอกช่วงย้อนหลัง 7 วัน ทีมยืนยันให้ตอบ HTTP 404
+- ผล test: `test_AC_STAFF_ORDER_03_api_order_details`, `test_order_details_are_staff_only_and_within_retention_window`, `test_AC_STAFF_ORDER_02_api_order_number_and_sequence`, `test_AC_STAFF_ORDER_01_api_returns_staff_order_list`, `test_staff_orders_require_staff` ผ่าน 5/5; มี Starlette deprecation warning เกี่ยวกับ `httpx` จาก TestClient
+- สิ่งที่เกือบต้องเดา: ผลตอบกลับเมื่อไม่พบ Order หรือ Order เกิน 7 วันไม่ได้ระบุใน spec จึงถามทีม; ทีมยืนยัน HTTP 404 ทั้งสองกรณี
+- สิ่งที่ควรตรวจด้วยตา: ตรวจว่า API ส่งรายการเครื่องดื่ม จำนวน และตัวเลือกตรงกับ Order ที่เลือก และไม่ส่งข้อมูลลูกค้าหรือข้อมูลนอก scope
+- ไม่ได้เริ่ม T-07 และไม่มีการ commit หรือ push
+
+## 2569-10-27 คำสั่ง: /implement T-07 specs/007-StaffOrder/tasks.md
+
+- ไฟล์ระบบที่แก้: `frontend/src/api/client.js`, `frontend/src/pages/StaffOrdersPage.jsx`
+- ไฟล์ test ที่แก้: `frontend/src/__tests__/StaffOrdersPage.test.jsx`
+- ไฟล์ปิด task: `specs/007-StaffOrder/tasks.md` (เปลี่ยนสถานะ T-07 เป็น `เสร็จ รอทีมตรวจ`), `prompt-log.md`
+- เพิ่ม `getStaffOrderDetails(orderId)` เรียก detail API ของ Staff ด้วย Staff header; หน้าแสดงปุ่มเปิด/ซ่อนรายละเอียด และเมื่อเปิดจะแสดงชื่อเครื่องดื่ม จำนวน และตัวเลือกจาก client โดยไม่แสดงรายละเอียดที่ไม่ตรงกับ Order ที่เลือก
+- ผล test: `test_AC_STAFF_ORDER_03_show_order_details_items_and_options` และ regression `test_AC_STAFF_ORDER_02_show_order_number_and_sequence` ผ่าน 2/2 ด้วย `npm test -- --environment jsdom src/__tests__/StaffOrdersPage.test.jsx`
+- ผล build: `npm run build` ผ่าน; `git diff --check` ผ่าน; ไม่พบปัญหาในไฟล์ที่แก้
+- หมายเหตุการรัน test: คำสั่งแรกที่ไม่กำหนด environment ล้มเหลวเพราะ Vitest ไม่ได้ตั้งค่า DOM (`document is not defined`); รันซ้ำโดยกำหนด `--environment jsdom` แล้วผ่าน
+- สิ่งที่เกือบต้องเดา: ไม่มี; T-07 ระบุการเลือก/เปิด Order และ T-06 กำหนด shape ของรายการรายละเอียดไว้แล้ว
+- สิ่งที่ควรตรวจด้วยตา: เปิดรายละเอียด Order หลายรายการและตรวจว่าชื่อเครื่องดื่ม จำนวน และตัวเลือกปรากฏใต้ Order ที่ถูกต้อง; ตรวจการเปิด/ซ่อนด้วยแป้นพิมพ์
+- ไม่ได้เริ่ม T-08 และไม่มีการ commit หรือ push
+
+## 2569-10-27 คำสั่ง: /implement T-08 specs/007-StaffOrder/tasks.md
+
+- ไฟล์ test ที่สร้าง: `tests/test_AC_STAFF_ORDER_04_api_current_status.py`
+- ไฟล์ปิด task: `specs/007-StaffOrder/tasks.md` (เปลี่ยนสถานะ T-08 เป็น `เสร็จ รอทีมตรวจ`), `prompt-log.md`
+- ตรวจพบว่า API `GET /api/staff/orders` ส่งค่า `status` จากข้อมูล Order ปัจจุบันอยู่แล้วผ่าน service `list_staff_orders()` และ route `get_staff_orders()`; จึงไม่เปลี่ยน route/service หรือรูปแบบ response เดิม
+- ผล test: `test_AC_STAFF_ORDER_04_api_current_status` ผ่าน 1/1; regression `python -m unittest discover -s tests -p 'test_AC_STAFF_ORDER_*.py' -v` ผ่าน 5/5; มี Starlette deprecation warning เกี่ยวกับ `httpx` จาก TestClient
+- สิ่งที่เกือบต้องเดา: ไม่มี; AC-STAFF-ORDER-04 ระบุให้ตรวจสถานะจากข้อมูล Order จริง และ API มีฟิลด์ `status` อยู่แล้ว
+- สิ่งที่ควรตรวจด้วยตา: ยืนยันค่า status ที่ API ส่งให้แต่ละ Order ตรงกับ Order ปัจจุบันก่อนเริ่ม T-09
+- ไม่ได้เริ่ม T-09 และไม่มีการ commit หรือ push
+
+## 2569-10-27 คำสั่ง: /implement T-09 specs/007-StaffOrder/tasks.md
+
+- ไฟล์ระบบที่แก้: `frontend/src/pages/StaffOrdersPage.jsx`
+- ไฟล์ test ที่แก้: `frontend/src/__tests__/StaffOrdersPage.test.jsx`
+- ไฟล์ปิด task: `specs/007-StaffOrder/tasks.md` (เปลี่ยนสถานะ T-09 เป็น `เสร็จ รอทีมตรวจ`), `prompt-log.md`
+- เพิ่มการแสดง `status` ที่มาจาก client จำลองใต้หมายเลขและลำดับของ Order แต่ละรายการตาม FR-32 โดยไม่แปลงค่าหรือกำหนด mapping สถานะเพิ่มเติมที่ spec ไม่ได้ระบุ
+- เพิ่ม `test_AC_STAFF_ORDER_04_show_current_status_for_each_order` ครอบคลุม Order มากกว่าหนึ่งรายการที่มี status ต่างกัน
+- ผล test: `test_AC_STAFF_ORDER_04_show_current_status_for_each_order` พร้อม regression ของ AC-02 และ AC-03 ผ่าน 3/3 ด้วย `npm test -- --environment jsdom src/__tests__/StaffOrdersPage.test.jsx`
+- ผล build: `npm run build` ผ่าน; `git diff --check` ผ่าน; ไม่พบปัญหาในไฟล์ที่แก้
+- สิ่งที่เกือบต้องเดา: ไม่มี; แสดงค่า status ดิบที่ API ส่งมา โดยไม่สร้างชื่อ/สี mapping ของสถานะที่ไม่มีใน spec
+- สิ่งที่ควรตรวจด้วยตา: ตรวจว่าค่า status ใต้แต่ละ Order อ่านชัดเจนและตรงกับค่าปัจจุบันที่ระบบส่งมา
+- ไม่ได้เริ่ม T-10 และไม่มีการ commit หรือ push
+
+## 2569-10-27 คำสั่ง: /implement T-10 specs/007-StaffOrder/tasks.md
+
+- ไฟล์ test ที่สร้าง: `tests/test_AC_STAFF_ORDER_09_api_visible_order_fields.py`
+- ไฟล์ปิด task: `specs/007-StaffOrder/tasks.md` (เปลี่ยนสถานะ T-10 เป็น `เสร็จ รอทีมตรวจ`), `prompt-log.md`
+- ตรวจพบว่า `GET /api/staff/orders` ส่ง `order_number`, `sequence_no` และ `status` จาก `list_staff_orders()` อยู่แล้ว จึงไม่เปลี่ยน route/service หรือ response ที่ใช้อยู่
+- ผล test: `test_AC_STAFF_ORDER_09_api_visible_order_fields` ผ่าน 1/1; regression `python -m unittest discover -s tests -p 'test_AC_STAFF_ORDER_*.py' -v` ผ่าน 6/6; มี Starlette deprecation warning เกี่ยวกับ `httpx` จาก TestClient
+- สิ่งที่เกือบต้องเดา: ไม่มี; test ยืนยันหมายเลข ลำดับตาม created_at และ status ด้วยข้อมูล Order ที่กำหนดตรงใน fixture
+- สิ่งที่ควรตรวจด้วยตา: ตรวจ response ของ API ว่าค่า order_number, sequence_no และ status ตรงกับ Order และพร้อมให้หน้าแสดงได้
+- ไม่ได้เริ่ม T-11 และไม่มีการ commit หรือ push
+
+## 2569-10-27 คำสั่ง: /implement T-11 specs/007-StaffOrder/tasks.md
+
+- ไฟล์ระบบที่แก้: `frontend/src/pages/StaffOrdersPage.jsx`
+- ไฟล์ test ที่แก้: `frontend/src/__tests__/StaffOrdersPage.test.jsx`
+- ไฟล์ปิด task: `specs/007-StaffOrder/tasks.md` (เปลี่ยนสถานะ T-11 เป็น `เสร็จ รอทีมตรวจ`), `prompt-log.md`
+- ปรับ label “ลำดับคิว” และ “สถานะ” ให้เด่นด้วยตัวหนา และคงหมายเลข Order เป็น heading; เพิ่ม `test_AC_STAFF_ORDER_09_order_number_sequence_status_are_visible` ตรวจว่าหมายเลข ลำดับ และสถานะที่ client ส่งมาเห็นได้ใน Order แต่ละรายการ ตาม NFR-USE-01
+- ผล test: test AC-09 และ regression ของ AC-02, AC-03, AC-04 ผ่าน 4/4 ด้วย `npm test -- --environment jsdom src/__tests__/StaffOrdersPage.test.jsx`; `npm run build` ผ่าน; `git diff --check` ผ่าน; ไม่พบปัญหาในไฟล์ที่แก้
+- หมายเหตุการทดสอบ: รอบแรกมี 3 test ล้มเหลวจาก matcher แบบข้อความเดิมไม่รองรับ `<strong>` ที่ใช้เน้น label; ปรับ matcher ให้ตรวจข้อความเต็มใน paragraph และรันซ้ำจนผ่าน 4/4
+- สิ่งที่เกือบต้องเดา: ไม่มี; ไม่ทำ mapping ชื่อ สี หรือลำดับสถานะที่ spec ไม่ได้กำหนด
+- สิ่งที่ควรตรวจด้วยตา: ตรวจว่าหมายเลข Order, ลำดับคิว และสถานะอ่านแยกกันได้ชัดเจนและสัมพันธ์กับ Order แต่ละรายการ
+- ไม่ได้เริ่ม T-12 และไม่มีการ commit หรือ push

@@ -8,6 +8,7 @@ from fastapi import Header, HTTPException
 
 MOCK_USERS = {
     "admin": {"user_id": "admin", "role": "admin"},
+    "staff": {"user_id": "staff", "role": "staff"},
     "student": {"user_id": "student", "role": "student"},
 }
 

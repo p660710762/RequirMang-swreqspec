@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import StaffOrdersPage from './pages/StaffOrdersPage.jsx';
 import './Account.css';
 
 export const MOCK_LINE_USER_ID = 'mock-line-user-001';
@@ -151,6 +152,7 @@ export default function App() {
   const [lineSuccess, setLineSuccess] = useState('');
   const [lineSkipped, setLineSkipped] = useState('');
   const [lineError, setLineError] = useState('');
+  const isStaffOrdersPage = window.location.pathname === '/staff/orders';
 
   const handleRegister = (event) => {
     event.preventDefault();
@@ -215,6 +217,10 @@ export default function App() {
   };
 
   
+  if (isStaffOrdersPage) {
+    return <StaffOrdersPage />;
+  }
+
   return (
     <main className="account-page">
       <div className="account-container">
