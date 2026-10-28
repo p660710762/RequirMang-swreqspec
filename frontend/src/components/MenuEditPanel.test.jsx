@@ -52,6 +52,30 @@ describe('MenuEditPanel', () => {
     }));
   });
 
+  it('test_TC_MENU_MGMT_06_2_successful_update_with_minimum_fields', async () => {
+    const onSubmit = vi.fn().mockResolvedValue({});
+    render(
+      <MenuEditPanel
+        menuItem={{ menu_id: 11, name: 'กาแฟเดิม', price: 35 }}
+        onSubmit={onSubmit}
+        onCancel={vi.fn()}
+      />,
+    );
+
+    fireEvent.change(screen.getByLabelText('ชื่อเมนู'), { target: { value: 'กาแฟใหม่' } });
+    fireEvent.change(screen.getByLabelText('ราคา (บาท)'), { target: { value: '40' } });
+    fireEvent.click(screen.getByRole('button', { name: 'บันทึกการแก้ไข' }));
+
+    expect(await screen.findByRole('status')).toHaveTextContent('บันทึกข้อมูลสำเร็จ');
+    expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({
+      name: 'กาแฟใหม่',
+      price: 40,
+      description: null,
+      image_url: null,
+      promotion: null,
+    }));
+  });
+
   it('test_AC_MENU_MGMT_03_promotion_datetime_picker_sends_timezone', async () => {
     const onSubmit = vi.fn().mockResolvedValue({});
     render(
@@ -69,6 +93,7 @@ describe('MenuEditPanel', () => {
     fireEvent.change(screen.getByLabelText('วันเริ่มต้น', { selector: 'input' }), {
       target: { value: '2026-11-01T10:30' },
     });
+
     fireEvent.change(screen.getByLabelText('วันสิ้นสุด', { selector: 'input' }), {
       target: { value: '2026-11-30T18:00' },
     });
@@ -81,6 +106,28 @@ describe('MenuEditPanel', () => {
         end_at: expect.stringMatching(/^2026-11-30T18:00:00[+-]\d{2}:\d{2}$/),
       }),
     }));
+  });
+
+  it('test_TC_MENU_MGMT_15_1_promotion_datetime_is_displayed_in_thai_buddhist_calendar', () => {
+    render(
+      <MenuEditPanel
+        menuItem={{
+          menu_id: 7,
+          name: 'ชาเขียว',
+          price: 40,
+          promotion: {
+            promotion_name: 'ลดพิเศษ',
+            discount_value: 5,
+            start_at: '2026-11-01T10:00:00+07:00',
+            end_at: '2026-11-30T10:00:00+07:00',
+          },
+        }}
+        onSubmit={vi.fn()}
+        onCancel={vi.fn()}
+      />,
+    );
+
+    expect(screen.getAllByRole('button', { name: /พ\.ย\. 2569/ })).toHaveLength(2);
   });
 
   it('test_AC_MENU_MGMT_03_clear_promotion_fields_and_save', async () => {

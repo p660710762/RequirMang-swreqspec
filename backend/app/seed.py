@@ -3,7 +3,7 @@
 References: FR-42, FR-43, FR-44, FR-49, NFR-REL-08, NFR-REL-09.
 """
 
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from .config import MENU_STATUS_OPEN, MENU_STATUS_SOLD_OUT
 from .models import MenuHistory, MenuItem, OrderSnapshot, Promotion
@@ -12,6 +12,8 @@ from .models import MenuHistory, MenuItem, OrderSnapshot, Promotion
 def seed_menu_data() -> dict[str, list[dict]]:
     """FR-42: provide placeholder menu and related records for admin review."""
     now = datetime.now(timezone.utc)
+    promotion_start = now + timedelta(days=1)
+    promotion_end = promotion_start + timedelta(days=7)
     menu_item = MenuItem(
         menu_id=1,
         name="เมนูตัวอย่าง",
@@ -26,8 +28,8 @@ def seed_menu_data() -> dict[str, list[dict]]:
         promotion_name="โปรโมชั่นตัวอย่าง",
         discount_value=1.0,
         is_active=True,
-        start_at=now,
-        end_at=now,
+        start_at=promotion_start,
+        end_at=promotion_end,
     )
     history = MenuHistory(
         history_id=1,

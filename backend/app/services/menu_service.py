@@ -84,6 +84,7 @@ def create_menu_item(payload: dict[str, Any]) -> dict[str, Any]:
 def update_menu_item(menu_id: int, changes: dict[str, Any]) -> dict[str, Any]:
     """FR-44, FR-47: validate and persist menu and promotion updates."""
     configure_database()
+    staged_history: dict[str, Any] | None = None
     with SessionLocal.begin() as session:
         item = session.get(MenuItemEntity, menu_id)
         if item is None:
@@ -112,48 +113,58 @@ def update_menu_item(menu_id: int, changes: dict[str, Any]) -> dict[str, Any]:
         next_price = float(item.price)
         next_status = item.status
         if previous_price != next_price or previous_status != next_status:
-            record_menu_history(
-                menu_id,
-                old_price=previous_price,
-                new_price=next_price,
-                old_status=previous_status,
-                new_status=next_status,
-                updated_by="admin",
-                updated_at=item.updated_at,
-            )
-        return _to_dict(item)
+            staged_history = {
+                "menu_id": menu_id,
+                "old_price": previous_price,
+                "new_price": next_price,
+                "old_status": previous_status,
+                "new_status": next_status,
+                "updated_by": "admin",
+                "updated_at": item.updated_at,
+            }
+        result = _to_dict(item)
+    if staged_history is not None:
+        record_menu_history(**staged_history)
+    return result
 
 
 def delete_menu_item(menu_id: int) -> dict[str, Any]:
     """FR-49: remove the current menu item while retaining archived history/snapshots."""
     configure_database()
+    staged_snapshot: dict[str, Any] | None = None
+    staged_history: dict[str, Any] | None = None
     with SessionLocal.begin() as session:
         item = session.get(MenuItemEntity, menu_id)
         if item is None:
             raise ValueError(f"Menu item {menu_id} not found")
-        create_order_snapshot(
-            order_id=f"deleted:{menu_id}",
-            menu_id=item.menu_id,
-            snapshot_name=item.name,
-            snapshot_price=float(item.price),
-            snapshot_status_at_order=item.status,
-        )
-        record_menu_history(
-            menu_id,
-            old_price=float(item.price),
-            new_price=float(item.price),
-            old_status=item.status,
-            new_status="deleted",
-            updated_by="admin",
-            updated_at=datetime.now(timezone.utc),
-        )
+        updated_at = datetime.now(timezone.utc)
+        staged_snapshot = {
+            "order_id": f"deleted:{menu_id}",
+            "menu_id": item.menu_id,
+            "snapshot_name": item.name,
+            "snapshot_price": float(item.price),
+            "snapshot_status_at_order": item.status,
+        }
+        staged_history = {
+            "menu_id": menu_id,
+            "old_price": float(item.price),
+            "new_price": float(item.price),
+            "old_status": item.status,
+            "new_status": "deleted",
+            "updated_by": "admin",
+            "updated_at": updated_at,
+        }
         session.delete(item)
         session.flush()
-        return {"menu_id": menu_id, "deleted": True, "status": "deleted"}
+        result = {"menu_id": menu_id, "deleted": True, "status": "deleted"}
+    create_order_snapshot(**staged_snapshot)
+    record_menu_history(**staged_history)
+    return result
 
 
 def set_menu_status(menu_id: int, status: str) -> dict[str, Any]:
     configure_database()
+    staged_history: dict[str, Any] | None = None
     with SessionLocal.begin() as session:
         item = session.get(MenuItemEntity, menu_id)
         if item is None:
@@ -162,16 +173,18 @@ def set_menu_status(menu_id: int, status: str) -> dict[str, Any]:
         item.status = status
         item.updated_at = datetime.now(timezone.utc)
         session.flush()
-        record_menu_history(
-            menu_id,
-            old_price=float(item.price),
-            new_price=float(item.price),
-            old_status=previous_status,
-            new_status=status,
-            updated_by="admin",
-            updated_at=item.updated_at,
-        )
-        return _to_dict(item)
+        staged_history = {
+            "menu_id": menu_id,
+            "old_price": float(item.price),
+            "new_price": float(item.price),
+            "old_status": previous_status,
+            "new_status": status,
+            "updated_by": "admin",
+            "updated_at": item.updated_at,
+        }
+        result = _to_dict(item)
+    record_menu_history(**staged_history)
+    return result
 
 
 def _to_dict(item: MenuItemEntity) -> dict[str, Any]:

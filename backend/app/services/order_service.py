@@ -192,6 +192,9 @@ class OrderService:
         self._menu_repository = menu_repository
         self._order_repository = order_repository
 
+    def get_menu_item(self, menu_id: int) -> MenuItemRecord | None:
+        return self._menu_repository.get_menu_item(menu_id)
+
     def add_item(
         self,
         order_date: date,

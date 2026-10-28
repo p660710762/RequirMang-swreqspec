@@ -2,6 +2,7 @@
 
 บันทึกทุกครั้งที่ใช้ AI กับ repo นี้ เขียนต่อท้ายเรื่อย ๆ ไม่ต้องลบของเก่า
 
+<<<<<<< Updated upstream
 ---
 
 ## 2569-10-28 16:03 คำสั่ง: /testcases AC-MENU-09 specs/001-Menu/spec.md
@@ -12,6 +13,8 @@
 
 ---
 
+=======
+>>>>>>> Stashed changes
 ## 2569-10-28 15:55 คำสั่ง: /implement T-11 specs/009-MenuManagement/tasks.md
 - โหมด: ทำ task เดี่ยว
 - ไฟล์ที่แก้: `backend/app/services/history_service.py`, `backend/app/services/menu_service.py`, `backend/app/routes/menu.py`, `specs/009-MenuManagement/tasks.md`, `prompt-log.md`
@@ -570,6 +573,7 @@
 - ไฟล์อ้างอิง: specs/001-Menu/spec.md, specs/001-Menu/tasks.md
 - TC ใหม่:
   - TC-MENU-01-2: ทางปกติ แสดงรายการเครื่องดื่มที่เปิดขาย อ้าง FR-01 / AC-MENU-01
+
   - TC-MENU-01-3: ขอบเขตข้อมูล 1 รายการ อ้าง FR-01 / AC-MENU-01
   - TC-MENU-02-3: ขอบเขตข้อมูลเมนูเปิดขาย 1 รายการ ตรวจข้อมูล สถานะ และการกดสั่ง อ้าง FR-02 / AC-MENU-02 / ASM-02
 - สถานะ: TC ใหม่ทั้งหมดเป็น “ร่าง”; TC เดิมไม่แก้ไข
@@ -579,6 +583,8 @@
 - คำถามใหม่: ไม่มี; expected behavior ของทุกกรณีอ้าง Requirement ที่มีอยู่ ไม่ได้กำหนดผลลัพธ์เพิ่มเติม
 - ผล test: ไม่ได้สร้างหรือรัน Automated Tests ตามคำขอ
 - ขอบเขต: ไม่แก้ spec หรือโค้ด; ไม่มีการ commit หรือ push
+
+---
 
 ---
 
@@ -2489,6 +2495,7 @@
 
 ---
 
+<<<<<<< Updated upstream
 ## 2569-10-28 15:40 คำสั่ง: /testcases AC-MENU-04 specs/001-Menu/spec.md
 
 - โหมด: ร่าง
@@ -2567,3 +2574,193 @@
 - F-02: เพิ่ม test ยกเลิก Login โดยมี fixture Order เดิม และตรวจว่าไม่มี POST รายการใหม่
 - F-03 ถึง F-06: เพิ่ม automated tests สำหรับ search, empty state, promotion, retry, menu details และ sold-out button
 - F-07: ตั้ง `pythonpath = . ..` ใน `backend/pytest.ini` และเพิ่ม migration สำหรับ `description`/`image_url` ใน `backend/app/database.py`; เหลือ regression เดิมที่คาด payload admin เป็น list
+=======
+## 2569-10-28 15:45 คำสั่ง: /testcases AC-MENU-MGMT-06 specs/009-MenuManagement/
+- โหมด: ร่าง
+- TC ID: `TC-MENU-MGMT-06-1`, `TC-MENU-MGMT-06-2`, `TC-MENU-MGMT-06-3`
+- ผล: เพิ่มแถวร่าง 3 แถวใน `specs/009-MenuManagement/test-cases.md` สำหรับ AC-MENU-MGMT-06 และหยุดก่อนเขียนโค้ด test เพราะทีมต้องตรวจแถวและเปลี่ยนสถานะเป็น "ใช้ได้" ก่อน
+- หมายเหตุ: Then ของกรณีข้อมูลไม่ครบถ้วนยึด AC-MENU-MGMT-11 และ Then ของกรณีข้อมูลขั้นต่ำยึด FR-43; ไม่พบ Open Question เพิ่มเติมใน AC นี้
+
+---
+
+## 2569-10-28 15:47 คำสั่ง: /testcases AC-MENU-MGMT-06 specs/009-MenuManagement/
+- โหมด: เขียน Automated Tests จากแถวสถานะ "ใช้ได้"
+- TC ที่เขียน: `TC-MENU-MGMT-06-1`, `TC-MENU-MGMT-06-2`, `TC-MENU-MGMT-06-3`
+- ไฟล์ test ที่แก้: `frontend/src/pages/AdminMenuPage.test.jsx`, `frontend/src/components/MenuEditPanel.test.jsx`, `tests/test_AC_MENU_MGMT_02_admin_can_add_menu_item_api.py`
+- ผล: เพิ่ม test ตามแถวทั้ง 3 แถว
+- ผล test: frontend `npm test -- --run` ผ่าน 125 tests; test ใหม่ `test_TC_MENU_MGMT_06_3_incomplete_update_is_rejected` ผ่าน 1 test
+- Backend suite ทั้งหมดไม่ผ่านจาก test เดิมที่ยังคาดว่า `GET /api/admin/menu` คืนค่าเป็น list ทั้งที่ contract ปัจจุบันคืน object ที่มี `menu_items` ตาม T-11; ไม่แก้ test เดิมหรือโค้ดระบบ
+- การติดตั้ง dependency: ติดตั้ง `SQLAlchemy` ตาม `requirements.txt` หลังพบ dependency ขาด
+
+---
+
+## 2569-10-28 15:52 คำสั่ง: /verify specs/009-MenuManagement/
+- โหมด: ตรวจและรายงาน ไม่แก้โค้ดหรือ test
+- ผล test: `cd frontend && npm test` ผ่าน 125 tests จาก 29 files; `cd backend && pytest -v` เก็บไม่ได้ 10 files จาก `ModuleNotFoundError: backend`
+- Targeted Menu Management tests: 20 passed, 3 failed; failure หลักมาจาก test เดิมที่คาด `GET /api/admin/menu` เป็น list แต่ endpoint ปัจจุบันคืน object ที่มี `menu_items`
+- ตาราง RTM: ครบ 11 แถว, ยังไม่ถึง 0 แถว, รอ 0 แถว, ช่องโหว่ 14 แถว
+- Findings ใหม่: F-05, F-06, F-07, F-08, F-09, F-10, F-11, F-12; คง F-03 และ F-04 ตาม RTM เดิม
+
+---
+
+## 2569-10-28 16:00 คำสั่ง: ช่วยแก้ข้อค้นพบจาก RTM ของ specs/009-MenuManagement/
+- ขอบเขต: แก้เฉพาะ test, test infrastructure และเอกสารที่ไม่เปลี่ยนพฤติกรรม production; เลื่อน F-04/F-06 และไม่แก้ F-07/F-08/F-09 เพราะต้องเปลี่ยน behavior หรือ scope
+- แก้ F-05: เพิ่ม `frontend/src/pages/CustomerMenuPage.test.jsx` ตรวจข้อความ “หมด” และปุ่มสั่งซื้อ disabled
+- แก้ F-10: เพิ่ม assertion ใน `MenuEditPanel.test.jsx` ตรวจการแสดงเดือนภาษาไทยและปี พ.ศ.
+- แก้ F-11: ปรับ `backend/pytest.ini` ให้ backend tests หา package จาก repository root ได้
+- แก้ F-12: ปรับ test ที่อ่าน `GET /api/admin/menu` ให้ใช้ response field `menu_items` และแก้ integration test ที่ใช้ contract เดิม
+- เพิ่ม test cases ที่ได้รับการยืนยันสำหรับ AC-MENU-MGMT-07 และ AC-MENU-MGMT-15
+- ผล test: frontend targeted 10 passed; backend targeted 6 passed; backend suite จาก `cd backend && pytest -q` 62 passed, 0 failed
+
+---
+
+## 2569-10-28 16:04 คำสั่ง: /testcases AC-MENU-MGMT-08 specs/009-MenuManagement/
+- โหมด: ร่าง
+- เหตุผล: AC-MENU-MGMT-08 ยังไม่มีแถวใน `test-cases.md`; task T-11 และ T-12 อยู่สถานะเสร็จ
+- TC ID ที่เสนอ: `TC-MENU-MGMT-08-1`, `TC-MENU-MGMT-08-2`, `TC-MENU-MGMT-08-3`
+- ผล: เพิ่มแถวสถานะ "ร่าง" 3 แถว โดยครอบคลุมทางปกติ ทางขอบ และทางผิด
+- Open Question: กรณีไม่มี Order ที่เกิดขึ้นก่อนการแก้ไขข้อมูลเมนู spec ไม่ได้บอกผลลัพธ์ที่ต้องแสดงหรือจัดเก็บ จึงกำหนด Then เป็น "spec ไม่ได้บอก" และให้ตรวจด้วยคน
+- ยังไม่ได้เขียนหรือรันโค้ด test ตามกติกาโหมดร่าง
+
+---
+
+## 2569-10-28 16:06 คำสั่ง: /testcases AC-MENU-MGMT-08 specs/009-MenuManagement/
+- โหมด: เขียน test
+- แถวสถานะ "ใช้ได้" ที่เขียน: `TC-MENU-MGMT-08-1`, `TC-MENU-MGMT-08-2`
+- แถว `TC-MENU-MGMT-08-3` ยังเป็นการตรวจด้วยคน จึงไม่ได้เขียน automated test
+- ไฟล์ test: `backend/tests/test_AC_MENU_MGMT_08.py`
+- ผล: `cd backend && pytest -q tests/test_AC_MENU_MGMT_08.py` ผ่าน 2 tests; `cd backend && pytest -q` ผ่าน 64 tests, ไม่ผ่าน 0
+
+---
+
+## 2569-10-28 16:09 คำสั่ง: /testcases AC-MENU-MGMT-09 specs/009-MenuManagement/
+- โหมด: ร่าง
+- เหตุผล: AC-MENU-MGMT-09 ยังไม่มีแถวใน `test-cases.md`; task T-07 อยู่สถานะเสร็จ
+- TC ID ที่เสนอ: `TC-MENU-MGMT-09-1`, `TC-MENU-MGMT-09-2`, `TC-MENU-MGMT-09-3`
+- ผล: เพิ่มแถวสถานะ "ร่าง" 3 แถว ครอบคลุมทางปกติ ทางขอบ และทางผิด
+- หมายเหตุ: กรณีไม่มีสิทธิ์ Admin ใช้ผลจาก NFR-SEC-05; spec ไม่ได้กำหนดข้อความแจ้งเตือน จึงระบุไว้ใน Then โดยไม่เดาข้อความ
+- ยังไม่ได้เขียนหรือรันโค้ด test ตามกติกาโหมดร่าง
+
+---
+
+## 2569-10-28 16:10 คำสั่ง: /testcases AC-MENU-MGMT-09 specs/009-MenuManagement/
+- โหมด: เขียน test
+- แถวสถานะ "ใช้ได้" ที่เขียน: `TC-MENU-MGMT-09-1`, `TC-MENU-MGMT-09-2`, `TC-MENU-MGMT-09-3`
+- ไฟล์ test: `tests/test_AC_MENU_MGMT_09.py`
+- ผล: `APP_ENV=test PYTHONPATH=.:backend pytest -q tests/test_AC_MENU_MGMT_09.py` ผ่าน 3 tests; tests AC-09 และ AC-07 ที่เกี่ยวข้องผ่าน 5 tests; `cd backend && pytest -v` ผ่าน 64 tests, ไม่ผ่าน 0
+
+---
+
+## 2569-10-28 16:13 คำสั่ง: /testcases AC-MENU-MGMT-10 specs/009-MenuManagement/
+- โหมด: ร่าง
+- เหตุผล: AC-MENU-MGMT-10 ยังไม่มีแถวใน `test-cases.md`; task T-07 และ T-10 อยู่สถานะเสร็จ
+- TC ID ที่เสนอ: `TC-MENU-MGMT-10-1`, `TC-MENU-MGMT-10-2`, `TC-MENU-MGMT-10-3`
+- ผล: เพิ่มแถวสถานะ "ร่าง" 3 แถว ครอบคลุมทางปกติ ทางขอบ และทางผิด
+- Open Question: กรณีเมนูไม่ได้อยู่ในสถานะ “เปิดขาย” ก่อนดำเนินการ spec ไม่ได้บอกผลลัพธ์ที่ต้องแสดงหรือแจ้ง จึงระบุไว้ใน Then โดยไม่เดา
+- ยังไม่ได้เขียนหรือรันโค้ด test ตามกติกาโหมดร่าง
+
+---
+
+## 2569-10-28 16:15 คำสั่ง: /testcases AC-MENU-MGMT-10 specs/009-MenuManagement/
+- โหมด: เขียน test
+- แถวสถานะ "ใช้ได้" ที่เขียน: `TC-MENU-MGMT-10-1`, `TC-MENU-MGMT-10-2`
+- แถว `TC-MENU-MGMT-10-3` ระบุให้ตรวจด้วยคน จึงไม่ได้เขียน automated test
+- ไฟล์ test: `backend/tests/test_AC_MENU_MGMT_10.py`
+- ผล: `cd backend && APP_ENV=test pytest -q tests/test_AC_MENU_MGMT_10.py` ผ่าน 2 tests; `cd backend && APP_ENV=test pytest -q` ผ่าน 66 tests, ไม่ผ่าน 0
+
+---
+
+## 2569-10-28 16:16 คำสั่ง: /testcases AC-MENU-MGMT-14 specs/009-MenuManagement/
+- โหมด: ร่าง
+- เหตุผล: AC-MENU-MGMT-14 ยังไม่มีแถวใน `test-cases.md`; task T-11 และ T-12 อยู่สถานะเสร็จ
+- TC ID ที่เสนอ: `TC-MENU-MGMT-14-1`, `TC-MENU-MGMT-14-2`, `TC-MENU-MGMT-14-3`
+- ผล: เพิ่มแถวสถานะ "ร่าง" 3 แถว ครอบคลุมทางปกติ ทางขอบ และทางผิด
+- Open Question: กรณีไม่มี Order เดิมก่อนเปลี่ยนสถานะเมนู spec ไม่ได้บอกผลลัพธ์ที่ต้องแสดงหรือจัดเก็บ จึงระบุไว้ใน Then โดยไม่เดา
+- ยังไม่ได้เขียนหรือรันโค้ด test ตามกติกาโหมดร่าง
+
+---
+
+## 2569-10-28 16:17 คำสั่ง: /testcases AC-MENU-MGMT-14 specs/009-MenuManagement/
+- โหมด: เขียน test
+- แถวสถานะ "ใช้ได้" ที่เขียน: `TC-MENU-MGMT-14-1`, `TC-MENU-MGMT-14-2`
+- แถว `TC-MENU-MGMT-14-3` ระบุให้ตรวจด้วยคน จึงไม่ได้เขียน automated test
+- ไฟล์ test: `backend/tests/test_AC_MENU_MGMT_14.py`
+- ผล: `cd backend && APP_ENV=test pytest -q tests/test_AC_MENU_MGMT_14.py` ผ่าน 2 tests; `cd backend && APP_ENV=test pytest -q` ผ่าน 68 tests, ไม่ผ่าน 0
+
+---
+
+## 2569-10-28 16:19 คำสั่ง: แก้ข้อค้นพบของ RTM หลังมี test เพิ่ม
+- ปรับปรุง `specs/009-MenuManagement/rtm.md` ให้สะท้อน tests AC-MENU-MGMT-08 และ AC-MENU-MGMT-14 ที่เพิ่มแล้ว
+- อัปเดตผลทดสอบล่าสุดเป็น frontend 127 ผ่าน และ backend 68 ผ่าน
+- ปรับ F-06 จาก "ไม่พบ test" เป็น "แก้บางส่วน / test อ่อน" เพราะมี tests ระดับ `create_order_snapshot()` แล้ว แต่ยังไม่มี Order API end-to-end
+- ปรับสถานะ FR-49, NFR-REL-09, CON-DELETE-SNAPSHOT และ CON-ORDER-OLD-DATA เป็น "ครบบางส่วน" พร้อมระบุข้อจำกัดที่ยังเหลือ
+- แก้ข้อมูลย้อนกลับของ `CON-THAI-BUDDHIST-DATETIME` ให้ตรงกับ test ที่มีอยู่จริง
+- ไม่แก้ production code และไม่ปิด findings F-04, F-07, F-08, F-09 หรือ CON-LATEST-CUSTOMER-DATA เพราะหลักฐานปัจจุบันยังไม่ครอบคลุมหรือจะกระทบ behavior
+
+---
+
+## 2569-10-28 16:27 คำสั่ง: แก้ข้อค้นพบของ RTM
+- ทีมเลือกแก้ทั้งหมด โดยยืนยันให้ใช้ Order API/snapshot API ที่มีอยู่เดิม, เพิ่ม customer API integration test และใช้ `transaction-staging` สำหรับ history/snapshot
+- แก้สูตรส่วนลดฝั่ง customer ใน `CustomerMenuPage.jsx` และ `MenuPage.jsx` จากเปอร์เซ็นต์เป็นจำนวนเงิน `price - discount_value`
+- ปรับ promotion contract ของ customer API ให้ส่ง `discount_value`
+- ปรับ `seed_menu_data()` ให้ promotion เริ่มวันถัดไปและสิ้นสุดหลังจากนั้น
+- เพิ่ม snapshot จาก Order จริงหลังเพิ่มรายการและตัวเลือกสำเร็จ โดยอ่านตรวจผ่าน `GET /api/admin/menu`
+- ปรับ `menu_service.py` ให้ staging history/snapshot และ append หลัง database transaction สำเร็จ
+- เพิ่ม `backend/tests/test_rtm_menu_findings.py` ครอบคลุม seed อนาคต, customer latest data, Order snapshot end-to-end และ transaction failure
+- เพิ่ม customer test ตรวจส่วนลด 45 ลด 10 บาท เหลือ 35 บาท
+- ผล targeted: backend 8 ผ่าน; customer frontend 2 ผ่าน
+- ผล full suite: backend 72 ผ่าน 0 ไม่ผ่าน; frontend 127 ผ่าน 0 ไม่ผ่าน
+- อัปเดต `specs/009-MenuManagement/rtm.md` โดยปิด F-04, F-06, F-07, F-08, F-09, CON-LATEST-CUSTOMER-DATA และ CON-DISCOUNT-RULES
+
+---
+
+## 2569-10-28 16:38 ตรวจสอบ RTM ใน workspace
+- ตรวจยืนยันว่าไฟล์ `specs/009-MenuManagement/rtm.md` บนดิสก์มีสถานะล่าสุดแล้ว
+- อัปเดต timestamp ของ RTM เป็น 16:38 เพื่อแยกจาก snapshot เก่าที่เปิดอยู่ใน IDE
+- snapshot ที่แนบมากับคำสั่งเป็นไฟล์ read-only จึงไม่ใช่ไฟล์ RTM ที่แก้จริง
+
+---
+
+## 2569-10-28 16:39 คำสั่ง: /testcases AC-MENU-MGMT-11 specs/009-MenuManagement/
+- โหมด: ร่าง
+- เหตุผล: AC-MENU-MGMT-11 ยังไม่มีแถวใน `test-cases.md`
+- TC ID ที่เสนอ: `TC-MENU-MGMT-11-1`, `TC-MENU-MGMT-11-2`, `TC-MENU-MGMT-11-3`
+- ผล: เพิ่มแถวสถานะ "ร่าง" 3 แถว ครอบคลุมทางปกติ ทางขอบ และทางผิด
+- Then อ้างอิง AC-MENU-MGMT-11, FR-43 และ FR-46; ไม่เพิ่ม Open Question
+- ยังไม่ได้เขียนหรือรันโค้ด test ตามกติกาโหมดร่าง
+
+---
+
+## 2569-10-28 16:40 คำสั่ง: /testcases AC-MENU-MGMT-11 specs/009-MenuManagement/
+- โหมด: เขียน test
+- แถวสถานะ "ใช้ได้" ที่เขียน: `TC-MENU-MGMT-11-1`, `TC-MENU-MGMT-11-2`, `TC-MENU-MGMT-11-3`
+- เพิ่ม backend tests ใน `backend/tests/test_AC_MENU_MGMT_11.py`
+- เพิ่ม frontend tests ต่อท้าย `frontend/src/pages/AdminMenuPage.test.jsx`
+- ผล targeted: backend 3 tests ผ่าน; frontend AdminMenuPage 10 tests ผ่าน
+- ผล full suite: backend 75 tests ผ่าน 0 ไม่ผ่าน; frontend 130 tests ผ่าน 0 ไม่ผ่าน
+
+---
+
+## 2569-10-28 16:43 คำสั่ง: /verify specs/009-MenuManagement/
+- ผล test: backend 75 ผ่าน 0 ไม่ผ่าน; frontend 130 ผ่าน 0 ไม่ผ่าน
+- ตรวจตารางตามรอยไปข้างหน้าจำนวน 25 แถว: ครบ 24 แถว, ช่องโหว่ 1 แถว, ยังไม่ถึง 0 แถว, รอ Q 0 แถว
+- ตรวจพบข้อค้นพบใหม่ F-13: NFR-REL-08 มี test rollback เฉพาะ update ยังไม่ครอบคลุม create/status/delete
+- ตรวจพบข้อค้นพบใหม่ F-14: `GET /api/promotions/active` อ้าง `FR-05` ซึ่งไม่มีใน spec นี้และไม่อยู่ในรายการ API ของ plan.md
+- อัปเดต `specs/009-MenuManagement/rtm.md` โดยคง F-ID เดิมและเพิ่ม F-13/F-14
+
+---
+
+## 2569-10-28 16:46 คำสั่ง: แก้ข้อค้นพบ F-13 และ F-14 ของ Menu Management
+- แก้ F-13: เพิ่ม regression tests ใน `backend/tests/test_rtm_menu_findings.py` สำหรับ transaction failure ของ create, update, status และ delete โดยตรวจว่า history/snapshot ไม่ถูก append
+- แก้ F-14: เปลี่ยน comment ของ `GET /api/promotions/active` จาก `FR-05` เป็น `FR-44` และเพิ่ม endpoint ในข้อ 4 ของ `specs/009-MenuManagement/plan.md`
+- ผล targeted regression: 7 tests ผ่าน 0 ไม่ผ่าน
+- ผล full suite: backend 78 tests ผ่าน 0 ไม่ผ่าน; frontend 130 tests ผ่าน 0 ไม่ผ่าน
+- ย้าย F-13 และ F-14 ไปหัวข้อ “แก้แล้ว” ใน RTM พร้อมหลักฐานการตรวจ
+
+---
+
+## 2569-10-28 16:50 คำสั่ง: ตรวจสอบข้อค้นพบที่ยังแสดงใน RTM
+- พบว่าตารางหัวข้อ “ข้อค้นพบ” ยังแสดง F-04, F-06, F-07, F-08 และ F-09 แม้ทุกแถวมีสถานะ “แก้แล้ว” และมีรายการอยู่ในหัวข้อ “แก้แล้ว” แล้ว
+- แก้ `specs/009-MenuManagement/rtm.md` โดยย้ายแถว F-04, F-06, F-07, F-08 และ F-09 ออกจากตารางข้อค้นพบคงค้าง
+- หัวข้อ “ข้อค้นพบ” ระบุชัดเจนว่าไม่พบข้อค้นพบคงค้าง ส่วน F-01 ถึง F-14 อยู่ในหัวข้อ “แก้แล้ว”
+>>>>>>> Stashed changes
