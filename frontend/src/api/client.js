@@ -123,7 +123,11 @@ export async function getMenuItems() {
   if (!response.ok) {
     throw new Error(`Menu request failed (${response.status})`);
   }
-  return response.json();
+  const payload = await response.json();
+  if (Array.isArray(payload)) {
+    return payload;
+  }
+  return Array.isArray(payload.menu_items) ? payload.menu_items : [];
 }
 
 // FR-43, FR-47: send a new menu payload to the menu API.
@@ -135,6 +139,27 @@ export async function createMenuItem(menuItem) {
   });
   if (!response.ok) {
     let message = `Menu save failed (${response.status})`;
+    try {
+      const errorBody = await response.json();
+      if (typeof errorBody.detail === 'string') {
+        message = errorBody.detail;
+      }
+    } catch {
+      // Keep the HTTP status message when the error response is not JSON.
+    }
+    throw new Error(message);
+  }
+  return response.json();
+}
+
+// FR-49: permanently remove the menu while keeping legacy snapshot/history records.
+export async function deleteMenuItem(menuId) {
+  const response = await fetch(`${ADMIN_MENU_PATH}/${encodeURIComponent(menuId)}`, {
+    method: 'DELETE',
+    headers: MOCK_ADMIN_HEADERS,
+  });
+  if (!response.ok) {
+    let message = `Menu delete failed (${response.status})`;
     try {
       const errorBody = await response.json();
       if (typeof errorBody.detail === 'string') {

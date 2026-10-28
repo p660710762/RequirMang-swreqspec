@@ -21,7 +21,7 @@
 - แบบหน้าจอ: ไม่มี
 - ต้องทำหลัง: ไม่มี
 - เสร็จเมื่อ: Schema เมนู/โปรโมชั่น/history/snapshot ถูกสร้างและมีข้อมูลตัวอย่างสำหรับ Admin ใช้งานได้
-- สถานะ: เสร็จ รอทีมตรวจ
+- สถานะ: เสร็จ 
 
 ### T-02 สร้าง API base และ route สำหรับเมนู
 - รองรับ: FR-42, FR-43, FR-45, FR-46, FR-47
@@ -30,7 +30,7 @@
 - แบบหน้าจอ: ไม่มี
 - ต้องทำหลัง: T-01
 - เสร็จเมื่อ: route GET/POST/PATCH พร้อมใช้งานและตอบกลับรูปแบบ JSON พื้นฐาน
-- สถานะ: เสร็จ รอทีมตรวจ
+- สถานะ: เสร็จ 
 
 ### T-03 สร้าง guard สำหรับ Admin และ mock auth ของนักศึกษา
 - รองรับ: NFR-SEC-05, FR-42, FR-43
@@ -61,7 +61,7 @@
 - แบบหน้าจอ: UI-MENU-01, mockup ทีมออกแบบเอง
 - ต้องทำหลัง: T-02, T-03
 - เสร็จเมื่อ: หน้า Admin Menu Management โหลดรายการเมนูจาก API และมีเมนูที่จัดการได้
-- สถานะ: เสร็จ รอทีมตรวจ
+- สถานะ: เสร็จ 
 
 ### T-05 สร้างฟอร์มเพิ่มเมนูและ validation ช่วง required fields
 - รองรับ: FR-43, FR-46, ASM-10
@@ -70,7 +70,7 @@
 - แบบหน้าจอ: UI-MENU-02, ไม่มี mockup ทีมออกแบบเอง
 - ต้องทำหลัง: T-04
 - เสร็จเมื่อ: กรอกข้อมูลที่ไม่มี name/price/status จะถูก reject และกรอกครบจะบันทึกสำเร็จ
-- สถานะ: เสร็จ รอทีมตรวจ
+- สถานะ: เสร็จ 
 
 #### จุดตรวจเฟส 1
 - test ที่ต้องผ่านทั้งหมด: test_AC_MENU_MGMT_01_admin_can_view_menu_list, test_AC_MENU_MGMT_02_admin_can_add_menu_item, test_AC_MENU_MGMT_05_validation_before_save, test_AC_MENU_MGMT_11_invalid_data_is_rejected
@@ -92,7 +92,7 @@
 - แบบหน้าจอ: UI-MENU-01, ไม่มี mockup ทีมออกแบบเอง
 - ต้องทำหลัง: T-05
 - เสร็จเมื่อ: Admin สามารถแก้ไขราคา/รายละเอียด/โปรโมชั่นแล้วบันทึกและเห็นข้อมูลใหม่ทันที
-- สถานะ: เสร็จ รอทีมตรวจ
+- สถานะ: เสร็จ 
 
 ### T-07 สร้าง API status change และ UI status panel
 - รองรับ: FR-44, FR-45, FR-48, ASM-03, ASM-12, ASM-14
@@ -101,7 +101,7 @@
 - แบบหน้าจอ: UI-MENU-03, ไม่มี mockup ทีมออกแบบเอง
 - ต้องทำหลัง: T-06
 - เสร็จเมื่อ: status สลับได้ระหว่าง “เปิดขาย” และ “หมด”; validation ปฏิเสธวันเริ่ม/สิ้นสุดโปรโมชั่นที่ขาดหาย, ไม่ใช่ ISO 8601 พร้อม timezone, หรือวันสิ้นสุดก่อนวันเริ่ม
-- สถานะ: เสร็จ รอทีมตรวจ
+- สถานะ: เสร็จ 
 
 #### จุดตรวจเฟส 2
 - test ที่ต้องผ่านทั้งหมด: test_AC_MENU_MGMT_03_admin_can_edit_menu_details, test_AC_MENU_MGMT_04_admin_can_change_status, test_AC_MENU_MGMT_09_admin_can_mark_menu_as_not_for_sale, test_AC_MENU_MGMT_10_sold_out_status_blocks_purchase, test_AC_MENU_MGMT_15_promotion_datetime_must_be_valid
@@ -123,7 +123,7 @@
 - แบบหน้าจอ: ไม่มี
 - ต้องทำหลัง: T-06, T-07
 - เสร็จเมื่อ: save failure ทำให้ระบบ rollback และไม่แสดงว่าบันทึกสำเร็จ
-- สถานะ: พร้อมทำ
+- สถานะ: เสร็จ
 
 ### T-09 สร้าง UI แจ้งผลบันทึกและข้อความข้อผิดพลาด
 - รองรับ: FR-47, FR-46, UC-09 Exception Flow 7a
@@ -132,7 +132,7 @@
 - แบบหน้าจอ: UI-MENU-01, UI-MENU-02
 - ต้องทำหลัง: T-08
 - เสร็จเมื่อ: เมื่อ save สำเร็จ จะแสดงข้อมูลใหม่และเมื่อ fail จะแสดงข้อความ “ไม่สามารถบันทึกข้อมูลได้”
-- สถานะ: พร้อมทำ
+- สถานะ: เสร็จ 
 
 #### จุดตรวจเฟส 3
 - test ที่ต้องผ่านทั้งหมด: test_AC_MENU_MGMT_06_successful_update_is_persisted, test_AC_MENU_MGMT_12_save_failure_not_marked_as_success
@@ -150,11 +150,11 @@
 ### T-10 สร้าง customer ordering guard สำหรับ status “หมด”
 - รองรับ: FR-48, AC-MENU-MGMT-07, AC-MENU-MGMT-10
 - ตรวจด้วย: AC-MENU-MGMT-07, AC-MENU-MGMT-10
-- ไฟล์ที่แตะ: backend/app/services/order_guard.py, backend/app/routes/order.py
+- ไฟล์ที่แตะ: backend/app/services/order_guard.py, backend/app/services/order_service.py, backend/app/routes/orders.py, tests/test_AC_MENU_MGMT_07_sold_out_menu_blocked_for_customer.py
 - แบบหน้าจอ: ไม่มี
 - ต้องทำหลัง: T-07
 - เสร็จเมื่อ: เมนูที่ status = หมด ถูกปฏิเสธใน order flow และลูกค้าไม่สามารถสั่งได้
-- สถานะ: พร้อมทำ
+- สถานะ: เสร็จ 
 
 ### T-11 สร้าง snapshot/history สำหรับ Order เก่า และ delete archive
 - รองรับ: FR-49, NFR-REL-09, ASM-09, ASM-13
@@ -163,7 +163,7 @@
 - แบบหน้าจอ: ไม่มี
 - ต้องทำหลัง: T-10
 - เสร็จเมื่อ: เมื่อมี Order เก่าหรือเมนูถูกลบ จะมี snapshot/history ที่จำเป็นอยู่และไม่ถูกเปลี่ยนเมื่อแก้ไขเมนูปัจจุบัน
-- สถานะ: พร้อมทำ
+- สถานะ: เสร็จ — มี in-memory snapshot/history helper, delete archive, และการคงข้อมูลเมนู/Order snapshot เมื่อมีการแก้ไขหรือลบเมนู
 
 ### T-12 สร้างหน้าจอและ flow สำหรับลบเมนูถาวรพร้อม history
 - รองรับ: FR-42, FR-49, ASM-09, ASM-12
@@ -172,7 +172,7 @@
 - แบบหน้าจอ: UI-MENU-01, ไม่มี mockup ทีมออกแบบเอง
 - ต้องทำหลัง: T-11
 - เสร็จเมื่อ: Admin สามารถลบเมนูจริงจาก catalog ปัจจุบัน แต่ history/order snapshot ยังคงอยู่และลูกค้าไม่เห็นเมนูนั้น
-- สถานะ: พร้อมทำ
+- สถานะ: เสร็จ — มี UI delete confirmation flow, DELETE Admin API, และ snapshot/history guard สำหรับเมนูที่ถูกลบ
 
 #### จุดตรวจเฟส 4
 - test ที่ต้องผ่านทั้งหมด: test_AC_MENU_MGMT_07_sold_out_menu_blocked_for_customer, test_AC_MENU_MGMT_08_old_orders_remain_valid, test_AC_MENU_MGMT_10_sold_out_status_blocks_purchase, test_AC_MENU_MGMT_13_non_admin_is_blocked, test_AC_MENU_MGMT_14_old_order_keeps_snapshot

@@ -4,6 +4,8 @@ from datetime import date
 from decimal import Decimal
 from typing import Protocol
 
+from .order_guard import ensure_menu_is_orderable
+
 
 SWEETNESS_LEVELS = frozenset(
     {"หวานปกติ 75%", "หวานน้อย 50%", "เพิ่มหวาน 100%", "ไม่หวาน"}
@@ -201,8 +203,10 @@ class OrderService:
         menu_item = self._menu_repository.get_menu_item(menu_id)
         if menu_item is None:
             raise MenuItemNotFoundError
-        if menu_item.status != "open":
-            raise MenuItemUnavailableError
+        try:
+            ensure_menu_is_orderable(menu_item.status)
+        except ValueError as exc:
+            raise MenuItemUnavailableError from exc
 
         return self._order_repository.add_item_to_draft(
             order_date, order_id, menu_item, quantity

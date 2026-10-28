@@ -11,6 +11,7 @@ from sqlalchemy import select
 from ..config import MENU_STATUS_OPEN, MENU_STATUS_SOLD_OUT, required_menu_fields
 from ..database import SessionLocal, configure_database
 from ..models.menu import MenuItemEntity
+from .history_service import create_order_snapshot, get_menu_history, get_order_snapshots, record_menu_history
 
 
 def _validate_menu_fields(payload: dict[str, Any]) -> None:
@@ -52,6 +53,14 @@ def list_menu_items() -> list[dict[str, Any]]:
         return [_to_dict(item) for item in items]
 
 
+def list_menu_history_and_snapshots() -> dict[str, list[dict[str, Any]]]:
+    """FR-49: expose the historical records kept to protect old orders."""
+    return {
+        "menu_history": get_menu_history(),
+        "order_snapshots": get_order_snapshots(),
+    }
+
+
 def create_menu_item(payload: dict[str, Any]) -> dict[str, Any]:
     """FR-43, FR-46, FR-47: validate and save a new menu record."""
     _validate_menu_fields(payload)
@@ -80,6 +89,8 @@ def update_menu_item(menu_id: int, changes: dict[str, Any]) -> dict[str, Any]:
         if item is None:
             raise ValueError(f"Menu item {menu_id} not found")
 
+        previous_price = float(item.price)
+        previous_status = item.status
         updated = _to_dict(item)
         updated.update(changes)
         _validate_menu_fields(updated)
@@ -97,7 +108,48 @@ def update_menu_item(menu_id: int, changes: dict[str, Any]) -> dict[str, Any]:
             item.promotion_price = None
         item.updated_at = datetime.now(timezone.utc)
         session.flush()
+
+        next_price = float(item.price)
+        next_status = item.status
+        if previous_price != next_price or previous_status != next_status:
+            record_menu_history(
+                menu_id,
+                old_price=previous_price,
+                new_price=next_price,
+                old_status=previous_status,
+                new_status=next_status,
+                updated_by="admin",
+                updated_at=item.updated_at,
+            )
         return _to_dict(item)
+
+
+def delete_menu_item(menu_id: int) -> dict[str, Any]:
+    """FR-49: remove the current menu item while retaining archived history/snapshots."""
+    configure_database()
+    with SessionLocal.begin() as session:
+        item = session.get(MenuItemEntity, menu_id)
+        if item is None:
+            raise ValueError(f"Menu item {menu_id} not found")
+        create_order_snapshot(
+            order_id=f"deleted:{menu_id}",
+            menu_id=item.menu_id,
+            snapshot_name=item.name,
+            snapshot_price=float(item.price),
+            snapshot_status_at_order=item.status,
+        )
+        record_menu_history(
+            menu_id,
+            old_price=float(item.price),
+            new_price=float(item.price),
+            old_status=item.status,
+            new_status="deleted",
+            updated_by="admin",
+            updated_at=datetime.now(timezone.utc),
+        )
+        session.delete(item)
+        session.flush()
+        return {"menu_id": menu_id, "deleted": True, "status": "deleted"}
 
 
 def set_menu_status(menu_id: int, status: str) -> dict[str, Any]:
@@ -106,9 +158,19 @@ def set_menu_status(menu_id: int, status: str) -> dict[str, Any]:
         item = session.get(MenuItemEntity, menu_id)
         if item is None:
             raise ValueError(f"Menu item {menu_id} not found")
+        previous_status = item.status
         item.status = status
         item.updated_at = datetime.now(timezone.utc)
         session.flush()
+        record_menu_history(
+            menu_id,
+            old_price=float(item.price),
+            new_price=float(item.price),
+            old_status=previous_status,
+            new_status=status,
+            updated_by="admin",
+            updated_at=item.updated_at,
+        )
         return _to_dict(item)
 
 

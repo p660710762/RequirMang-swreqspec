@@ -8,7 +8,13 @@ from pydantic import BaseModel
 
 from ..middleware.auth_guard import require_admin
 from ..seed import seed_menu_data
-from ..services.menu_service import create_menu_item, list_menu_items, update_menu_item
+from ..services.menu_service import (
+    create_menu_item,
+    delete_menu_item,
+    list_menu_items,
+    list_menu_history_and_snapshots,
+    update_menu_item,
+)
 from ..services.menu_status_service import update_menu_status
 from ..services.menu_validation import validate_menu_payload
 
@@ -62,8 +68,13 @@ class MenuStatusRequest(BaseModel):
 
 @router.get("/menu")
 def get_menu_items():
-    """FR-42: return the current menu list and related data."""
-    return list_menu_items()
+    """FR-42, FR-49: return the current menu list and retained historical records."""
+    payload = list_menu_items()
+    payload = {
+        "menu_items": payload,
+        **list_menu_history_and_snapshots(),
+    }
+    return payload
 
 
 @router.post("/menu")
@@ -74,6 +85,8 @@ def create_menu(payload: MenuCreateRequest):
         return create_menu_item(validated)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail="ไม่สามารถบันทึกข้อมูลได้") from exc
 
 
 @router.patch("/menu/{menu_id}")
@@ -84,6 +97,8 @@ def update_menu(menu_id: int, payload: MenuUpdateRequest):
         return update_menu_item(menu_id, changes)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail="ไม่สามารถบันทึกข้อมูลได้") from exc
 
 
 @router.patch("/menu/{menu_id}/status")
@@ -93,3 +108,16 @@ def update_status(menu_id: int, payload: MenuStatusRequest):
         return update_menu_status(menu_id, payload.status)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail="ไม่สามารถบันทึกข้อมูลได้") from exc
+
+
+@router.delete("/menu/{menu_id}")
+def delete_menu(menu_id: int):
+    """FR-49: delete the current catalog record while retaining the archived snapshot."""
+    try:
+        return delete_menu_item(menu_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail="ไม่สามารถลบเมนูได้") from exc

@@ -1,4 +1,5 @@
 import unittest
+from unittest.mock import patch
 
 from fastapi.testclient import TestClient
 
@@ -54,6 +55,29 @@ class TestMenuManagementApi(unittest.TestCase):
         self.assertEqual(saved_item["price"], 15)
         self.assertEqual(saved_item["description"], "แก้ไขแล้ว")
         self.assertEqual(saved_item["status"], "sold_out")
+
+    def test_AC_MENU_MGMT_12_save_failure_is_not_shown_as_success(self):
+        created = self.client.post(
+            "/api/admin/menu",
+            json={"name": "เมนู API สำหรับ fail", "price": 10, "status": "open"},
+        )
+        menu_id = created.json()["menu_id"]
+        before = self.client.get("/api/admin/menu").json()
+        original = next(item for item in before if item["menu_id"] == menu_id)
+
+        with patch("backend.app.routes.menu.update_menu_item", side_effect=RuntimeError("db failure")):
+            response = self.client.patch(
+                f"/api/admin/menu/{menu_id}",
+                json={"price": 99, "description": "ควรไม่บันทึก"},
+            )
+
+        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.json()["detail"], "ไม่สามารถบันทึกข้อมูลได้")
+
+        after = self.client.get("/api/admin/menu").json()
+        saved_item = next(item for item in after if item["menu_id"] == menu_id)
+        self.assertEqual(saved_item["price"], original["price"])
+        self.assertEqual(saved_item["description"], original["description"])
 
 
 if __name__ == "__main__":

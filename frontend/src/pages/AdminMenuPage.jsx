@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 
-import { createMenuItem, getMenuItems } from '../api/client.js';
+import { createMenuItem, deleteMenuItem, getMenuItems } from '../api/client.js';
+import DeleteMenuDialog from '../components/DeleteMenuDialog.jsx';
 import MenuForm from '../components/MenuForm.jsx';
 import MenuEditPanel from '../components/MenuEditPanel.jsx';
 import StatusToggle from '../components/StatusToggle.jsx';
+import Toast from '../components/Toast.jsx';
 
 const STATUS_LABELS = {
   open: 'เปิดขาย',
@@ -41,49 +43,84 @@ export default function AdminMenuPage() {
   const [loadState, setLoadState] = useState('loading');
   const [isCreateFormVisible, setIsCreateFormVisible] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
+  const [deletingItem, setDeletingItem] = useState(null);
+  const [toast, setToast] = useState(null);
 
   // FR-43, FR-47: add the API response to the current menu list after saving.
   async function handleCreateMenu(menuItem) {
     const createdItem = await createMenuItem(menuItem);
     setMenuItems((current) => [createdItem, ...current]);
+    setToast({ type: 'success', message: 'บันทึกข้อมูลสำเร็จ' });
     return createdItem;
   }
 
   // FR-44, FR-47: persist edited menu details and replace the item with the latest API response.
   async function handleUpdateMenu(menuId, changes) {
-    const response = await fetch(`/api/admin/menu/${menuId}`, {
-      method: 'PATCH',
-      headers: { 'X-User-Id': 'admin', 'Content-Type': 'application/json' },
-      body: JSON.stringify(changes),
-    });
-    if (!response.ok) {
-      const body = await response.json().catch(() => ({}));
-      throw new Error(body.detail || `Menu update failed (${response.status})`);
-    }
+    try {
+      const response = await fetch(`/api/admin/menu/${menuId}`, {
+        method: 'PATCH',
+        headers: { 'X-User-Id': 'admin', 'Content-Type': 'application/json' },
+        body: JSON.stringify(changes),
+      });
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({}));
+        const errorMessage = body.detail || `Menu update failed (${response.status})`;
+        setToast({ type: 'error', message: 'ไม่สามารถบันทึกข้อมูลได้' });
+        throw new Error(errorMessage);
+      }
 
-    const updatedItem = await response.json();
-    setMenuItems((current) => current.map((item) => (
-      item.menu_id === menuId ? updatedItem : item
-    )));
-    setEditingItem(null);
-    return updatedItem;
+      const updatedItem = await response.json();
+      setMenuItems((current) => current.map((item) => (
+        item.menu_id === menuId ? updatedItem : item
+      )));
+      setEditingItem(null);
+      setToast({ type: 'success', message: 'บันทึกข้อมูลสำเร็จ' });
+      return updatedItem;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'ไม่สามารถบันทึกข้อมูลได้';
+      setToast({ type: 'error', message: 'ไม่สามารถบันทึกข้อมูลได้' });
+      throw new Error(message);
+    }
   }
 
   // FR-45, FR-48: save a status transition and replace the item with the latest API response.
   async function handleStatusChange(menuId, status) {
-    const response = await fetch(`/api/admin/menu/${menuId}/status`, {
-      method: 'PATCH',
-      headers: { 'X-User-Id': 'admin', 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status }),
-    });
-    if (!response.ok) {
-      const body = await response.json().catch(() => ({}));
-      throw new Error(body.detail || `Menu status update failed (${response.status})`);
+    try {
+      const response = await fetch(`/api/admin/menu/${menuId}/status`, {
+        method: 'PATCH',
+        headers: { 'X-User-Id': 'admin', 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+      });
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({}));
+        const errorMessage = body.detail || `Menu status update failed (${response.status})`;
+        setToast({ type: 'error', message: 'ไม่สามารถบันทึกข้อมูลได้' });
+        throw new Error(errorMessage);
+      }
+      const updatedItem = await response.json();
+      setMenuItems((current) => current.map((item) => (
+        item.menu_id === menuId ? updatedItem : item
+      )));
+      setToast({ type: 'success', message: 'บันทึกข้อมูลสำเร็จ' });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'ไม่สามารถบันทึกข้อมูลได้';
+      setToast({ type: 'error', message: 'ไม่สามารถบันทึกข้อมูลได้' });
+      throw new Error(message);
     }
-    const updatedItem = await response.json();
-    setMenuItems((current) => current.map((item) => (
-      item.menu_id === menuId ? updatedItem : item
-    )));
+  }
+
+  // FR-49: delete the active catalog item after confirmation while retaining history/snapshots.
+  async function handleDeleteMenu(menuId) {
+    try {
+      await deleteMenuItem(menuId);
+      setMenuItems((current) => current.filter((item) => item.menu_id !== menuId));
+      setDeletingItem(null);
+      setToast({ type: 'success', message: 'ลบเมนูสำเร็จ' });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'ไม่สามารถลบเมนูได้';
+      setToast({ type: 'error', message: 'ไม่สามารถลบเมนูได้' });
+      throw new Error(message);
+    }
   }
 
   useEffect(() => {
@@ -111,6 +148,8 @@ export default function AdminMenuPage() {
         <div className="page-heading">
           <h1 id="page-title">จัดการเมนู / ราคา / สถานะ</h1>
         </div>
+
+        {toast && <Toast type={toast.type} message={toast.message} onClose={() => setToast(null)} />}
 
         {loadState === 'loading' && (
           <p className="page-state" role="status">กำลังโหลดรายการเมนู</p>
@@ -147,6 +186,7 @@ export default function AdminMenuPage() {
                     <p className="menu-row__description">{item.description}</p>
                   )}
                   <div className="menu-row__actions">
+                    <button className="row-button row-button--danger" type="button" onClick={() => setDeletingItem(item)}>ลบ</button>
                     <button className="row-button row-button--edit" type="button" onClick={() => setEditingItem(item)}>แก้ไข</button>
                     <StatusToggle
                       status={item.status}
@@ -181,6 +221,14 @@ export default function AdminMenuPage() {
           <MenuForm
             onSubmit={handleCreateMenu}
             onCancel={() => setIsCreateFormVisible(false)}
+          />
+        )}
+
+        {deletingItem && (
+          <DeleteMenuDialog
+            menuItem={deletingItem}
+            onConfirm={() => handleDeleteMenu(deletingItem.menu_id)}
+            onCancel={() => setDeletingItem(null)}
           />
         )}
       </section>

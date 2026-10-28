@@ -91,4 +91,96 @@ describe('AdminMenuPage', () => {
       body: JSON.stringify({ status: 'sold_out' }),
     }));
   });
+
+  it('test_AC_MENU_MGMT_06_successful_update_is_persisted_and_shows_success_toast', async () => {
+    vi.stubGlobal('fetch', vi.fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => [{
+          menu_id: 1,
+          name: 'ชาไทย',
+          description: 'เดิม',
+          image_url: null,
+          price: 45,
+          status: 'open',
+        }],
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          menu_id: 1,
+          name: 'ชาไทย',
+          description: 'อัปเดตแล้ว',
+          image_url: null,
+          price: 60,
+          status: 'open',
+        }),
+      }));
+
+    render(<AdminMenuPage />);
+
+    fireEvent.click(await screen.findByRole('button', { name: 'แก้ไข' }));
+    fireEvent.change(screen.getByLabelText('ราคา (บาท)'), { target: { value: '60' } });
+    fireEvent.change(screen.getByLabelText('รายละเอียด'), { target: { value: 'อัปเดตแล้ว' } });
+    fireEvent.click(screen.getByRole('button', { name: 'บันทึกการแก้ไข' }));
+
+    expect(await screen.findByText('บันทึกข้อมูลสำเร็จ')).toBeInTheDocument();
+    expect(screen.getByText('อัปเดตแล้ว')).toBeInTheDocument();
+  });
+
+  it('test_AC_MENU_MGMT_08_admin_can_delete_menu_with_archive_kept', async () => {
+    vi.stubGlobal('fetch', vi.fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => [{
+          menu_id: 9,
+          name: 'เมนูลบ',
+          description: 'ต้องลบ',
+          image_url: null,
+          price: 30,
+          status: 'open',
+        }],
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ menu_id: 9, deleted: true, status: 'deleted' }),
+      }));
+
+    render(<AdminMenuPage />);
+
+    fireEvent.click((await screen.findAllByRole('button', { name: 'ลบ' }))[0]);
+    fireEvent.click(await screen.findByRole('button', { name: 'ลบเมนู' }));
+
+    expect(await screen.findByText('ลบเมนูสำเร็จ')).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'เมนูลบ' })).not.toBeInTheDocument();
+    expect(fetch).toHaveBeenLastCalledWith('/api/admin/menu/9', expect.objectContaining({ method: 'DELETE' }));
+  });
+
+  it('test_AC_MENU_MGMT_12_save_failure_not_marked_as_success_and_shows_error_toast', async () => {
+    vi.stubGlobal('fetch', vi.fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => [{
+          menu_id: 1,
+          name: 'ชาไทย',
+          description: 'เดิม',
+          image_url: null,
+          price: 45,
+          status: 'open',
+        }],
+      })
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 500,
+        json: async () => ({ detail: 'ไม่สามารถบันทึกข้อมูลได้' }),
+      }));
+
+    render(<AdminMenuPage />);
+
+    fireEvent.click(await screen.findByRole('button', { name: 'แก้ไข' }));
+    fireEvent.click(screen.getByRole('button', { name: 'บันทึกการแก้ไข' }));
+
+    expect((await screen.findAllByText('ไม่สามารถบันทึกข้อมูลได้')).length).toBeGreaterThan(0);
+    expect(screen.queryByText('อัปเดตแล้ว')).not.toBeInTheDocument();
+  });
 });

@@ -4,6 +4,52 @@
 
 ---
 
+## 2569-10-28 15:55 คำสั่ง: /implement T-11 specs/009-MenuManagement/tasks.md
+- โหมด: ทำ task เดี่ยว
+- ไฟล์ที่แก้: `backend/app/services/history_service.py`, `backend/app/services/menu_service.py`, `backend/app/routes/menu.py`, `specs/009-MenuManagement/tasks.md`, `prompt-log.md`
+- ผล: เพิ่ม in-memory history/snapshot store, `record_menu_history()`, `create_order_snapshot()`, `delete_menu_item()` และ route `DELETE /api/admin/menu/{menu_id}` พร้อมรวม `menu_history` และ `order_snapshots` ใน response ของ `GET /api/admin/menu`
+- Test ที่รัน: `APP_ENV=test PYTHONPATH=. pytest -q tests/test_AC_MENU_MGMT_01_admin_can_view_menu_list.py tests/test_AC_MENU_MGMT_02_admin_can_add_menu_item.py tests/test_AC_MENU_MGMT_03_admin_can_edit_menu_details.py tests/test_AC_MENU_MGMT_04_admin_can_change_status.py tests/test_AC_MENU_MGMT_05_validation_before_save.py tests/test_AC_MENU_MGMT_07_sold_out_menu_blocked_for_customer.py tests/test_AC_MENU_MGMT_13_non_admin_is_blocked.py`
+- ผลลัพธ์: 17 passed, 0 failed
+- หมายเหตุ: ยึดตาม FR-49, NFR-REL-08, NFR-REL-09 และ Constraints ที่ต้องคงข้อมูล snapshot/history สำหรับ Order เก่าในขณะที่เมนูถูกแก้ไขหรือลบออกจาก catalog ปัจจุบัน
+
+---
+
+## 2569-10-28 15:20 คำสั่ง: /implement T-12 specs/009-MenuManagement/tasks.md
+- โหมด: ทำ task เดี่ยว
+- ไฟล์ที่แก้: `frontend/src/components/DeleteMenuDialog.jsx`, `frontend/src/pages/AdminMenuPage.jsx`, `frontend/src/api/client.js`, `frontend/src/pages/AdminMenuPage.test.jsx`, `specs/009-MenuManagement/tasks.md`, `prompt-log.md`
+- ผล: เพิ่ม delete confirmation dialog, button ในรายการเมนู, และ call `DELETE /api/admin/menu/{menu_id}` พร้อมลบรายการจาก UI หลังยืนยัน
+- Test ที่รัน: `cd frontend && npm test -- --run src/pages/AdminMenuPage.test.jsx`
+- ผลลัพธ์: 6 passed, 0 failed
+- หมายเหตุ: ยึดตาม FR-49 และ AC-MENU-MGMT-08 / 14 โดยให้ลบจาก catalog ปัจจุบันแต่คง snapshot/history ไว้ เพื่อให้ Order เก่าใช้งานต่อได้
+
+---
+
+## 2569-10-28 15:45 คำสั่ง: /implement T-10 specs/009-MenuManagement/tasks.md
+- โหมด: ทำ task เดียว
+- ไฟล์ที่แก้: `backend/app/services/order_guard.py`, `backend/app/services/order_service.py`, `backend/app/routes/orders.py`, `tests/test_AC_MENU_MGMT_07_sold_out_menu_blocked_for_customer.py`, `specs/009-MenuManagement/tasks.md`, `prompt-log.md`
+- ผล: เพิ่ม guard logic `ensure_menu_is_orderable()` และรวมเข้ากับ `OrderService.add_item()` เพื่อป้องกันการสั่งเมนูที่ status = sold_out; customer order route ยังส่ง HTTP 409 ตาม contract เดิม
+- Test ที่รัน: `APP_ENV=test PYTHONPATH=. pytest -q tests/test_AC_MENU_MGMT_07_sold_out_menu_blocked_for_customer.py tests/test_AC_MENU_MGMT_04_admin_can_change_status.py tests/test_AC_MENU_MGMT_02_admin_can_add_menu_item_api.py`
+- ผลลัพธ์: 10 passed, 0 failed
+- หมายเหตุ: ไม่ได้เดา extra requirement; ใช้ FR-45, FR-48 และ AC-MENU-MGMT-07 / 10 เป็นแหล่งข้อมูลเดียว และยึด status value เป็น `open` / `sold_out` จาก `backend/app/config.py`
+
+---
+
+## 2569-10-28 14:16 คำสั่ง: /testcases AC-STAFF-ORDER-05 specs/007-StaffOrder/spec.md
+- โหมด: ร่าง
+- TC ID: `TC-STAFF-ORDER-05-1`, `TC-STAFF-ORDER-05-2`, `TC-STAFF-ORDER-05-3`
+- ผล: เพิ่มแถวร่างใน `specs/007-StaffOrder/test-cases.md` สำหรับ AC-STAFF-ORDER-05 และหยดก่อนเขียนโค้ด test เพราะยังต้องมีการตรวจแถวและเปลี่ยนสถานะเป็น "ใช้ได้" ก่อน
+- หมายเหตุ: Then ของทุกแถวยึดจาก FR-33, FR-32 และ Constraint/plan ที่ระบุให้คง Order สิ้นสุดไว้ท้ายรายการ; ไม่มี Open Question เพิ่มเติมที่ต้องให้คนตรวจในข้อนี้
+
+---
+
+## 2569-10-28 14:20 คำสั่ง: /testcases AC-STAFF-ORDER-06 specs/007-StaffOrder/spec.md
+- โหมด: ร่าง
+- TC ID: `TC-STAFF-ORDER-06-1`, `TC-STAFF-ORDER-06-2`, `TC-STAFF-ORDER-06-3`
+- ผล: เพิ่มแถวร่างใน `specs/007-StaffOrder/test-cases.md` สำหรับ AC-STAFF-ORDER-06 และหยุดก่อนเขียนโค้ด test เพราะแถวยังไม่ได้รับการตรวจและเปลี่ยนสถานะเป็น "ใช้ได้"
+- หมายเหตุ: แถว 06-3 ใช้ข้อความ "spec ไม่ได้บอก" สำหรับกรณีมี Order แต่ไม่มี Order ใหม่ เนื่องจาก AC ระบุเฉพาะกรณี "ยังไม่มี Order ใหม่" แต่ไม่ได้ระบุว่าควรจัดการกับ Order เก่าหรือสิ้นสุดอย่างไร
+
+---
+
 ## 2569-10-28 08:11 คำสั่ง: /implement T-06 (แก้ F-09)
 
 - ไฟล์ที่แก้: `frontend/src/pages/OrderPage.test.jsx`, `specs/003-Order/tasks.md`
@@ -585,6 +631,26 @@
 
 ---
 
+## 2569-10-28 16:05 คำสั่ง: /implement T-08
+- โหมด: ทำ task เดียวตาม tasks.md
+- ไฟล์ที่แก้: `backend/app/routes/menu.py`, `tests/test_AC_MENU_MGMT_02_admin_can_add_menu_item_api.py`, `specs/009-MenuManagement/tasks.md`
+- ผล: เพิ่ม handling สำหรับ exception แบบ save failure ให้คืน HTTP 500 พร้อมข้อความ `ไม่สามารถบันทึกข้อมูลได้` สำหรับ create/update/status, และเพิ่ม automated test `test_AC_MENU_MGMT_12_save_failure_is_not_shown_as_success` เพื่อยืนยันว่าข้อมูลเก่าคงอยู่และไม่แสดงว่าสำเร็จ
+- ข้อจำกัด/การตัดสิน: ไฟล์ `backend/app/services/menu_service.py` มี transaction ของ SQLAlchemy อยู่แล้ว (`SessionLocal.begin()`), ดังนั้น rollback อยู่ในระดับ persistence ตาม FR-47 / NFR-REL-08 โดยไม่ต้องเพิ่ม logic ที่เดาเกินจำเป็น
+- ผล test: `cd /workspaces/RequirMang-swreqspec && PYTHONPATH=. pytest tests/test_AC_MENU_MGMT_02_admin_can_add_menu_item_api.py -q` → ผ่าน 5/5
+- ขอบเขต: ทำเฉพาะ T-08; ไม่แตะ task อื่นหรือเพิ่มฟีเจอร์นอก scope
+
+---
+
+## 2569-10-28 16:49 คำสั่ง: /implement T-09
+- โหมด: ทำ task เดียวตาม tasks.md
+- ไฟล์ที่แก้: `frontend/src/components/Toast.jsx`, `frontend/src/pages/AdminMenuPage.jsx`, `frontend/src/pages/AdminMenuPage.test.jsx`, `specs/009-MenuManagement/tasks.md`
+- ผล: เพิ่ม toast แจ้งสถานะสำเร็จ/ผิดพลาดบนหน้า Admin Menu, ตั้งข้อความให้ตรงกับ requirement `บันทึกข้อมูลสำเร็จ` และ `ไม่สามารถบันทึกข้อมูลได้`, และยืนยันด้วย test `test_AC_MENU_MGMT_06_successful_update_is_persisted_and_shows_success_toast` และ `test_AC_MENU_MGMT_12_save_failure_not_marked_as_success_and_shows_error_toast`
+- ข้อจำกัด/การตัดสิน: ไม่ต้องสร้างฟีเจอร์เพิ่มเติมนอก scope; ใช้ toast แบบง่ายและสอดคล้องกับ UI ขั้นตอนแก้ไขเมนูที่มีอยู่แล้ว ไม่ได้เพิ่มปุ่มหรือ flow ใหม่
+- ผล test: `cd /workspaces/RequirMang-swreqspec/frontend && npm test -- --run src/pages/AdminMenuPage.test.jsx` → ผ่าน 5/5
+- ขอบเขต: ทำเฉพาะ T-09; ไม่แตะ task อื่นหรือ out-of-scope ฟีเจอร์
+
+---
+
 ## 2569-10-12 คำสั่ง: เตรียม RTM ตามคำตัดสินทีมหลัง /verify รอบแรก
 
 - ไฟล์ที่แก้: specs/001-Menu/rtm.md; เพิ่มบันทึกนี้ท้าย prompt-log.md
@@ -592,6 +658,35 @@
 - ตรวจเลขคำถามใน specs/001-Menu/spec.md: มี Q-03 ซึ่งปิดแล้ว และไม่มี Q ที่เปิดอยู่ จึงกำหนด Q-04 สำหรับ F-02 ใน RTM เพื่อถามผลเมื่อคลิกปุ่ม “สั่งซื้อ”; ยังไม่กำหนดคำตอบ และยังไม่ได้บันทึก Q-04 ลง Spec
 - จัดประเภทให้สอดคล้องกับคำตัดสิน: F-01 แก้โค้ด; F-02 รอ Q-04; F-03 AC ไม่มี test (เพิ่ม Automated Test โดยไม่เปลี่ยนพฤติกรรมระบบ); F-04/F-05 test อ่อนและ NFR กับ AC ไม่สอดคล้องกัน (แก้ Spec ผ่าน CR); F-06 เป็นข้อมูลตัวอย่าง ไม่ใช่บั๊ก พร้อมข้อพิจารณาเรื่องแหล่งข้อมูล/รูปแบบราคาใน Spec
 - รายการดำเนินการต่อ: แก้โค้ด F-01; ให้ทีมตอบ Q-04 ก่อนตัดสินพฤติกรรมปุ่ม; เพิ่ม Automated Test สำหรับ read-only constraint ของ F-03; ดำเนิน CR เพื่อปรับ NFR-26/AC-MENU-07 และ NFR-22/AC-MENU-06 ของ F-04/F-05; ให้ทีมพิจารณาความจำเป็นต้องระบุแหล่งข้อมูลและรูปแบบราคาใน Spec สำหรับ F-06
+
+---
+
+## 2569-10-27 09:44 คำสั่ง: /testcases AC-MENU-MGMT-05 specs/009-MenuManagement/
+
+- โหมด: ร่าง
+- ตรวจพบแถวที่มีอยู่แล้ว: TC-MENU-MGMT-05-1, TC-MENU-MGMT-05-2, TC-MENU-MGMT-05-3
+- ผล test: ยังไม่เขียนโค้ด test และยังไม่ได้รัน เนื่องจากทุกแถวอยู่สถานะ "ร่าง"
+- การดำเนินการ: ตรวจสอบ spec.md, plan.md, tasks.md, test-cases.md และ AGENTS.md แล้ว; ไม่มีการแก้ไข test-cases.md หรือโค้ดระบบ
+
+---
+
+## 2569-10-27 09:45 คำสั่ง: /testcases AC-MENU-MGMT-05 specs/009-MenuManagement/
+
+- โหมด: เขียน test
+- TC ID ที่เขียน: TC-MENU-MGMT-05-1, TC-MENU-MGMT-05-2, TC-MENU-MGMT-05-3
+- ไฟล์ test ที่แก้: frontend/src/components/MenuForm.test.jsx
+- ผล frontend test: ผ่าน 33/33 tests
+- ผล backend test: ผ่าน 21/21 tests
+- หมายเหตุ: เพิ่ม test ต่อท้าย test เดิมใน `MenuForm.test.jsx` ครบ 1 ตัวต่อ 1 แถว; ไม่แก้โค้ดระบบและไม่แก้ test เดิม
+
+---
+
+## 2569-10-27 10:00 คำสั่ง: /verify specs/009-MenuManagement/
+
+- ผล test: backend ผ่าน 21/21; frontend ผ่าน 33/33; รวมผ่าน 54 ตัว ไม่ผ่าน 0 ตัว
+- ผลการตรวจ: สร้าง [rtm.md](specs/009-MenuManagement/rtm.md) โดยอ่าน spec.md, plan.md, tasks.md, test-cases.md, AGENTS.md, โค้ดใน backend/app และ frontend/src และ test ทั้งหมดที่มีอยู่จริง
+- ตารางตามรอยไปข้างหน้า: ครบ 10 แถว, ยังไม่ถึง 13 แถว, รอ 0 แถว, ช่องโหว่ 3 แถว
+- ข้อค้นพบใหม่: F-01 test AC-MENU-MGMT-15 ตรวจไม่ครบทุกส่วนของ Then และไม่ยืนยันว่าไม่บันทึก; F-02 seed promotion อาจอยู่ในอดีตขัด Constraint; F-03 ยังไม่มี customer ordering guard สำหรับเมนูหมด; F-04 ยังไม่มี delete/history/order snapshot flow
 - ไม่แก้ code, Automated Tests หรือ Spec; ไม่ commit หรือ push
 
 ---
@@ -1984,6 +2079,7 @@
 - สิ่งที่ควรตรวจด้วยตา: ยืนยันค่า status ที่ API ส่งให้แต่ละ Order ตรงกับ Order ปัจจุบันก่อนเริ่ม T-09
 - ไม่ได้เริ่ม T-09 และไม่มีการ commit หรือ push
 
+<<<<<<< HEAD
 ## 2569-10-27 คำสั่ง: /implement T-09 specs/007-StaffOrder/tasks.md
 
 - ไฟล์ระบบที่แก้: `frontend/src/pages/StaffOrdersPage.jsx`
@@ -2199,3 +2295,186 @@
 - ยังไม่ได้เขียนหรือรัน test ตามโหมดร่าง
 - ประเด็นที่ spec ไม่ได้ระบุ: ผลที่ระบบต้องแสดงเมื่อ Order ไม่มีสถานะปัจจุบัน; กรณีสถานะ “รับสินค้าแล้ว” หรือ “ยกเลิก” อ้างอิง FR-32 และ Constraint ที่ระบุให้คงแสดง Order ไว้ท้ายรายการ
 - `git diff --check` ผ่าน
+=======
+- ไฟล์ที่สร้าง: frontend/src/components/MenuEditPanel.jsx, frontend/src/components/MenuEditPanel.test.jsx, tests/test_AC_MENU_MGMT_03_admin_can_edit_menu_details.py
+- ไฟล์ที่แก้: backend/app/routes/menu.py, backend/app/services/menu_service.py, frontend/src/pages/AdminMenuPage.jsx, frontend/src/styles.css, specs/009-MenuManagement/tasks.md
+- ผล test: `npm --prefix frontend test` ผ่าน 10 tests; `npm --prefix frontend run build` ผ่าน; `PYTHONPATH=. .venv/bin/python -m unittest discover -s tests -p 'test_AC_MENU_MGMT_*.py'` ผ่าน 10 tests; test เฉพาะ AC-MENU-MGMT-03 ผ่าน 1 test
+- Constraint ที่ทำให้เป็นจริง: PATCH route ตรวจและบันทึกราคา/รายละเอียดตาม FR-44/FR-47; `MenuEditPanel` จัดการ promotion ในหน้าเดียวกับเมนูตาม ASM-07; หน้า Admin แทนรายการด้วยข้อมูลล่าสุดหลังบันทึกสำเร็จ
+- ขอบเขต: ยังไม่ทำ status change หรือ validation วันเวลาโปรโมชั่น เพราะเป็น T-07; promotion รับและแก้ไขฟิลด์ได้ แต่ validation ISO 8601/timezone และ end >= start ให้ T-07 รับผิดชอบ
+- สิ่งที่เกือบต้องเดาแต่ถามแทน: ขออนุญาตเชื่อม `AdminMenuPage`, เพิ่ม tests, และเลือกให้ T-06 แก้ฟิลด์ promotion โดยไม่ย้าย validation วันเวลาเข้ามาซ้ำกับ T-07
+- หมายเหตุ: backend test แสดง StarletteDeprecationWarning เรื่อง `httpx` แต่ test ผ่าน
+- สถานะ task: เสร็จ รอทีมตรวจ
+- แก้ไขส่วนลดให้คำนวณราคาหลังลดและปฏิเสธค่าติดลบ/ส่วนลดเกินราคา รวมทั้งเพิ่ม confirmation ตอนเปลี่ยนเป็น “หมด” และ “เปิดขาย”
+- ปรับ date-time picker ไม่ให้เลือกวันเวลาในอดีต แสดงข้อความ `กรุณาเลือกวัน...` เมื่อยังไม่เลือก และเพิ่มการตรวจสอบซ้ำฝั่ง API
+- แก้การแจ้งเตือนก่อนบันทึกโปรโมชั่น: ต้องเลือกวันเริ่มต้น/สิ้นสุดให้ครบ และวันสิ้นสุดต้องไม่ก่อนวันเริ่มต้น พร้อมกำหนด min ของวันสิ้นสุดตามวันเริ่มต้น
+- แก้ native date-time popup ภาษาอังกฤษที่ทำให้หน้าจอเพี้ยน โดยย้ายการตรวจวันย้อนหลัง/วันสิ้นสุดก่อนวันเริ่มต้นมาไว้ใน onChange และแสดงข้อความภาษาไทยในฟอร์ม
+- เพิ่ม validation ให้โปรโมชั่นต้องมีชื่อก่อนจึงจะใช้ส่วนลดได้ ทั้ง frontend และ backend
+- เพิ่มปุ่ม `ยกเลิก` ในฟอร์มเพิ่มเมนู โดยยกเลิกจะปิดฟอร์มและไม่ส่งข้อมูลบันทึก
+- จัดปุ่ม `ยกเลิก` ให้อยู่ข้างปุ่ม `บันทึกเมนู` ในส่วนท้ายฟอร์ม
+
+---
+
+## 2569-10-27 09:16 คำสั่ง: /testcases AC-MENU-MGMT-01 specs/009-MenuManagement/
+
+- โหมด: ร่าง
+- TC ID ที่เสนอ: TC-MENU-MGMT-01-1, TC-MENU-MGMT-01-2, TC-MENU-MGMT-01-3
+- ผล test: ยังไม่เขียนโค้ด test และยังไม่ได้รัน เนื่องจากแถวอยู่สถานะ "ร่าง"
+- ข้อสังเกต: กรณีไม่มีรายการเมนูใน TC-MENU-MGMT-01-2 ไม่มีผลลัพธ์เฉพาะกรณีระบุไว้ใน spec
+
+---
+
+## 2569-10-27 09:23 คำสั่ง: /testcases AC-MENU-MGMT-01 specs/009-MenuManagement/
+
+- โหมด: เขียน Automated Tests จากแถวสถานะ "ใช้ได้"
+- TC ที่เขียน: TC-MENU-MGMT-01-1, TC-MENU-MGMT-01-2, TC-MENU-MGMT-01-3
+- ไฟล์ที่แก้: frontend/src/pages/AdminMenuPage.test.jsx, tests/test_AC_MENU_MGMT_13_non_admin_is_blocked.py
+- ผล `npm --prefix frontend test`: ผ่าน 23/23 tests
+- ผล `PYTHONPATH=. pytest -v`: ผ่าน 19/19 tests; มี StarletteDeprecationWarning เรื่อง `httpx` แต่ไม่กระทบผล test
+- หมายเหตุ: คำสั่ง `npm test` จาก root ใช้ไม่ได้เนื่องจากไม่มี `package.json` ที่ root; รันด้วยคำสั่งตามโครงสร้างจริงของโปรเจกต์แทน
+
+---
+
+## 2569-10-27 09:26 คำสั่ง: /testcases AC-MENU-MGMT-02 specs/009-MenuManagement/
+
+- โหมด: ร่าง
+- TC ID ที่เสนอ: TC-MENU-MGMT-02-1, TC-MENU-MGMT-02-2, TC-MENU-MGMT-02-3
+- ผล test: ยังไม่เขียนโค้ด test และยังไม่ได้รัน เนื่องจากแถวอยู่สถานะ "ร่าง"
+- ข้อสังเกต: กรณีข้อมูลจำเป็นไม่ครบใน TC-MENU-MGMT-02-3 มีผลลัพธ์เฉพาะอยู่ใน FR-46 และ AC-MENU-MGMT-05 ไม่ได้ระบุซ้ำโดยตรงใน AC-MENU-MGMT-02
+
+---
+
+## 2569-10-27 09:28 คำสั่ง: /testcases AC-MENU-MGMT-02 specs/009-MenuManagement/
+
+- โหมด: เขียน Automated Tests จากแถวสถานะ "ใช้ได้"
+- TC ที่เขียน: TC-MENU-MGMT-02-1, TC-MENU-MGMT-02-2, TC-MENU-MGMT-02-3
+- ไฟล์ที่แก้: frontend/src/pages/AdminMenuPage.test.jsx
+- ผล `npm --prefix frontend test`: ผ่าน 26/26 tests
+
+---
+
+## 2569-10-27 09:30 คำสั่ง: /testcases AC-MENU-MGMT-03 specs/009-MenuManagement/
+
+- โหมด: ร่าง
+- TC ID ที่เสนอ: TC-MENU-MGMT-03-1, TC-MENU-MGMT-03-2, TC-MENU-MGMT-03-3
+- ผล test: ยังไม่เขียนโค้ด test และยังไม่ได้รัน เนื่องจากแถวอยู่สถานะ "ร่าง"
+- ข้อสังเกต: spec ไม่ได้ระบุผลลัพธ์เฉพาะเมื่อแก้ไขเพียงรายการเดียวหรือเมื่อไม่มีเมนูให้แก้ไข
+
+---
+
+## 2569-10-27 09:33 คำสั่ง: /testcases AC-MENU-MGMT-03 specs/009-MenuManagement/
+
+- โหมด: เขียน Automated Tests จากแถวสถานะ "ใช้ได้"
+- TC ที่เขียน: TC-MENU-MGMT-03-1, TC-MENU-MGMT-03-2, TC-MENU-MGMT-03-3
+- ไฟล์ที่แก้: frontend/src/pages/AdminMenuPage.test.jsx, tests/test_AC_MENU_MGMT_03_admin_can_edit_menu_details.py
+- ผล `npm --prefix frontend test`: ผ่าน 28/28 tests
+- ผล `PYTHONPATH=. pytest -v`: ผ่าน 20/20 tests; มี StarletteDeprecationWarning เรื่อง `httpx` แต่ไม่กระทบผล test
+- หมายเหตุ: TC-MENU-MGMT-03-3 ไม่มี assert เนื่องจาก spec ไม่ได้กำหนดผลลัพธ์ของการแก้ไขเมนูที่ไม่มีอยู่
+
+---
+
+## 2569-10-27 09:37 คำสั่ง: /testcases AC-MENU-MGMT-04 specs/009-MenuManagement/
+
+- โหมด: ร่าง
+- TC ID ที่เสนอ: TC-MENU-MGMT-04-1, TC-MENU-MGMT-04-2, TC-MENU-MGMT-04-3
+- ผล test: ยังไม่เขียนโค้ด test และยังไม่ได้รัน เนื่องจากแถวอยู่สถานะ "ร่าง"
+- ข้อสังเกต: spec ไม่ได้ระบุผลลัพธ์เฉพาะเมื่อไม่มีเมนูให้เปลี่ยนสถานะ
+
+---
+
+## 2569-10-27 09:41 คำสั่ง: /testcases AC-MENU-MGMT-05 specs/009-MenuManagement/
+
+- โหมด: ร่าง
+- TC ID ที่เสนอ: TC-MENU-MGMT-05-1, TC-MENU-MGMT-05-2, TC-MENU-MGMT-05-3
+- ผล test: ยังไม่เขียนโค้ด test และยังไม่ได้รัน เนื่องจากแถวอยู่สถานะ "ร่าง"
+- ข้อสังเกต: ผลลัพธ์กรณีข้อมูลถูกต้องใน TC-MENU-MGMT-05-2 อ้างอิง AC-MENU-MGMT-06 และ FR-43 เนื่องจาก AC-MENU-MGMT-05 ระบุผลลัพธ์เมื่อข้อมูลไม่ถูกต้องเป็นหลัก
+
+---
+
+## 2569-10-27 09:39 คำสั่ง: /testcases AC-MENU-MGMT-04 specs/009-MenuManagement/
+
+- โหมด: เขียน Automated Tests จากแถวสถานะ "ใช้ได้"
+- TC ที่เขียน: TC-MENU-MGMT-04-1, TC-MENU-MGMT-04-2, TC-MENU-MGMT-04-3
+- ไฟล์ที่แก้: frontend/src/components/StatusToggle.test.jsx, tests/test_AC_MENU_MGMT_04_admin_can_change_status.py
+- ผล `npm --prefix frontend test`: ผ่าน 30/30 tests
+- ผล `PYTHONPATH=. pytest -v`: ผ่าน 21/21 tests; มี StarletteDeprecationWarning เรื่อง `httpx` แต่ไม่กระทบผล test
+- หมายเหตุ: TC-MENU-MGMT-04-3 ไม่มี assert เนื่องจาก spec ไม่ได้กำหนดผลลัพธ์ของการเปลี่ยนสถานะเมนูที่ไม่มีอยู่
+>>>>>>> origin/feature-MenuManagement
+
+---
+
+## 2569-10-28 09:40 คำสั่ง: /testcases AC-STAFF-ORDER-07 specs/007-StaffOrder/
+
+- โหมด: ร่าง
+- TC ที่เสนอ: TC-STAFF-ORDER-07-1, TC-STAFF-ORDER-07-2, TC-STAFF-ORDER-07-3
+- ผล test: ยังไม่เขียนโค้ด test และยังไม่ได้รัน เนื่องจากแถวอยู่สถานะ "ร่าง"
+- ข้อสังเกต: spec ระบุ "แสดงข้อความว่าไม่สามารถโหลดรายการ Order ได้ และมีปุ่ม ลองใหม่" แต่ไม่ได้ระบุว่าหลังโหลดล้มเหลวแล้วมีข้อมูลเก่าเดิมควรคงแสดงต่อ หรือควรล้างข้อมูล ดังนั้น TC-STAFF-ORDER-07-2 จึงถูกค้างไว้เป็นรอ Q-xx; TC-STAFF-ORDER-07-3 ใช้เงื่อนไขว่าข้อมูลที่กลับมามีส่วนที่ไม่สมบูรณ์ และระบบควรไม่แสดงข้อมูลนั้น แต่ยังต้องการการยืนยันจากทีมว่าเป็นข้อกำหนด หรือแยกเป็น Open Question
+
+---
+
+## 2569-10-28 14:26 คำสั่ง: /testcases AC-STAFF-ORDER-07 specs/007-StaffOrder/spec.md
+
+- โหมด: ร่าง
+- TC ที่พบในตาราง: TC-STAFF-ORDER-07-1, TC-STAFF-ORDER-07-2, TC-STAFF-ORDER-07-3
+- สถานะ: ทั้งสามแถวอยู่ในสถานะ "ร่าง" ไม่ใช่ "ใช้ได้"
+- ผล test: ยังไม่เขียนโค้ด test และยังไม่ได้รัน เนื่องจากต้องมีแถวสถานะ "ใช้ได้" ก่อน
+- ข้อสังเกต: AC ระบุว่าต้องแสดงข้อความผิดพลาดพร้อมปุ่ม “ลองใหม่” แต่ยังไม่มีความชัดเจนว่าเมื่อมีข้อมูลเก่าก่อนหน้าและโหลดใหม่ล้มเหลวควรคงข้อมูลเก่า หรือล้างข้อมูล ดังนั้นคงค้างเป็นรอ Q-xx จนกว่าทีมจะตรวจแถวและยืนยัน
+
+---
+
+## 2569-10-28 14:28 คำสั่ง: /testcases AC-STAFF-ORDER-08 specs/007-StaffOrder/spec.md
+
+- โหมด: ร่าง
+- TC ที่เสนอ: TC-STAFF-ORDER-08-1, TC-STAFF-ORDER-08-2, TC-STAFF-ORDER-08-3
+- ผล test: ยังไม่เขียนโค้ด test และยังไม่ได้รัน เนื่องจากแถวอยู่สถานะ "ร่าง"
+- ข้อสังเกต: AC-STAFF-ORDER-08 เป็น NFR performance และ spec ระบุเฉพาะ “ภายในเวลาที่เหมาะสมต่อการปฏิบัติงาน” แต่ไม่ได้กำหนดค่ามาตรฐานเวลา / benchmark / การจัดการเมื่อโหลดช้า; จึงค้างเป็นรอ Q-xx เพื่อให้ทีมกำหนด threshold หรือทางเลือกการจัดการผลลัพธ์ก่อนเขียน test
+- หมายเหตุ: tasks.md ระบุว่า AC-STAFF-ORDER-08 ไม่รวมใน prototype และไม่มี task ที่ทำให้จริง จึงคงเป็น Draft เท่านั้นจนกว่าทีมจะยืนยันขอบเขตใหม่
+
+---
+
+## 2569-10-28 14:29 คำสั่ง: /testcases AC-STAFF-ORDER-08 specs/007-StaffOrder/spec.md
+
+- โหมด: ร่าง
+- TC ที่เสนอ: TC-STAFF-ORDER-08-1, TC-STAFF-ORDER-08-2, TC-STAFF-ORDER-08-3
+- สถานะ: แถวทั้งหมดยังเป็น "ร่าง" ไม่ใช่ "ใช้ได้"
+- ผล test: ยังไม่เขียนโค้ด test และยังไม่ได้รัน เนื่องจากต้องมีแถวสถานะ "ใช้ได้" ก่อน
+- ข้อสังเกต: AC-STAFF-ORDER-08 เป็น NFR performance ที่ระบุเฉพาะคำว่า “ภายในเวลาที่เหมาะสมต่อการปฏิบัติงาน” แต่ไม่มี threshold / benchmark / outcome ที่ชัดเจนใน spec; จึงยังต้องถามทีมต่อก่อนยอมรับ test case
+
+---
+
+## 2569-10-28 14:31 คำสั่ง: /testcases AC-STAFF-ORDER-09 specs/007-StaffOrder/spec.md
+
+- โหมด: ร่าง
+- TC ที่เสนอ: TC-STAFF-ORDER-09-1, TC-STAFF-ORDER-09-2, TC-STAFF-ORDER-09-3
+- ผล test: ยังไม่เขียนโค้ด test และยังไม่ได้รัน เนื่องจากแถวอยู่สถานะ "ร่าง"
+- ข้อสังเกต: AC-STAFF-ORDER-09 ระบุชัดว่า "หมายเลข Order ลำดับ และสถานะต้องสามารถมองเห็นและระบุได้อย่างชัดเจน" แต่ spec ไม่ได้กำหนดว่าควรแสดงอย่างไรเมื่อ Order ขาดข้อมูลสำคัญอย่างใดอย่างหนึ่ง จึงค้างเป็นรอ Q-xx และต้องให้ทีมตรวจแถวก่อนเปลี่ยนเป็น "ใช้ได้"
+
+---
+
+## 2569-10-28 14:33 คำสั่ง: /verify specs/007-StaffOrder/spec.md
+
+- โหมด: ตรวจ requirement แบบตามรอยไปข้างหน้าและย้อนกลับ
+- ผล test: Backend 62 ผ่าน, Frontend 120 ผ่าน, รวม 182 ผ่าน 0 ไม่ผ่าน
+- จำนวนแถวตามรอยไปข้างหน้า: ครบ 6, ยังไม่ถึง 1, รอ 0, ช่องโหว่ 0
+- ข้อค้นพบ: ไม่มีข้อค้นพบใหม่
+- ไฟล์ที่สร้าง: specs/007-StaffOrder/rtm.md
+
+---
+
+## 2569-10-28 15:55 คำสั่ง: /testcases AC-MENU-03 specs/001-Menu/spec.md
+
+- โหมด: ร่าง
+- TC ที่เสนอ: TC-MENU-03-1, TC-MENU-03-2, TC-MENU-03-3
+- ผล: เพิ่มแถวร่างใน `specs/001-Menu/test-cases.md` สำหรับ AC-MENU-03 และหยุดก่อนเขียนโค้ด test เพราะแถวยังอยู่ในสถานะ "ร่าง"
+- สถานะ: แถวทั้งสามยังเป็น "ร่าง" ไม่ได้เปลี่ยนเป็น "ใช้ได้" และยังไม่ได้รัน test หรือเขียนโค้ด test
+- หมายเหตุ: AC-MENU-03 ระบุชัดเจนว่าเมื่อค้นหาจากชื่อเมนู ต้องใช้ partial match แบบไม่แยกตัวพิมพ์เล็ก/ใหญ่ และเมื่อไม่พบรายการต้องแสดงข้อความ “ไม่พบเมนู”; อย่างไรก็ตาม ทีมยังต้องตรวจแถวและเปลี่ยนสถานะเป็น "ใช้ได้" ก่อน จากนั้นจึงสั่ง /testcases อีกครั้งเพื่อเริ่มเขียน test ตามแถวที่ตรวจแล้ว
+
+---
+
+## 2569-10-28 15:28 คำสั่ง: /testcases AC-MENU-03 specs/001-Menu/spec.md
+
+- โหมด: ร่าง
+- TC ที่เสนอ: TC-MENU-03-1, TC-MENU-03-2, TC-MENU-03-3
+- ผล: ตรวจพบว่า `specs/001-Menu/test-cases.md` มีแถวสำหรับ AC-MENU-03 แต่ทั้งหมดอยู่ในสถานะ "ร่าง" ดังนั้นจึงหยุดตามโหมดร่างของ /testcases
+- สถานะ: ยังไม่เขียนโค้ด test และยังไม่รัน test เนื่องจากต้องตรวจแถวและเปลี่ยนสถานะเป็น "ใช้ได้" ก่อน
+- ข้อสังเกต: AC-MENU-03 ระบุให้ค้นหาแบบ partial match ไม่แยกตัวพิมพ์เล็ก/ใหญ่ และแสดงข้อความ “ไม่พบเมนู” เมื่อไม่พบรายการ; แต่สิ่งที่ยังขาดคือการตรวจความถูกต้องของแถวในตารางและการยืนยันสถานะ "ใช้ได้" จากทีม
+- รายงาน: ตรวจแถวในตาราง แก้ได้ตามต้องการ แล้วเปลี่ยนสถานะเป็น "ใช้ได้" ก่อน จากนั้นสั่ง /testcases อีกครั้ง
