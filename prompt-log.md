@@ -2,7 +2,6 @@
 
 บันทึกทุกครั้งที่ใช้ AI กับ repo นี้ เขียนต่อท้ายเรื่อย ๆ ไม่ต้องลบของเก่า
 
-<<<<<<< Updated upstream
 ---
 
 ## 2569-10-28 16:03 คำสั่ง: /testcases AC-MENU-09 specs/001-Menu/spec.md
@@ -13,8 +12,6 @@
 
 ---
 
-=======
->>>>>>> Stashed changes
 ## 2569-10-28 15:55 คำสั่ง: /implement T-11 specs/009-MenuManagement/tasks.md
 - โหมด: ทำ task เดี่ยว
 - ไฟล์ที่แก้: `backend/app/services/history_service.py`, `backend/app/services/menu_service.py`, `backend/app/routes/menu.py`, `specs/009-MenuManagement/tasks.md`, `prompt-log.md`
@@ -2093,7 +2090,6 @@
 - สิ่งที่ควรตรวจด้วยตา: ยืนยันค่า status ที่ API ส่งให้แต่ละ Order ตรงกับ Order ปัจจุบันก่อนเริ่ม T-09
 - ไม่ได้เริ่ม T-09 และไม่มีการ commit หรือ push
 
-<<<<<<< HEAD
 ## 2569-10-27 คำสั่ง: /implement T-09 specs/007-StaffOrder/tasks.md
 
 - ไฟล์ระบบที่แก้: `frontend/src/pages/StaffOrdersPage.jsx`
@@ -2309,7 +2305,6 @@
 - ยังไม่ได้เขียนหรือรัน test ตามโหมดร่าง
 - ประเด็นที่ spec ไม่ได้ระบุ: ผลที่ระบบต้องแสดงเมื่อ Order ไม่มีสถานะปัจจุบัน; กรณีสถานะ “รับสินค้าแล้ว” หรือ “ยกเลิก” อ้างอิง FR-32 และ Constraint ที่ระบุให้คงแสดง Order ไว้ท้ายรายการ
 - `git diff --check` ผ่าน
-=======
 - ไฟล์ที่สร้าง: frontend/src/components/MenuEditPanel.jsx, frontend/src/components/MenuEditPanel.test.jsx, tests/test_AC_MENU_MGMT_03_admin_can_edit_menu_details.py
 - ไฟล์ที่แก้: backend/app/routes/menu.py, backend/app/services/menu_service.py, frontend/src/pages/AdminMenuPage.jsx, frontend/src/styles.css, specs/009-MenuManagement/tasks.md
 - ผล test: `npm --prefix frontend test` ผ่าน 10 tests; `npm --prefix frontend run build` ผ่าน; `PYTHONPATH=. .venv/bin/python -m unittest discover -s tests -p 'test_AC_MENU_MGMT_*.py'` ผ่าน 10 tests; test เฉพาะ AC-MENU-MGMT-03 ผ่าน 1 test
@@ -2412,7 +2407,6 @@
 - ผล `npm --prefix frontend test`: ผ่าน 30/30 tests
 - ผล `PYTHONPATH=. pytest -v`: ผ่าน 21/21 tests; มี StarletteDeprecationWarning เรื่อง `httpx` แต่ไม่กระทบผล test
 - หมายเหตุ: TC-MENU-MGMT-04-3 ไม่มี assert เนื่องจาก spec ไม่ได้กำหนดผลลัพธ์ของการเปลี่ยนสถานะเมนูที่ไม่มีอยู่
->>>>>>> origin/feature-MenuManagement
 
 ---
 
@@ -2495,7 +2489,6 @@
 
 ---
 
-<<<<<<< Updated upstream
 ## 2569-10-28 15:40 คำสั่ง: /testcases AC-MENU-04 specs/001-Menu/spec.md
 
 - โหมด: ร่าง
@@ -2574,7 +2567,6 @@
 - F-02: เพิ่ม test ยกเลิก Login โดยมี fixture Order เดิม และตรวจว่าไม่มี POST รายการใหม่
 - F-03 ถึง F-06: เพิ่ม automated tests สำหรับ search, empty state, promotion, retry, menu details และ sold-out button
 - F-07: ตั้ง `pythonpath = . ..` ใน `backend/pytest.ini` และเพิ่ม migration สำหรับ `description`/`image_url` ใน `backend/app/database.py`; เหลือ regression เดิมที่คาด payload admin เป็น list
-=======
 ## 2569-10-28 15:45 คำสั่ง: /testcases AC-MENU-MGMT-06 specs/009-MenuManagement/
 - โหมด: ร่าง
 - TC ID: `TC-MENU-MGMT-06-1`, `TC-MENU-MGMT-06-2`, `TC-MENU-MGMT-06-3`
@@ -2763,4 +2755,3 @@
 - พบว่าตารางหัวข้อ “ข้อค้นพบ” ยังแสดง F-04, F-06, F-07, F-08 และ F-09 แม้ทุกแถวมีสถานะ “แก้แล้ว” และมีรายการอยู่ในหัวข้อ “แก้แล้ว” แล้ว
 - แก้ `specs/009-MenuManagement/rtm.md` โดยย้ายแถว F-04, F-06, F-07, F-08 และ F-09 ออกจากตารางข้อค้นพบคงค้าง
 - หัวข้อ “ข้อค้นพบ” ระบุชัดเจนว่าไม่พบข้อค้นพบคงค้าง ส่วน F-01 ถึง F-14 อยู่ในหัวข้อ “แก้แล้ว”
->>>>>>> Stashed changes
