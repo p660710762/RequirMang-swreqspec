@@ -6,10 +6,10 @@ References: FR-42, FR-43, FR-44, FR-45, FR-46, FR-47.
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
-from backend.app.middleware.auth_guard import require_admin
-from backend.app.services.menu_service import create_menu_item, list_menu_items, update_menu_item
-from backend.app.services.menu_status_service import update_menu_status
-from backend.app.services.menu_validation import validate_menu_payload
+from ..middleware.auth_guard import require_admin
+from ..services.menu_service import create_menu_item, list_menu_items, update_menu_item
+from ..services.menu_status_service import update_menu_status
+from ..services.menu_validation import validate_menu_payload
 
 
 router = APIRouter(prefix="/api/admin", dependencies=[Depends(require_admin)])

@@ -6,9 +6,9 @@ References: FR-42, FR-43, FR-44, FR-45, FR-46, FR-47.
 from datetime import datetime, timezone
 from typing import Any
 
-from backend.app.config import MENU_STATUS_OPEN, MENU_STATUS_SOLD_OUT, required_menu_fields
-from backend.app.models import MenuItem
-from backend.app.seed import seed_menu_data
+from ..config import MENU_STATUS_OPEN, MENU_STATUS_SOLD_OUT, required_menu_fields
+from ..models import MenuItem
+from ..seed import seed_menu_data
 
 
 MENU_STORE: list[dict[str, Any]] = [

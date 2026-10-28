@@ -110,16 +110,16 @@
 ### T-07 แก้ไขจำนวนและตัวเลือกพร้อมคำนวณยอดรวมใหม่
 - รองรับ: FR-07, FR-08, FR-09
 - ตรวจด้วย: AC-ORDER-04 — `test_AC_ORDER_04_update_quantity_or_remove_item`; AC-ORDER-09 — `test_AC_ORDER_09_recalculate_total_after_edit`
-- ไฟล์ที่แตะ: `backend/app/routes/orders.py`, `backend/app/services/order_service.py`, `backend/tests/test_order_flow.py`
+- ไฟล์ที่แตะ: `backend/app/routes/orders.py`, `backend/app/services/order_service.py`, `backend/app/repositories/order_repository.py`, `backend/tests/test_order_flow.py`, `backend/tests/test_order_sqlite_repository.py`, `specs/003-Order/tasks.md`, `prompt-log.md`
 - แบบหน้าจอ: ไม่มี
 - ต้องทำหลัง: T-06
 - เสร็จเมื่อ: การแก้ไขจำนวนหรือตัวเลือกคำนวณยอดรวมใหม่ และจำนวน 0 ลบ OrderItem ตาม FR-09
-- สถานะ: เสร็จ 
+- สถานะ: เสร็จ
 
 ### T-08 ยืนยัน Order และตรวจสต็อกซ้ำก่อนเริ่มชำระเงิน
 - รองรับ: FR-10, FR-11
 - ตรวจด้วย: AC-ORDER-05 — `test_AC_ORDER_05_confirm_order_to_payment`; AC-ORDER-11 — `test_AC_ORDER_11_show_out_of_stock_message`
-- ไฟล์ที่แตะ: `backend/app/routes/orders.py`, `backend/app/services/order_service.py`, `backend/tests/test_order_flow.py`
+- ไฟล์ที่แตะ: `backend/app/routes/orders.py`, `backend/app/services/order_service.py`, `backend/tests/test_order_flow.py`, `backend/tests/test_order_sqlite_repository.py`, `specs/003-Order/tasks.md`, `prompt-log.md`
 - แบบหน้าจอ: ไม่มี
 - ต้องทำหลัง: T-07
 - เสร็จเมื่อ: ก่อนเริ่มชำระเงินระบบตรวจรายการและสต็อกซ้ำ หากรายการใดไม่พร้อมระบบไม่เริ่มชำระเงินและส่งผลให้หน้าจอแจ้งลูกค้าเปลี่ยนเมนู
@@ -153,6 +153,15 @@
 - ยังขาด: การสร้าง QR จาก Payment Gateway ที่ทีมอนุมัติ
 
 ## เฟส 3: ชำระเงินและสร้าง Order (AC-ORDER-06, AC-ORDER-07, AC-ORDER-10, AC-ORDER-12)
+
+### T-19 แก้ backend foundation และเพิ่ม test ของตัวเลือก Order
+- รองรับ: FR-06, FR-07, FR-08, FR-09 และ AC-ORDER-02
+- ตรวจด้วย: `test_TC_ORDER_02_1_save_all_item_options`, `test_TC_ORDER_02_2_save_minimum_quantity_without_optional_options`, `test_TC_ORDER_02_3_save_toppings_with_default_ice`, `test_TC_ORDER_02_4_reject_missing_sweetness`
+- ไฟล์ที่แตะ: `backend/pytest.ini`, `backend/app/database.py`, `backend/app/models.py`, `backend/app/models/__init__.py`, `backend/app/models/menu.py`, `backend/app/models/order_item.py`, `backend/app/repositories/__init__.py`, `backend/app/repositories/order_repository.py`, `backend/app/main.py`, `backend/app/routes/orders.py`, `backend/app/routes/menu.py`, `backend/app/services/menu_service.py`, `backend/app/services/menu_status_service.py`, `backend/app/services/menu_validation.py`, `backend/app/middleware/auth_guard.py`, `backend/app/seed.py`, `backend/tests/test_order_flow.py`, `backend/tests/test_order_sqlite_repository.py`
+- แบบหน้าจอ: ไม่มี
+- ต้องทำหลัง: T-08
+- เสร็จเมื่อ: `cd backend && pytest -v` เก็บและรัน test ได้, Order API ไม่ตอบ 503 จาก dependency placeholder, และ test case ตัวเลือก AC-ORDER-02 ครบ 4 แถว
+- สถานะ: เสร็จ รอทีมตรวจ
 
 ### T-11 สร้างคำขอ QR พร้อมเวลาหมดอายุ
 - รองรับ: FR-11

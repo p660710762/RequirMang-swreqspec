@@ -1,7 +1,4 @@
-"""Data schemas for the Menu Management feature.
-
-References: FR-42, FR-43, FR-44, FR-45, FR-49, NFR-REL-08, NFR-REL-09.
-"""
+"""Data schemas shared by Menu Management and Order features."""
 
 from dataclasses import asdict, dataclass
 from datetime import datetime
@@ -21,7 +18,6 @@ class MenuItem:
     updated_at: datetime | None = None
 
     def to_dict(self) -> dict:
-        """FR-42: return menu fields for the admin view and API layer."""
         return asdict(self)
 
 
@@ -38,7 +34,6 @@ class Promotion:
     end_at: datetime
 
     def to_dict(self) -> dict:
-        """FR-44: return promotion fields for menu management."""
         return asdict(self)
 
 
@@ -56,7 +51,6 @@ class MenuHistory:
     updated_at: datetime
 
     def to_dict(self) -> dict:
-        """FR-49: return historical menu data without changing order snapshots."""
         return asdict(self)
 
 
@@ -71,5 +65,4 @@ class OrderSnapshot:
     snapshot_status_at_order: str
 
     def to_dict(self) -> dict:
-        """FR-49: return the original menu values attached to an order."""
         return asdict(self)

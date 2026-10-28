@@ -401,6 +401,12 @@ export default function OrderPage() {
                       <div>
                         <h3>{item.name}</h3>
                         <p>{formatPrice(item.unit_price)} × {item.quantity}</p>
+                        {item.promotion_price != null ? (
+                          <p>
+                            <span>ราคาปกติ {formatPrice(item.regular_price ?? item.unit_price)}</span>{" "}
+                            <span>ราคาโปรโมชัน {formatPrice(item.promotion_price)}</span>
+                          </p>
+                        ) : null}
                         <label className="order-field">
                           จำนวน
                           <input

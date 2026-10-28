@@ -23,6 +23,7 @@ from ..services.order_service import (
     OrderSummaryRecord,
     OrderService,
 )
+from ..repositories.order_repository import menu_repository, order_repository
 
 
 # รองรับ FR-06, FR-10 และ FR-11; endpoint behavior อยู่ใน tasks ที่ตามมา
@@ -93,6 +94,8 @@ class MenuItemResponse(BaseModel):
     name: str
     status: str
     price: Decimal
+    promotion_price: Decimal | None
+    effective_price: Decimal
 
 
 # รองรับ FR-06 ด้วย contract รายการเมนูของ SPEC-MENU-001
@@ -108,6 +111,8 @@ class OrderSummaryItemResponse(BaseModel):
     quantity: int
     unit_price: Decimal
     line_total: Decimal
+    regular_price: Decimal
+    promotion_price: Decimal | None
 
 
 # รองรับ FR-08 และ AC-ORDER-03 โดยคืนรายการและยอดรวมของ draft
@@ -150,19 +155,13 @@ class ConfirmOrderResponse(BaseModel):
 
 
 def get_menu_repository() -> MenuRepository:
-    # รองรับ FR-06; การติดตั้งระบบจริงต้อง inject repository ของเมนู
-    raise HTTPException(
-        status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-        detail="Menu repository is not configured",
-    )
+    # รองรับ FR-06 โดยใช้ repository เมนูร่วมกับ Menu API
+    return menu_repository
 
 
 def get_order_repository() -> OrderRepository:
-    # รองรับ FR-06; การติดตั้งระบบจริงต้อง inject repository ของ draft Order
-    raise HTTPException(
-        status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-        detail="Order repository is not configured",
-    )
+    # รองรับ FR-06, FR-07, FR-08 และ FR-09 สำหรับ draft Order ของ release นี้
+    return order_repository
 
 
 def get_order_service(
@@ -192,6 +191,8 @@ def list_menu_items(
                 name=item.name,
                 status=item.status,
                 price=item.price,
+                promotion_price=getattr(item, "promotion_price", None),
+                effective_price=getattr(item, "effective_price", item.price),
             )
             for item in menu_repository.list_menu_items()
         ]
@@ -237,6 +238,8 @@ def get_order_summary(
                 quantity=item.quantity,
                 unit_price=item.unit_price,
                 line_total=item.line_total,
+                regular_price=getattr(item, "regular_price", item.unit_price),
+                promotion_price=getattr(item, "promotion_price", None),
             )
             for item in summary.items
         ],

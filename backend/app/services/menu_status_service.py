@@ -5,8 +5,8 @@ References: FR-45, FR-48, ASM-03, ASM-12.
 
 from typing import Any
 
-from backend.app.config import MENU_STATUS_OPEN, MENU_STATUS_SOLD_OUT
-from backend.app.services.menu_service import MENU_STORE
+from ..config import MENU_STATUS_OPEN, MENU_STATUS_SOLD_OUT
+from .menu_service import MENU_STORE
 
 
 def update_menu_status(menu_id: int, status: str) -> dict[str, Any]:

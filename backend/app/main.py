@@ -8,9 +8,11 @@ from fastapi import FastAPI
 from .routes.menu import router as menu_management_router
 from .routes.orders import menu_router as public_menu_router
 from .routes.orders import router as orders_router
+from .database import init_database
 
 
 app = FastAPI(title="Menu Management and Order API")
+init_database()
 
 # รองรับ FR-42, FR-43, FR-45, FR-46 และ FR-47 สำหรับ API จัดการเมนูของ Admin
 app.include_router(menu_management_router)

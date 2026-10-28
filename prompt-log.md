@@ -4,6 +4,54 @@
 
 ---
 
+## 2569-10-28 08:11 คำสั่ง: /implement T-06 (แก้ F-09)
+
+- ไฟล์ที่แก้: `frontend/src/pages/OrderPage.test.jsx`, `specs/003-Order/tasks.md`
+- เพิ่ม test `test_TC_ORDER_03_1_show_order_summary` สำหรับ Order ที่มีเครื่องดื่ม 2 รายการ
+- Assertions ครอบคลุมชื่อสินค้า จำนวน ราคาต่อรายการ ราคาโปรโมชั่น และยอดรวมตาม TC-ORDER-03-1
+- ยังไม่ได้แก้ Business Logic หรือ Payment Flow
+- ผล test: `cd frontend && npm test -- --run src/pages/OrderPage.test.jsx` ผ่าน 13 tests, ไม่ผ่าน 0
+
+---
+
+## 2569-10-28 08:15 คำสั่ง: /implement T-07 (แก้ F-10)
+
+- ทีมอนุมัติให้เพิ่ม `backend/app/repositories/order_repository.py` และ `backend/tests/test_order_sqlite_repository.py` ในไฟล์ที่แตะของ T-07
+- ไฟล์ที่แก้: `backend/app/repositories/order_repository.py`, `backend/tests/test_order_sqlite_repository.py`, `specs/003-Order/tasks.md`
+- เพิ่ม Integration Test `test_AC_ORDER_04_and_09_update_delete_and_recalculate_via_sqlite`
+- Test เรียก `PATCH /api/orders/items/{id}` ผ่าน FastAPI และตรวจ Persistence ใน SQLite จริง
+- ครอบคลุมการเพิ่มจำนวน, การตรวจรายการอื่นไม่เปลี่ยน, การอ่าน summary/ยอดรวมหลังแก้, `quantity = 0` เพื่อลบ และการคงอยู่ของรายการที่เหลือ
+- แก้ Repository ให้ลบ `OrderOption` ก่อน `OrderItem` เมื่อ quantity เป็น 0 เพื่อไม่ให้ SQLite เกิด NOT NULL constraint error
+- ผล test: `cd backend && pytest -v` ผ่าน 34 tests, ไม่ผ่าน 0, collection error 0
+
+---
+
+## 2569-10-28 08:22 คำสั่ง: /implement T-08 (แก้ F-11)
+
+- ทีมยืนยันให้เพิ่ม `backend/tests/test_order_sqlite_repository.py`, `specs/003-Order/tasks.md` และ `prompt-log.md` ในไฟล์ที่แตะของ T-08
+- เพิ่ม Integration Test `test_AC_ORDER_05_confirm_valid_order_via_sqlite_and_returns_pending`
+- Test สร้าง Draft และรายการพร้อม sweetness ผ่าน API/SQLite จริง จากนั้นเรียก `POST /api/orders/confirm`
+- ตรวจ HTTP 200, response `payment_status = "pending"`, รายการและ options ใน SQLite และสถานะ Order ที่ยังเป็น `draft`
+- คง Negative Tests ของ Order ว่าง, options ไม่ครบ และสินค้าหมดไว้เดิม
+- ไม่ได้สร้าง QR Code, Payment Callback, Completed Order หรือ Timeout Flow
+- ผล test เฉพาะ AC-ORDER-05/11: ผ่าน 4 tests, ไม่ผ่าน 0
+- ผล Backend ทั้งหมด: ผ่าน 35 tests, ไม่ผ่าน 0, collection error 0
+
+---
+
+## 2569-10-28 08:24 คำสั่ง: /verify specs/003-Order
+
+- ตรวจ RTM หลังแก้ F-09, F-10 และ F-11 โดยไม่แก้โค้ดหรือ Test
+- ตรวจพบ Test ตาม `TC-ORDER-03-1`: `test_TC_ORDER_03_1_show_order_summary` และ assertion สำหรับ Order สองรายการ
+- ตรวจพบ SQLite Integration Test ของ AC-ORDER-04/09: `test_AC_ORDER_04_and_09_update_delete_and_recalculate_via_sqlite`
+- ตรวจพบ SQLite Happy Path Integration Test ของ AC-ORDER-05: `test_AC_ORDER_05_confirm_valid_order_via_sqlite_and_returns_pending`
+- ผล Backend: 35 ผ่าน, 0 ไม่ผ่าน, 0 collection error
+- ผล Frontend: 37 ผ่าน, 0 ไม่ผ่าน
+- RTM หลัง Verify: ครบ 9 แถว, ยังไม่ถึง 10 แถว, รอ Q-xx 0 แถว, ช่องโหว่ 0 แถว
+- F-09, F-10 และ F-11 ย้ายไปหัวข้อ “แก้แล้ว”; Payment Flow, QR, Timeout, Callback, Completed Order และ Idempotency คงเป็น Release ถัดไป
+
+---
+
 ## 2569-09-18 10:00 คำสั่ง: /clarify
 
 - เครื่องมือ: Copilot in VS Code
@@ -785,6 +833,70 @@
 - RTM: สถานะ `ครบ` 0, `ยังไม่ถึง` 11, `รอ Q-xx` 0, `ช่องโหว่` 8 แถวในตารางตามรอยไปข้างหน้า (รวม 19 แถว)
 - ข้อค้นพบใหม่: F-01 ถึง F-08 ใน `specs/003-Order/rtm.md`
 - ไม่แก้โค้ด, test, spec, plan หรือ tasks ตามข้อจำกัดของ `/verify`
+
+---
+
+## 2569-10-28 คำสั่ง: แก้ foundation ตาม F-01 ถึง F-06 (ไม่รวม payment)
+
+- ทีมยืนยันให้แก้เฉพาะ foundation และใช้ in-memory repository สำหรับ release นี้ โดยเลื่อน payment ไป release ถัดไป
+- เพิ่ม `backend/pytest.ini` เพื่อให้ `cd backend && pytest` หา package `app` ได้
+- แก้ import ของ backend ที่ใช้ `backend.app` ให้เป็น relative import และรวม Menu models เข้า `backend/app/models/__init__.py` เพื่อแก้ชื่อ `app.models.py` ชนกับ `app/models/`
+- เพิ่ม in-memory Menu/Order repository และเชื่อม dependency ของ Order API แทน placeholder ที่ตอบ 503
+- เพิ่ม test ตาม TC-ORDER-02-1 ถึง TC-ORDER-02-4
+- ผล test backend: `26 passed`; มี warning จาก Starlette/httpx 1 รายการ
+- ไม่ทำ QR, payment callback, promotion calculation หรือ completed-payment Order เพราะอยู่นอกขอบเขตที่ทีมยืนยันในรอบนี้
+
+---
+
+## 2569-10-28 คำสั่ง: แก้ F-01 ด้วย SQLite file
+
+- ทีมเลือก SQLite file เป็น persistence layer ของ release ปัจจุบัน
+- เพิ่ม `backend/app/database.py` สำหรับ `ORDER_DATABASE_URL` และ default `backend/order.sqlite3`
+- เพิ่ม SQLAlchemy `MenuItemEntity` และเชื่อม foreign key ของ `OrderItem` กับตาราง `menu_items`
+- เปลี่ยน repository จาก in-memory เป็น `SqliteMenuRepository` และ `SqliteOrderRepository` พร้อม transaction ผ่าน `SessionLocal.begin()`
+- เชื่อม repository จริงเข้ากับ `get_menu_repository` และ `get_order_repository`; ไม่ใช้ placeholder 503
+- เพิ่ม integration test `test_order_api_uses_sqlite_persistence` ที่ตรวจผ่าน API และสร้าง repository ใหม่อ่านข้อมูลจาก SQLite
+- ผล test backend: `27 passed`, `0 failed`, `0 collection errors`; มี warning จาก Starlette/httpx 1 รายการ
+- เพิ่ม `.gitignore` สำหรับไฟล์ runtime `backend/*.sqlite3`
+- ไม่พัฒนา Payment, QR Code, Callback หรือ Timeout
+
+---
+
+## 2569-10-28 คำสั่ง: แก้ F-02, F-03 และ F-04
+
+- ตรวจสอบ `spec.md`, `tasks.md`, `test-cases.md` และ tests ของ Backend/Frontend ก่อนเพิ่ม test
+- F-02: เพิ่ม integration test `test_TC_ORDER_02_sqlite_persists_options_per_item` เพื่อยืนยันตัวเลือกของ OrderItem หลายรายการถูกบันทึกแยกกันใน SQLite รวม default ice และ optional toppings
+- F-03: เพิ่ม integration tests `test_AC_ORDER_05_rejects_empty_order_and_does_not_prepare_payment` และ `test_AC_ORDER_05_rejects_missing_options_before_payment` ครอบคลุมไม่มีรายการและข้อมูลตัวเลือกไม่ครบ พร้อมยืนยัน Order ยังเป็น draft
+- F-04: เพิ่ม integration test `test_AC_ORDER_11_rejects_one_out_of_stock_item_in_multi_item_order` สำหรับหลายรายการที่มีหนึ่งรายการ sold out พร้อมยืนยันข้อความ 409 และ Order ยังไม่พร้อมชำระเงิน
+- Frontend: เพิ่ม `test_TC_ORDER_02_4_reject_missing_sweetness` ยืนยันว่าไม่เรียก API เมื่อไม่เลือกระดับความหวาน
+- ผล test: Backend `31 passed`; Frontend `35 passed`; ไม่มี failed/error
+- ไม่แก้ Payment Flow, QR Code, Callback หรือ Timeout
+
+---
+
+## 2569-10-28 คำสั่ง: แก้ F-05
+
+- ทีมยืนยันกติกา Q-04 แบบ `menu_effective_price`: Menu persistence เป็นแหล่งราคา และ Order ใช้ `promotion_price` เป็น `effective_price` โดยตรงเมื่อมีค่า; ถ้าไม่มี promotion ใช้ราคาปกติ
+- เพิ่ม `promotion_price` ใน SQLite `menu_items` และ migration สำหรับฐานเดิมที่ยังไม่มีคอลัมน์
+- เพิ่ม `promotion_price` และ `effective_price` ใน Menu API response
+- เพิ่ม `regular_price`, `promotion_price`, `unit_price` (ราคาที่มีผลจริง), `line_total` และ `total_amount` ใน Order Summary contract
+- เพิ่ม UI แสดงราคาปกติและราคาโปรโมชัน โดยยอดรวมใช้ `unit_price`/`line_total` จาก backend
+- เพิ่ม backend tests สำหรับมี promotion และไม่มี promotion รวมถึงตรวจ API/SQLite
+- เพิ่ม frontend test `test_AC_ORDER_03_show_promotion_price_and_effective_total`
+- ผล test: Backend `33 passed`; Frontend `36 passed`; ไม่มี failed/error
+- ไม่เพิ่มสูตรส่วนลดใหม่ และไม่แก้ Payment Flow
+
+---
+
+## 2569-10-28 คำสั่ง: /verify specs/003-Order (หลังแก้ F-01 ถึง F-06)
+
+- อ่าน `spec.md`, `plan.md`, `tasks.md`, `test-cases.md`, `AGENTS.md`, source ทั้งหมดใต้ `backend/app/` และ `frontend/src/` รวมถึง tests ที่มีอยู่
+- ผล test จริง: Backend `33 passed`, `0 failed`, `0 collection errors`; Frontend `36 passed`, `0 failed`
+- RTM ล่าสุด: `ครบ` 5 แถว, `ยังไม่ถึง` 10 แถว, `รอ Q-xx` 0 แถว, `ช่องโหว่` 4 แถว
+- Findings ใหม่: F-09 ถึง F-11 ใน `specs/003-Order/rtm.md`
+- F-01 ถึง F-06 ย้ายไปหัวข้อ “แก้แล้ว” โดยอ้างอิงผล test และ integration test ที่ผ่าน
+- F-07/F-08 และงาน payment คงไว้เป็น Release ถัดไป ไม่ถือเป็นข้อบกพร่องที่ต้องแก้ใน release ปัจจุบัน
+- ไม่แก้ source code หรือ tests ระหว่าง verify
 
 ---
 

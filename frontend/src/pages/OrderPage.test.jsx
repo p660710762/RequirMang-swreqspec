@@ -27,6 +27,8 @@ const openMenuItem = {
   name: "ชาไทย",
   status: "open",
   price: "65.00",
+  promotion_price: null,
+  effective_price: "65.00",
 };
 
 const draft = { order_date: "2026-10-27", order_id: "001" };
@@ -47,6 +49,8 @@ beforeEach(() => {
         quantity: 2,
         unit_price: "65.00",
         line_total: "130.00",
+        regular_price: "65.00",
+        promotion_price: null,
       },
     ],
     total_amount: "130.00",
@@ -108,6 +112,7 @@ describe("OrderPage", () => {
     fireEvent.change(screen.getByLabelText("ระดับความหวาน"), {
       target: { value: "หวานน้อย 50%" },
     });
+
     fireEvent.click(screen.getByLabelText("ไข่มุก"));
     fireEvent.click(screen.getByLabelText("ชีส"));
     fireEvent.change(screen.getByLabelText("ระดับน้ำแข็ง"), {
@@ -128,6 +133,16 @@ describe("OrderPage", () => {
     expect(
       await screen.findByText(/ระดับความหวาน หวานน้อย 50% น้ำแข็ง แยกน้ำแข็ง toppings ไข่มุก, ชีส/),
     ).not.toBeNull();
+  });
+
+  it("test_TC_ORDER_02_4_reject_missing_sweetness", async () => {
+    render(<OrderPage />);
+
+    await screen.findByRole("heading", { name: "ชาไทย" });
+    fireEvent.click(screen.getByRole("button", { name: "สั่งซื้อ" }));
+
+    expect(addOrderItem).not.toHaveBeenCalled();
+    expect(screen.getByRole("button", { name: "สั่งซื้อ" }).disabled).toBe(true);
   });
 
   it("omits optional toppings and ice so the API applies the ice default", async () => {
@@ -157,6 +172,7 @@ describe("OrderPage", () => {
     fireEvent.change(screen.getByLabelText("ระดับความหวาน"), {
       target: { value: "หวานปกติ 75%" },
     });
+
     fireEvent.click(screen.getByRole("button", { name: "สั่งซื้อ" }));
     await screen.findByText(/ชาไทย จำนวน 1/);
 
@@ -168,6 +184,87 @@ describe("OrderPage", () => {
     expect(screen.getAllByText(/฿130\.00/)).toHaveLength(2);
     expect(screen.getByText("ยอดรวม")).not.toBeNull();
     expect(getOrderSummary).toHaveBeenCalledWith(draft);
+  });
+
+  it("test_TC_ORDER_03_1_show_order_summary", async () => {
+    vi.mocked(getOrderSummary).mockResolvedValueOnce({
+      ...draft,
+      items: [
+        {
+          order_item_id: 4,
+          menu_item_id: 17,
+          name: "ชาไทย",
+          quantity: 2,
+          unit_price: "65.00",
+          regular_price: "65.00",
+          promotion_price: null,
+          line_total: "130.00",
+        },
+        {
+          order_item_id: 5,
+          menu_item_id: 18,
+          name: "โกโก้",
+          quantity: 1,
+          unit_price: "55.00",
+          regular_price: "60.00",
+          promotion_price: "55.00",
+          line_total: "55.00",
+        },
+      ],
+      total_amount: "185.00",
+    });
+
+    render(<OrderPage />);
+
+    await screen.findByRole("heading", { name: "ชาไทย" });
+    fireEvent.change(screen.getByLabelText("ระดับความหวาน"), {
+      target: { value: "หวานปกติ 75%" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "สั่งซื้อ" }));
+    await screen.findByText(/ชาไทย จำนวน 1/);
+
+    fireEvent.click(screen.getByRole("button", { name: "ตรวจสอบ Order" }));
+
+    expect(await screen.findByRole("heading", { name: "ตะกร้าสินค้า" })).not.toBeNull();
+    expect(screen.getByRole("heading", { name: "ชาไทย" })).not.toBeNull();
+    expect(screen.getByRole("heading", { name: "โกโก้" })).not.toBeNull();
+    expect(screen.getByText("฿65.00 × 2")).not.toBeNull();
+    expect(screen.getByText("฿55.00 × 1")).not.toBeNull();
+    expect(screen.getByText("ราคาโปรโมชัน ฿55.00")).not.toBeNull();
+    expect(screen.getAllByText(/฿130\.00/)).not.toHaveLength(0);
+    expect(screen.getAllByText(/฿55\.00/)).not.toHaveLength(0);
+    expect(screen.getByText("฿185.00")).not.toBeNull();
+    expect(getOrderSummary).toHaveBeenCalledWith(draft);
+  });
+
+  it("test_AC_ORDER_03_show_promotion_price_and_effective_total", async () => {
+    vi.mocked(getOrderSummary).mockResolvedValueOnce({
+      ...draft,
+      items: [{
+        order_item_id: 4,
+        menu_item_id: 17,
+        name: "ชาไทย",
+        quantity: 2,
+        unit_price: "55.00",
+        regular_price: "65.00",
+        promotion_price: "55.00",
+        line_total: "110.00",
+      }],
+      total_amount: "110.00",
+    });
+
+    render(<OrderPage />);
+    await screen.findByRole("heading", { name: "ชาไทย" });
+    fireEvent.change(screen.getByLabelText("ระดับความหวาน"), {
+      target: { value: "หวานปกติ 75%" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "สั่งซื้อ" }));
+    await screen.findByText(/ชาไทย จำนวน 1/);
+    fireEvent.click(screen.getByRole("button", { name: "ตรวจสอบ Order" }));
+
+    expect(await screen.findByText("ราคาโปรโมชัน ฿55.00")).not.toBeNull();
+    expect(screen.getByText("ราคาปกติ ฿65.00")).not.toBeNull();
+    expect(screen.getAllByText(/฿110\.00/).length).toBeGreaterThan(0);
   });
 
   it("renders payment controls as non-interactive mockup placeholders", async () => {

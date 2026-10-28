@@ -42,6 +42,7 @@ class OrderItem(Base):
     line_total: Mapped[Decimal] = mapped_column(Numeric, nullable=False)
 
     order: Mapped[Order] = relationship(back_populates="items")
+    menu_item: Mapped["MenuItemEntity"] = relationship(back_populates="order_items")
     options: Mapped[OrderOption | None] = relationship(
         back_populates="order_item", uselist=False
     )

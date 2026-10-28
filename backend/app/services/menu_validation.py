@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 import re
 from typing import Any
 
-from backend.app.config import MENU_STATUS_OPEN, MENU_STATUS_SOLD_OUT, required_menu_fields
+from ..config import MENU_STATUS_OPEN, MENU_STATUS_SOLD_OUT, required_menu_fields
 
 
 ISO_DATETIME_WITH_TIMEZONE = re.compile(
