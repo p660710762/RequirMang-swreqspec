@@ -48,7 +48,9 @@ def list_menu_items() -> list[dict[str, Any]]:
     configure_database()
     with SessionLocal() as session:
         items = session.scalars(
-            select(MenuItemEntity).order_by(MenuItemEntity.menu_id)
+            select(MenuItemEntity)
+            .where(MenuItemEntity.is_deleted.is_(False))
+            .order_by(MenuItemEntity.menu_id)
         ).all()
         return [_to_dict(item) for item in items]
 
@@ -154,7 +156,8 @@ def delete_menu_item(menu_id: int) -> dict[str, Any]:
             "updated_by": "admin",
             "updated_at": updated_at,
         }
-        session.delete(item)
+        item.is_deleted = True
+        item.updated_at = updated_at
         session.flush()
         result = {"menu_id": menu_id, "deleted": True, "status": "deleted"}
     create_order_snapshot(**staged_snapshot)

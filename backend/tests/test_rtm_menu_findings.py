@@ -1,19 +1,51 @@
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
+import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy import delete
 
 from app.main import app
+from app.database import SessionLocal
+from app.models.menu import MenuItemEntity
 from app.seed import seed_menu_data
 from app.services.history_service import ORDER_SNAPSHOT_STORE
 from app.services import menu_service
+from app.services.menu_validation import validate_menu_payload
 
 
-def test_seed_promotion_is_in_the_future():
-    now = datetime.now(timezone.utc)
-    promotion = seed_menu_data()["promotions"][0]
+@pytest.fixture(autouse=True)
+def remove_rtm_test_menus():
+    def cleanup():
+        with SessionLocal.begin() as session:
+            session.execute(
+                delete(MenuItemEntity).where(MenuItemEntity.name.like("RTM %"))
+            )
 
-    assert promotion["start_at"] > now
-    assert promotion["end_at"] > promotion["start_at"]
+    cleanup()
+    yield
+    cleanup()
+
+
+def test_seed_has_no_sample_promotion():
+    assert seed_menu_data()["promotions"] == []
+
+
+def test_current_minute_is_accepted_for_promotion_start():
+    current_minute = datetime.now(timezone.utc).replace(second=0, microsecond=0)
+    validated = validate_menu_payload(
+        {
+            "name": "current minute",
+            "price": 100,
+            "status": "open",
+            "promotion": {
+                "promotion_name": "เริ่มตอนนี้",
+                "discount_value": 10,
+                "start_at": current_minute.isoformat(),
+                "end_at": (current_minute + timedelta(minutes=1)).isoformat(),
+            },
+        }
+    )
+    assert validated["promotion"]["start_at"] == current_minute.isoformat()
 
 
 def test_admin_update_is_visible_from_customer_menu_api():
@@ -44,6 +76,152 @@ def test_admin_update_is_visible_from_customer_menu_api():
         item = next(row for row in response.json()["items"] if row["menu_id"] == menu_id)
         assert float(item["price"]) == 70
         assert item["description"] == "รายละเอียดล่าสุด"
+    finally:
+        admin.delete(f"/api/admin/menu/{menu_id}")
+
+
+def test_admin_promotion_is_visible_from_customer_menu_and_active_promotions_api():
+    admin = TestClient(app, headers={"X-User-Id": "admin"})
+    created = admin.post(
+        "/api/admin/menu",
+        json={"name": "RTM shared promotion", "price": 100, "status": "open"},
+    )
+    assert created.status_code == 200
+    menu_id = created.json()["menu_id"]
+
+    try:
+        start_at = datetime.now(timezone.utc) + timedelta(days=1)
+        end_at = start_at + timedelta(hours=1)
+        updated = admin.patch(
+            f"/api/admin/menu/{menu_id}",
+            json={
+                "promotion": {
+                    "promotion_name": "ลดหน้าร้าน",
+                    "discount_value": 25,
+                    "start_at": start_at.isoformat(),
+                    "end_at": end_at.isoformat(),
+                }
+            },
+        )
+        assert updated.status_code == 200
+
+        with SessionLocal.begin() as session:
+            item_entity = session.get(MenuItemEntity, menu_id)
+            item_entity.promotion = {
+                **item_entity.promotion,
+                "start_at": (
+                    datetime.now(timezone.utc) - timedelta(minutes=1)
+                ).isoformat(),
+                "end_at": (
+                    datetime.now(timezone.utc) + timedelta(hours=1)
+                ).isoformat(),
+            }
+            session.flush()
+
+        customer = TestClient(app)
+        menu_response = customer.get("/api/menu")
+        item = next(row for row in menu_response.json()["items"] if row["menu_id"] == menu_id)
+        assert item["promotion"] == {
+            "id": menu_id,
+            "title": "ลดหน้าร้าน",
+            "discount_value": 25,
+            "status": "active",
+        }
+        assert float(item["effective_price"]) == 75
+
+        promotions_response = customer.get("/api/promotions/active")
+        assert promotions_response.json() == [item["promotion"]]
+    finally:
+        admin.delete(f"/api/admin/menu/{menu_id}")
+
+
+def test_deleted_menu_promotion_is_hidden_from_customer_active_promotions():
+    admin = TestClient(app, headers={"X-User-Id": "admin"})
+    created = admin.post(
+        "/api/admin/menu",
+        json={"name": "RTM deleted promotion", "price": 100, "status": "open"},
+    )
+    assert created.status_code == 200
+    menu_id = created.json()["menu_id"]
+
+    try:
+        start_at = datetime.now(timezone.utc) + timedelta(days=1)
+        end_at = datetime.now(timezone.utc) + timedelta(hours=1)
+        updated = admin.patch(
+            f"/api/admin/menu/{menu_id}",
+            json={
+                "promotion": {
+                    "promotion_name": "โปรโมชั่นเมนูที่จะลบ",
+                    "discount_value": 10,
+                    "start_at": start_at.isoformat(),
+                    "end_at": end_at.isoformat(),
+                }
+            },
+        )
+        assert updated.status_code == 400
+
+        with SessionLocal.begin() as session:
+            item_entity = session.get(MenuItemEntity, menu_id)
+            item_entity.promotion = {
+                "promotion_name": "โปรโมชั่นเมนูที่จะลบ",
+                "discount_value": 10,
+                "start_at": start_at.isoformat(),
+                "end_at": end_at.isoformat(),
+            }
+
+        assert admin.delete(f"/api/admin/menu/{menu_id}").status_code == 200
+        promotions = TestClient(app).get("/api/promotions/active")
+        assert all(promotion["id"] != menu_id for promotion in promotions.json())
+    finally:
+        admin.delete(f"/api/admin/menu/{menu_id}")
+
+
+def test_promotion_without_discount_can_be_loaded():
+    admin = TestClient(app, headers={"X-User-Id": "admin"})
+    created = admin.post(
+        "/api/admin/menu",
+        json={"name": "RTM promotion without discount", "price": 100, "status": "open"},
+    )
+    assert created.status_code == 200
+    menu_id = created.json()["menu_id"]
+
+    try:
+        start_at = datetime.now(timezone.utc) + timedelta(days=1)
+        end_at = start_at + timedelta(hours=1)
+        updated = admin.patch(
+            f"/api/admin/menu/{menu_id}",
+            json={
+                "promotion": {
+                    "promotion_name": "โปรโมชั่นไม่ลดราคา",
+                    "discount_value": None,
+                    "start_at": start_at.isoformat(),
+                    "end_at": end_at.isoformat(),
+                }
+            },
+        )
+        assert updated.status_code == 200
+        with SessionLocal.begin() as session:
+            item_entity = session.get(MenuItemEntity, menu_id)
+            item_entity.promotion = {
+                **item_entity.promotion,
+                "start_at": (
+                    datetime.now(timezone.utc) - timedelta(minutes=1)
+                ).isoformat(),
+                "end_at": (
+                    datetime.now(timezone.utc) + timedelta(hours=1)
+                ).isoformat(),
+            }
+
+        customer = TestClient(app)
+        menu_response = customer.get("/api/menu")
+        assert menu_response.status_code == 200
+        item = next(row for row in menu_response.json()["items"] if row["menu_id"] == menu_id)
+        assert item["promotion"]["discount_value"] == 0
+        assert float(item["effective_price"]) == 100
+
+        promotions_response = customer.get("/api/promotions/active")
+        assert promotions_response.status_code == 200
+        assert next(row for row in promotions_response.json() if row["id"] == menu_id)["discount_value"] == 0
     finally:
         admin.delete(f"/api/admin/menu/{menu_id}")
 

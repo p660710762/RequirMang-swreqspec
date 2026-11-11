@@ -11,6 +11,7 @@ from ..models.menu import MenuItemEntity
 from ..models.order import Order
 from ..models.order_item import OrderItem, OrderOption
 from ..models.payment_transaction import PaymentTransaction
+from ..services.promotion_service import is_active_promotion
 
 
 class OrderNumberExhaustedError(Exception):
@@ -34,10 +35,23 @@ class RepositoryMenuItem:
     promotion_price: Decimal | None
     description: str | None = None
     image_url: str | None = None
+    promotion: dict | None = None
+
+    @property
+    def active_promotion(self) -> dict | None:
+        return self.promotion if is_active_promotion(self.promotion) else None
 
     @property
     def effective_price(self) -> Decimal:
-        return self.promotion_price if self.promotion_price is not None else self.price
+        if self.promotion_price is not None:
+            return self.promotion_price
+        promotion = self.active_promotion
+        if promotion is None:
+            return self.price
+        return max(
+            Decimal("0"),
+            self.price - Decimal(str(promotion.get("discount_value") or 0)),
+        )
 
 
 @dataclass
@@ -111,11 +125,11 @@ class SqliteMenuRepository:
     def get_menu_item(self, menu_id: int) -> RepositoryMenuItem | None:
         with SessionLocal() as session:
             item = session.get(MenuItemEntity, menu_id)
-            if item is None:
+            if item is None or item.is_deleted:
                 return None
             return RepositoryMenuItem(
                 item.menu_id, item.name, item.status, Decimal(item.price),
-                item.promotion_price, item.description, item.image_url,
+                item.promotion_price, item.description, item.image_url, item.promotion,
             )
 
     def list_menu_items(self) -> list[RepositoryMenuItem]:
@@ -123,9 +137,11 @@ class SqliteMenuRepository:
             return [
                 RepositoryMenuItem(
                     item.menu_id, item.name, item.status, Decimal(item.price),
-                    item.promotion_price, item.description, item.image_url,
+                    item.promotion_price, item.description, item.image_url, item.promotion,
                 )
-                for item in session.scalars(select(MenuItemEntity)).all()
+                for item in session.scalars(
+                    select(MenuItemEntity).where(MenuItemEntity.is_deleted.is_(False))
+                ).all()
             ]
 
 

@@ -7,7 +7,9 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
 from ..middleware.auth_guard import require_admin
-from ..seed import seed_menu_data
+from ..database import SessionLocal, configure_database
+from ..models.menu import MenuItemEntity
+from ..services.promotion_service import promotion_response
 from ..services.menu_service import (
     create_menu_item,
     delete_menu_item,
@@ -26,17 +28,14 @@ router = APIRouter(prefix="/api/admin", dependencies=[Depends(require_admin)])
 @public_router.get("/api/promotions/active")
 def get_active_promotions():
     """FR-44: expose active promotions used with the customer menu."""
-    promotions = seed_menu_data()["promotions"]
-    return [
-        {
-            "id": promo["promotion_id"],
-            "title": promo["promotion_name"],
-            "discount_value": float(promo["discount_value"]),
-            "status": "active",
-        }
-        for promo in promotions
-        if promo.get("is_active")
-    ]
+    configure_database()
+    with SessionLocal() as session:
+        active_promotions = []
+        for item in session.query(MenuItemEntity).filter(MenuItemEntity.is_deleted.is_(False)).all():
+            promotion = promotion_response(item.promotion, item.menu_id)
+            if promotion is not None:
+                active_promotions.append(promotion)
+        return active_promotions
 
 
 class MenuCreateRequest(BaseModel):

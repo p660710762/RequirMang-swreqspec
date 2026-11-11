@@ -39,7 +39,7 @@ describe('MenuEditPanel', () => {
 
     fireEvent.change(screen.getByLabelText('ชื่อโปรโมชั่น'), { target: { value: 'ลดพิเศษ' } });
     fireEvent.change(screen.getByLabelText('วันเริ่มต้น', { selector: 'input' }), {
-      target: { value: '2026-11-01T10:30' },
+      target: { value: '2026-11-12T10:30' },
     });
     fireEvent.change(screen.getByLabelText('วันสิ้นสุด', { selector: 'input' }), {
       target: { value: '2026-11-30T18:00' },
@@ -88,10 +88,10 @@ describe('MenuEditPanel', () => {
 
     expect(screen.getByRole('button', { name: /กรุณาเลือกวันเริ่มต้นและเวลา/ })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /กรุณาเลือกวันสิ้นสุดและเวลา/ })).toBeInTheDocument();
-    expect(screen.getByLabelText('วันเริ่มต้น', { selector: 'input' })).not.toHaveAttribute('min');
-    expect(screen.getByLabelText('วันสิ้นสุด', { selector: 'input' })).not.toHaveAttribute('min');
+    expect(screen.getByLabelText('วันเริ่มต้น', { selector: 'input' })).toHaveAttribute('min');
+    expect(screen.getByLabelText('วันสิ้นสุด', { selector: 'input' })).toHaveAttribute('min');
     fireEvent.change(screen.getByLabelText('วันเริ่มต้น', { selector: 'input' }), {
-      target: { value: '2026-11-01T10:30' },
+      target: { value: '2026-11-12T10:30' },
     });
 
     fireEvent.change(screen.getByLabelText('วันสิ้นสุด', { selector: 'input' }), {
@@ -102,7 +102,7 @@ describe('MenuEditPanel', () => {
     expect(await screen.findByRole('status')).toHaveTextContent('บันทึกข้อมูลสำเร็จ');
     expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({
       promotion: expect.objectContaining({
-        start_at: expect.stringMatching(/^2026-11-01T10:30:00[+-]\d{2}:\d{2}$/),
+        start_at: expect.stringMatching(/^2026-11-12T10:30:00[+-]\d{2}:\d{2}$/),
         end_at: expect.stringMatching(/^2026-11-30T18:00:00[+-]\d{2}:\d{2}$/),
       }),
     }));

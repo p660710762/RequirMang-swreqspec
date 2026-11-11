@@ -214,7 +214,7 @@ export default function AdminMenuPage({ userId = '' }) {
           type="button"
           onClick={() => setIsCreateFormVisible((visible) => !visible)}
         >
-          + เพิ่มเมนูตัวอย่าง
+          + เพิ่มเมนู
         </button>
 
         {isCreateFormVisible && (
