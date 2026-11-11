@@ -20,6 +20,7 @@ export default function AppShell() {
   });
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [mockUserId, setMockUserId] = useState('');
+  const [mockUserRole, setMockUserRole] = useState('');
   const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
   const [selectedOrderMenuId, setSelectedOrderMenuId] = useState(null);
   const [selectedTrackingOrderId, setSelectedTrackingOrderId] = useState(null);
@@ -78,6 +79,11 @@ export default function AppShell() {
   }, [isLoggedIn]);
 
   const handleNavigate = (nextPage) => {
+    if (nextPage === 'admin' && mockUserRole !== 'admin') {
+      setPage('account');
+      return;
+    }
+
     if (nextPage === 'staffOrders') {
       if (window.location.pathname !== '/staff/orders') {
         window.history.pushState({}, '', '/staff/orders');
@@ -134,6 +140,7 @@ export default function AppShell() {
   const handleAuthenticationSuccess = (account) => {
     setIsLoggedIn(true);
     setMockUserId(account.id);
+    setMockUserRole(account.role ?? 'customer');
     if (window.location.pathname !== '/') {
       window.history.replaceState({}, '', '/');
     }
@@ -242,7 +249,7 @@ export default function AppShell() {
           onOpenLogin={() => handleNavigate('account')}
         />
       </div>
-      {page === 'admin' && <AdminMenuPage />}
+      {page === 'admin' && <AdminMenuPage userId={mockUserId} />}
       {page === 'staffOrders' && <StaffOrdersPage />}
       {page === 'status' && (
         <OrderListPage userId={mockUserId} onSelectOrder={handleSelectOrder} />

@@ -2,6 +2,13 @@ import { useState } from 'react';
 import './Account.css';
 
 export const MOCK_LINE_USER_ID = 'mock-line-user-001';
+export const MOCK_ADMIN_ACCOUNT = {
+  id: 'admin',
+  role: 'admin',
+  email: 'admin@mock.local',
+  phone: '',
+  password: '',
+};
 
 const initialMockAccounts = [];
 
@@ -198,6 +205,13 @@ export default function App({
     onLoginFailed();
   };
 
+  const handleMockAdminLogin = () => {
+    setCurrentAccount(MOCK_ADMIN_ACCOUNT);
+    setLoginSuccess('เข้าสู่ระบบแบบ Mock Admin สำเร็จ');
+    setLoginError('');
+    onAuthenticated(MOCK_ADMIN_ACCOUNT);
+  };
+
   const handleMockLineConnect = () => {
     const result = connectMockLine(currentAccount, lineLinks);
 
@@ -326,6 +340,14 @@ export default function App({
 
             <button className="account-button" type="submit">
               เข้าสู่ระบบ
+            </button>
+
+            <button
+              className="account-button"
+              type="button"
+              onClick={handleMockAdminLogin}
+            >
+              เข้าสู่ระบบในฐานะ Admin (Mock)
             </button>
 
             {loginSuccess && (

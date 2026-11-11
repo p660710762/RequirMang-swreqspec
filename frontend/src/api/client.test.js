@@ -51,7 +51,7 @@ describe('menu API client', () => {
       json: async () => ({ menu_id: 7, ...menuItem }),
     }));
 
-    await expect(createMenuItem(menuItem)).resolves.toMatchObject(menuItem);
+    await expect(createMenuItem(menuItem, 'admin')).resolves.toMatchObject(menuItem);
     expect(fetch).toHaveBeenCalledWith('/api/admin/menu', {
       method: 'POST',
       headers: { 'X-User-Id': 'admin', 'Content-Type': 'application/json' },
