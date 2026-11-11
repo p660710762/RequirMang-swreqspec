@@ -38,7 +38,7 @@ function MenuMark({ name, imageUrl }) {
 }
 
 // FR-42: show menu records and related fields returned by the Admin API.
-export default function AdminMenuPage() {
+export default function AdminMenuPage({ userId = '' }) {
   const [menuItems, setMenuItems] = useState([]);
   const [loadState, setLoadState] = useState('loading');
   const [isCreateFormVisible, setIsCreateFormVisible] = useState(false);
@@ -48,7 +48,7 @@ export default function AdminMenuPage() {
 
   // FR-43, FR-47: add the API response to the current menu list after saving.
   async function handleCreateMenu(menuItem) {
-    const createdItem = await createMenuItem(menuItem);
+    const createdItem = await createMenuItem(menuItem, userId);
     setMenuItems((current) => [createdItem, ...current]);
     setToast({ type: 'success', message: 'บันทึกข้อมูลสำเร็จ' });
     return createdItem;
@@ -59,7 +59,7 @@ export default function AdminMenuPage() {
     try {
       const response = await fetch(`/api/admin/menu/${menuId}`, {
         method: 'PATCH',
-        headers: { 'X-User-Id': 'admin', 'Content-Type': 'application/json' },
+        headers: { 'X-User-Id': userId, 'Content-Type': 'application/json' },
         body: JSON.stringify(changes),
       });
       if (!response.ok) {
@@ -88,7 +88,7 @@ export default function AdminMenuPage() {
     try {
       const response = await fetch(`/api/admin/menu/${menuId}/status`, {
         method: 'PATCH',
-        headers: { 'X-User-Id': 'admin', 'Content-Type': 'application/json' },
+        headers: { 'X-User-Id': userId, 'Content-Type': 'application/json' },
         body: JSON.stringify({ status }),
       });
       if (!response.ok) {
@@ -112,7 +112,7 @@ export default function AdminMenuPage() {
   // FR-49: delete the active catalog item after confirmation while retaining history/snapshots.
   async function handleDeleteMenu(menuId) {
     try {
-      await deleteMenuItem(menuId);
+      await deleteMenuItem(menuId, userId);
       setMenuItems((current) => current.filter((item) => item.menu_id !== menuId));
       setDeletingItem(null);
       setToast({ type: 'success', message: 'ลบเมนูสำเร็จ' });
@@ -126,7 +126,7 @@ export default function AdminMenuPage() {
   useEffect(() => {
     let isCurrent = true;
 
-    getMenuItems()
+    getMenuItems(userId)
       .then((items) => {
         if (isCurrent) {
           setMenuItems(items);
@@ -140,7 +140,7 @@ export default function AdminMenuPage() {
     return () => {
       isCurrent = false;
     };
-  }, []);
+  }, [userId]);
 
   return (
     <main className="admin-page">

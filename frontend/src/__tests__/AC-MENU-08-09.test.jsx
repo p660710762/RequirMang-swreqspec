@@ -120,6 +120,9 @@ describe('AC-MENU-08 and AC-MENU-09 customer login flow', () => {
     expect(await screen.findByText('ขณะนี้ไม่มีรายการเครื่องดื่ม')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Admin Menu' }));
+    expect(await screen.findByRole('heading', { name: 'เข้าสู่ระบบ' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'เข้าสู่ระบบในฐานะ Admin (Mock)' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Admin Menu' }));
     fireEvent.click(await screen.findByRole('button', { name: '+ เพิ่มเมนูตัวอย่าง' }));
     fireEvent.change(await screen.findByLabelText(/ชื่อเมนู/), {
       target: { value: 'ชาเขียวใหม่' },
@@ -134,7 +137,7 @@ describe('AC-MENU-08 and AC-MENU-09 customer login flow', () => {
 
     expect(await screen.findByRole('heading', { name: 'ชาเขียวใหม่' }))
       .toBeInTheDocument();
-    expect(fetch.mock.calls.filter(([url]) => url === '/api/menu')).toHaveLength(2);
+    expect(fetch.mock.calls.filter(([url]) => url === '/api/menu')).toHaveLength(3);
   });
 
   test('shows a paid Order in Status after the simulated payment succeeds', async () => {

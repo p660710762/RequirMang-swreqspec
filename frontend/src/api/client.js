@@ -1,5 +1,4 @@
 const ADMIN_MENU_PATH = '/api/admin/menu';
-const MOCK_ADMIN_HEADERS = { 'X-User-Id': 'admin' };
 const ORDER_LIST_PATH = '/api/orders';
 const DEFAULT_MOCK_ORDER_USER = 'customer-a';
 const STAFF_ORDERS_PATH = '/api/staff/orders';
@@ -7,6 +6,10 @@ const MOCK_STAFF_HEADERS = { 'X-User-Id': 'staff' };
 
 function orderHeaders(userId = DEFAULT_MOCK_ORDER_USER) {
   return userId ? { 'X-Test-User': userId } : {};
+}
+
+function adminHeaders(userId) {
+  return userId ? { 'X-User-Id': userId } : {};
 }
 
 // FR-19: load the order list for the current development/test user.
@@ -118,8 +121,8 @@ export async function updateStaffOrderStatus(orderId, orderDate, newStatus) {
 }
 
 // FR-42: load the current menu list for the Admin menu page.
-export async function getMenuItems() {
-  const response = await fetch(ADMIN_MENU_PATH, { headers: MOCK_ADMIN_HEADERS });
+export async function getMenuItems(userId) {
+  const response = await fetch(ADMIN_MENU_PATH, { headers: adminHeaders(userId) });
   if (!response.ok) {
     throw new Error(`Menu request failed (${response.status})`);
   }
@@ -131,10 +134,10 @@ export async function getMenuItems() {
 }
 
 // FR-43, FR-47: send a new menu payload to the menu API.
-export async function createMenuItem(menuItem) {
+export async function createMenuItem(menuItem, userId) {
   const response = await fetch(ADMIN_MENU_PATH, {
     method: 'POST',
-    headers: { ...MOCK_ADMIN_HEADERS, 'Content-Type': 'application/json' },
+    headers: { ...adminHeaders(userId), 'Content-Type': 'application/json' },
     body: JSON.stringify(menuItem),
   });
   if (!response.ok) {
@@ -153,10 +156,10 @@ export async function createMenuItem(menuItem) {
 }
 
 // FR-49: permanently remove the menu while keeping legacy snapshot/history records.
-export async function deleteMenuItem(menuId) {
+export async function deleteMenuItem(menuId, userId) {
   const response = await fetch(`${ADMIN_MENU_PATH}/${encodeURIComponent(menuId)}`, {
     method: 'DELETE',
-    headers: MOCK_ADMIN_HEADERS,
+    headers: adminHeaders(userId),
   });
   if (!response.ok) {
     let message = `Menu delete failed (${response.status})`;
