@@ -260,8 +260,8 @@ export default function OrderPage({
     <main className="order-page">
       <header className="order-page__header">
         <div>
-          <h1>03 · Ordering &amp; Payment</h1>
-          <p>UC-03 · สั่งซื้อเครื่องดื่ม</p>
+          <h1>Ordering &amp; Payment</h1>
+          <p>สั่งซื้อเครื่องดื่ม</p>
         </div>
         <span className="order-guest-badge">Guest</span>
       </header>

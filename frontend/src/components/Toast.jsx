@@ -12,6 +12,7 @@ export default function Toast({ type = 'info', message, onClose }) {
   }
 
   const variant = type === 'error' ? 'toast--error' : 'toast--success';
+  const heading = type === 'error' ? 'ดำเนินการไม่สำเร็จ' : 'ดำเนินการสำเร็จ';
 
   return (
     <div className={`toast ${variant}`} role={type === 'error' ? 'alert' : 'status'} aria-live="polite">

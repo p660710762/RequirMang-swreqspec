@@ -25,8 +25,8 @@ def seed_menu_data() -> dict[str, list[dict]]:
     history = MenuHistory(
         history_id=1,
         menu_id=menu_item.menu_id,
-        old_price=1.0,
-        new_price=1.0,
+        old_price=menu_item.price,
+        new_price=menu_item.price,
         old_status=MENU_STATUS_OPEN,
         new_status=MENU_STATUS_OPEN,
         updated_by="admin",
