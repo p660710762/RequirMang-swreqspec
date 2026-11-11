@@ -27,7 +27,7 @@ from ..services.orders import (
     get_order_status_for_user,
     list_orders_for_user,
 )
-from ..seed import seed_menu_data
+from ..services.promotion_service import promotion_response
 from ..services.order_service import (
     MenuItemNotFoundError,
     MenuItemUnavailableError,
@@ -221,18 +221,11 @@ def get_order_draft_service(
 def list_menu_items(
     menu_repository: Annotated[MenuRepository, Depends(get_menu_repository)],
 ) -> MenuResponse:
-    promotions = {
-        promotion["menu_id"]: {
-            "id": promotion["promotion_id"],
-            "title": promotion["promotion_name"],
-            "discount_value": float(promotion["discount_value"]),
-            "status": "active",
-        }
-        for promotion in seed_menu_data()["promotions"]
-        if promotion.get("is_active")
-    }
-
     def to_response(item) -> MenuItemResponse:
+        promotion = promotion_response(
+            getattr(item, "active_promotion", None),
+            item.menu_id,
+        )
         values = {
             "menu_id": item.menu_id,
             "name": item.name,
@@ -244,8 +237,8 @@ def list_menu_items(
         for field in ("description", "image_url"):
             if hasattr(item, field):
                 values[field] = getattr(item, field)
-        if item.menu_id in promotions:
-            values["promotion"] = promotions[item.menu_id]
+        if promotion is not None:
+            values["promotion"] = promotion
         return MenuItemResponse(**values)
 
     return MenuResponse(

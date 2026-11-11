@@ -54,6 +54,7 @@ function formatThaiDateTime(value, emptyLabel) {
 // FR-44, FR-47, ASM-07: edit menu details and promotion values on the same panel.
 export default function MenuEditPanel({ menuItem, onSubmit, onCancel }) {
   const [values, setValues] = useState(() => initialValues(menuItem));
+  const [minimumDateTime] = useState(currentDateTimeLocal);
   const [state, setState] = useState('idle');
   const [message, setMessage] = useState('');
 
@@ -62,20 +63,19 @@ export default function MenuEditPanel({ menuItem, onSubmit, onCancel }) {
   }
 
   function updatePromotionDate(fieldName, value) {
-    const minimumDateTime = currentDateTimeLocal();
-    if (value && value < minimumDateTime) {
+    if (value && value < currentDateTimeLocal()) {
       setState('error');
       setMessage('วันและเวลาต้องไม่เป็นเวลาที่ผ่านมาแล้ว');
       return;
     }
-    if (fieldName === 'end_at' && values.start_at && value && value < values.start_at) {
+    if (fieldName === 'end_at' && values.start_at && value && value <= values.start_at) {
       setState('error');
-      setMessage('วันสิ้นสุดต้องไม่ก่อนวันเริ่มต้น');
+      setMessage('วันสิ้นสุดต้องหลังวันเริ่มต้น');
       return;
     }
-    if (fieldName === 'start_at' && values.end_at && value && values.end_at < value) {
+    if (fieldName === 'start_at' && values.end_at && value && values.end_at <= value) {
       setState('error');
-      setMessage('วันสิ้นสุดต้องไม่ก่อนวันเริ่มต้น');
+      setMessage('วันสิ้นสุดต้องหลังวันเริ่มต้น');
       return;
     }
     setValues((current) => ({ ...current, [fieldName]: value }));
@@ -137,18 +137,18 @@ export default function MenuEditPanel({ menuItem, onSubmit, onCancel }) {
       setMessage('กรุณาเลือกวันเริ่มต้นและวันสิ้นสุดของโปรโมชั่น');
       return;
     }
-    if (values.start_at && values.end_at && values.end_at < values.start_at) {
+    if (values.start_at && values.end_at && values.end_at <= values.start_at) {
       setState('error');
-      setMessage('วันสิ้นสุดต้องไม่ก่อนวันเริ่มต้น');
+      setMessage('วันสิ้นสุดต้องหลังวันเริ่มต้น');
       return;
     }
-    const minimumDateTime = currentDateTimeLocal();
-    if (values.start_at && values.start_at < minimumDateTime) {
+    const currentMinimumDateTime = currentDateTimeLocal();
+    if (values.start_at && values.start_at < currentMinimumDateTime) {
       setState('error');
       setMessage('วันเริ่มต้นต้องไม่เป็นวันและเวลาที่ผ่านมาแล้ว');
       return;
     }
-    if (values.end_at && values.end_at < minimumDateTime) {
+    if (values.end_at && values.end_at < currentMinimumDateTime) {
       setState('error');
       setMessage('วันสิ้นสุดต้องไม่เป็นวันและเวลาที่ผ่านมาแล้ว');
       return;
@@ -225,6 +225,7 @@ export default function MenuEditPanel({ menuItem, onSubmit, onCancel }) {
             lang="th-TH"
             value={values.start_at}
             onChange={(event) => updatePromotionDate('start_at', event.target.value)}
+            min={minimumDateTime}
             aria-label="วันเริ่มต้น"
           />
         </label>
@@ -246,6 +247,7 @@ export default function MenuEditPanel({ menuItem, onSubmit, onCancel }) {
             lang="th-TH"
             value={values.end_at}
             onChange={(event) => updatePromotionDate('end_at', event.target.value)}
+            min={minimumDateTime}
             aria-label="วันสิ้นสุด"
           />
         </label>

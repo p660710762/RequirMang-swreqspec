@@ -33,11 +33,12 @@ def _validate_promotion_datetime(promotion: dict[str, Any]) -> dict[str, Any]:
 
     start = datetime.fromisoformat(start_at.replace("Z", "+00:00"))
     end = datetime.fromisoformat(end_at.replace("Z", "+00:00"))
-    if end < start:
-        raise ValueError("Promotion end_at must not be before start_at")
-    if start < datetime.now(timezone.utc):
+    if end <= start:
+        raise ValueError("Promotion end_at must be after start_at")
+    current_minute = datetime.now(timezone.utc).replace(second=0, microsecond=0)
+    if start < current_minute:
         raise ValueError("Promotion start_at must not be in the past")
-    if end < datetime.now(timezone.utc):
+    if end < current_minute:
         raise ValueError("Promotion end_at must not be in the past")
     validated = dict(promotion)
     if isinstance(promotion_name, str):

@@ -7,6 +7,8 @@ from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import sessionmaker
 
+from .services.promotion_service import serialize_promotion
+
 DEFAULT_DATABASE_URL = (
     f"sqlite:///{Path(__file__).resolve().parents[1] / 'order.sqlite3'}"
 )
@@ -79,6 +81,7 @@ def init_database() -> None:
             "image_url": "VARCHAR",
             "created_at": "DATETIME",
             "updated_at": "DATETIME",
+            "is_deleted": "BOOLEAN NOT NULL DEFAULT 0",
         }
         with engine.begin() as connection:
             for name, column_type in missing_columns.items():
@@ -90,6 +93,11 @@ def init_database() -> None:
         if session.query(MenuItemEntity).count() == 0:
             from .seed import seed_menu_data
 
+            seed = seed_menu_data()
+            promotions = {
+                promotion["menu_id"]: promotion
+                for promotion in seed["promotions"]
+            }
             session.add_all(
                 [
                     MenuItemEntity(
@@ -97,7 +105,8 @@ def init_database() -> None:
                         name=item["name"],
                         price=item["price"],
                         status=item["status"],
+                        promotion=serialize_promotion(promotions.get(item["menu_id"])),
                     )
-                    for item in seed_menu_data()["menu_items"]
+                    for item in seed["menu_items"]
                 ]
             )
