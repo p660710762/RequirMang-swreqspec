@@ -1,6 +1,6 @@
 # Feature: จัดการเมนู ราคา โปรโมชั่น และสถานะสินค้า (Menu & Product Management)
 Spec ID: SPEC-MENU-MANAGEMENT-001 | Source: SRS v0.1 ข้อ 3.9 (FR-MENU-MANAGEMENT) | Use case: UC-09  
-Owner: <ทีม/คน> | Status: Draft v4 | Updated: 2569-10-26
+Owner: <ทีม/คน> | Status: Draft v2 | Updated: 2569-11-13
 Depends on: SPEC-MENU-001 | Reviewed by: -
 
 ## Goal
@@ -128,8 +128,8 @@ Depends on: SPEC-MENU-001 | Reviewed by: -
 - [ ] AC-MENU-MGMT-03 (FR-44)
 
   Given มีเมนูอยู่ในระบบ  
-  When Admin แก้ไขราคา รายละเอียด หรือข้อมูลที่เกี่ยวข้องและกดบันทึก  
-  Then ระบบบันทึกข้อมูลใหม่และแสดงข้อมูลล่าสุด
+  When Admin แก้ไขราคา รายละเอียด โปรโมชั่น หรือข้อมูลที่เกี่ยวข้องและกดบันทึก
+  Then ระบบบันทึกข้อมูลใหม่และแสดงข้อมูลล่าสุด โดยส่วนลดต้องไม่ติดลบ ไม่มากกว่าราคาเมนู และราคาหลังลดต้องเท่ากับราคาเมนูลบด้วยส่วนลด
 
 - [ ] AC-MENU-MGMT-04 (FR-45)
 
@@ -205,6 +205,28 @@ Depends on: SPEC-MENU-001 | Reviewed by: -
 
   Then ระบบปฏิเสธข้อมูลโปรโมชั่นและไม่บันทึกการเปลี่ยนแปลง
 
+  Given Admin เปิดช่องวันเริ่มต้นหรือวันสิ้นสุดของโปรโมชั่น
+
+  When Admin เลือกวันและเวลาผ่าน date-time picker
+
+  Then หน้าจอแสดงค่าเป็นภาษาไทยและปี พ.ศ. และระบบส่งค่าที่บันทึกเป็น ISO 8601 datetime พร้อม timezone และปี ค.ศ.
+
+- [ ] AC-MENU-MGMT-16 (NFR-REL-08)
+
+  Given Admin เพิ่ม แก้ไข เปลี่ยนสถานะ หรือลบข้อมูลเมนู
+
+  When ระบบบันทึกข้อมูลไม่สำเร็จระหว่างการดำเนินการ
+
+  Then ระบบ rollback การเปลี่ยนแปลงทั้งหมด ไม่ทำให้ข้อมูลเดิม ประวัติเมนู หรือ Order snapshot เปลี่ยนแปลง และแจ้งให้ Admin ทราบว่าไม่สามารถบันทึกข้อมูลได้
+
+- [ ] AC-MENU-MGMT-17 (NFR-USE-03)
+
+  Given Admin เปิดหน้าจัดการเมนู
+
+  When ระบบแสดงรายการหรือรายละเอียดเมนู
+
+  Then ระบบแสดงชื่อ ราคา และสถานะสินค้าอย่างชัดเจน และ Admin สามารถตรวจสอบและแก้ไขข้อมูลได้ถูกต้อง
+
 ## Assumptions and Open Questions
 
 ### Assumptions
@@ -272,11 +294,12 @@ Depends on: SPEC-MENU-001 | Reviewed by: -
 | UC-09 Exception Flow 6a | Exception Flow Requirement | AC-MENU-MGMT-11 |
 | UC-09 Exception Flow 7a | Exception Flow Requirement | AC-MENU-MGMT-12 |
 | NFR ด้าน Security | NFR-SEC-05 | AC-MENU-MGMT-13 |
-| NFR ด้าน Reliability | NFR-REL-08 | — |
+| NFR ด้าน Reliability | NFR-REL-08 | AC-MENU-MGMT-16 |
 | NFR ด้าน Reliability | NFR-REL-09 | AC-MENU-MGMT-14 |
-| NFR ด้าน Usability | NFR-USE-03 | — |
+| NFR ด้าน Usability | NFR-USE-03 | AC-MENU-MGMT-17 |
 
 ## Changelog
+- v6 2569-11-13 เพิ่ม AC-MENU-MGMT-16 สำหรับ NFR-REL-08 และ AC-MENU-MGMT-17 สำหรับ NFR-USE-03; ขยาย AC-MENU-MGMT-03 ให้ครอบคลุมกฎส่วนลดและราคาหลังลด; ขยาย AC-MENU-MGMT-15 ให้ครอบคลุม validation และการแสดงวันโปรโมชั่น
 - v5 2569-10-26 เพิ่มข้อกำหนดให้ช่องวันโปรโมชั่นแสดงผลภาษาไทยและปี พ.ศ. พร้อม date-time picker โดยส่งค่าเป็น ISO 8601 ปี ค.ศ. พร้อม timezone
 - v4 2569-10-26 เพิ่มข้อกำหนดวันที่โปรโมชั่นตามคำยืนยันทีม: วันเริ่มและวันสิ้นสุดเป็น required, ใช้ ISO 8601 พร้อม timezone, และวันสิ้นสุดต้องไม่ก่อนวันเริ่ม; เพิ่ม AC-MENU-MGMT-15/ASM-14 และปรับ ASM-02 ให้รายละเอียด/รูปภาพเป็น optional ตาม FR-43/FR-46
 - v3 2569-10-26 ปรับตามคำตอบทีม: กำหนดข้อมูลจำเป็นเป็นชื่อ ราคา และสถานะ; รายละเอียดและรูปภาพเป็น optional; อนุญาตลบเมนูถาวรโดยคง Order snapshot; แยกการลบกับการเปลี่ยนสถานะหมด; และกำหนดการบันทึกแบบ all-or-nothing พร้อม rollback

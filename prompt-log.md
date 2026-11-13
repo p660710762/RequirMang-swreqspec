@@ -4,6 +4,58 @@
 
 ---
 
+## 2569-11-13 15:52 คำสั่ง: /clarify (ตอบคำถามเรื่อง AC ที่ไม่มีใน RTM)
+
+- เครื่องมือ: Copilot in VS Code
+- ไฟล์: `specs/009-MenuManagement/spec.md` (Draft v4)
+
+### คำถามที่ AI ถาม (ทั้งหมด)
+
+1. ต้องการเพิ่ม AC แยกสำหรับ `NFR-REL-08` และ `NFR-USE-03` หรือให้รวมไว้ใน AC เดิม?
+2. ต้องการให้ `CON-THAI-BUDDHIST-DATETIME` อยู่ใน `AC-MENU-MGMT-15` เดิม หรืออนุมัติให้มี AC แยก?
+3. ต้องการเพิ่ม AC สำหรับกฎส่วนลดโปรโมชั่นหรือไม่?
+4. ยืนยัน ID ของ AC ใหม่สำหรับ `NFR-REL-08` และ `NFR-USE-03`
+
+### คำตอบของทีมและเหตุผล
+
+1. แยก AC สำหรับ `NFR-REL-08` และ `NFR-USE-03`
+2. ให้ `AC-MENU-MGMT-15` ครอบคลุมทั้ง validation และการแสดงผล
+3. ขยาย `AC-MENU-MGMT-03` ให้ตรวจส่วนลดและราคาหลังลด
+4. ใช้ `AC-MENU-MGMT-16` สำหรับ `NFR-REL-08` และ `AC-MENU-MGMT-17` สำหรับ `NFR-USE-03`
+
+### สิ่งที่แก้ใน spec.md (Draft v4 เป็น Draft v2)
+
+- เพิ่ม `AC-MENU-MGMT-16` สำหรับ `NFR-REL-08`
+- เพิ่ม `AC-MENU-MGMT-17` สำหรับ `NFR-USE-03`
+- ขยาย `AC-MENU-MGMT-15` ให้ครอบคลุม validation และการแสดงวันโปรโมชั่น
+- ขยาย `AC-MENU-MGMT-03` ให้ครอบคลุมกฎส่วนลดและการคำนวณราคาหลังลด
+- ปรับตาราง Traceability และ RTM ให้ทุกข้อมี AC อ้างอิง
+
+---
+
+## 2569-11-12 12:37 คำสั่ง: /clarify
+
+- เครื่องมือ: Copilot in VS Code
+- ไฟล์: `specs/009-MenuManagement/spec.md` (Draft v4)
+
+### คำถามที่ AI ถาม (ทั้งหมด)
+
+1. เมื่อลบเมนูถาวร ระบบต้องเก็บทั้ง `Order snapshot` และ `menu history` ไว้ หรือรับประกันเฉพาะ `Order snapshot` เท่านั้น?
+
+### คำตอบของทีมและเหตุผล
+
+1. เก็บเฉพาะ `Order snapshot`
+
+### สิ่งที่แก้ใน spec.md (Draft v4 เป็น Draft v2)
+
+- ระบุว่าการลบเมนูถาวรต้องเก็บเฉพาะ `Order snapshot`
+- ระบุว่าไม่ต้องเก็บ `menu history` ของเมนูที่ถูกลบ
+- ปรับ `FR-49`, `AC-MENU-MGMT-08`, `ASM-09` และ `ASM-13` ให้สอดคล้องกัน
+- อัปเดต Status และวันที่ของ spec
+
+---
+---
+
 ## 2569-10-28 16:03 คำสั่ง: /testcases AC-MENU-09 specs/001-Menu/spec.md
 - โหมด: ร่าง
 - TC ID: `TC-MENU-09-1`, `TC-MENU-09-2`, `TC-MENU-09-3`
