@@ -1,6 +1,6 @@
 # Feature: ติดตามสถานะ Order (Order Status Tracking)
 Spec ID: SPEC-ORDER-STATUS-001 | Source: SRS v0.1 ข้อ 3.5 (FR-ORDER-STATUS) | Use case: UC-05  
-Owner: <ทีม/คน> | Status: Draft v4 | Updated: 2569-10-28
+Owner: <660710710> | Status: Draft v4 | Updated: 2569-10-28
 Depends on: SPEC-ORDER-001, SPEC-PAYMENT-001 | Reviewed by: -
 
 ## Goal

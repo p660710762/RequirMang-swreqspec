@@ -1,6 +1,6 @@
 # Feature: สมัครสมาชิก / เข้าสู่ระบบ (Register & Login)
 Spec ID: SPEC-ACCOUNT-001 | Source: SRS v0.1 ข้อ 3.2 | Use case: UC-02
-Owner: <ทีม/คน> | Status: Draft v4 | Updated: 2569-10-28
+Owner: <660710754> | Status: Draft v4 | Updated: 2569-10-28
 Depends on: - | Reviewed by: -
 
 ## Goal

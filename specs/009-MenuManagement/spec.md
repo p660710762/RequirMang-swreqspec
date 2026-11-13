@@ -1,6 +1,6 @@
 # Feature: จัดการเมนู ราคา โปรโมชั่น และสถานะสินค้า (Menu & Product Management)
 Spec ID: SPEC-MENU-MANAGEMENT-001 | Source: SRS v0.1 ข้อ 3.9 (FR-MENU-MANAGEMENT) | Use case: UC-09  
-Owner: <ทีม/คน> | Status: Draft v2 | Updated: 2569-11-13
+Owner: <660710735> | Status: Draft v4 | Updated: 2569-10-26
 Depends on: SPEC-MENU-001 | Reviewed by: -
 
 ## Goal

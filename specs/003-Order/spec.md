@@ -1,6 +1,6 @@
 # Feature: สั่งเครื่องดื่มออนไลน์ (Online Beverage Ordering)
 Spec ID: SPEC-ORDER-001 | Source: SRS v0.1 ข้อ 3.3 (FR-ORDER) | Use case: UC-03  
-Owner: <ทีม/คน> | Status: Draft v2 | Updated: 2569-09-18  
+Owner: <660710762> | Status: Draft v2 | Updated: 2569-09-18  
 Depends on: SPEC-MENU-001 | Reviewed by: -
 
 ## Goal
