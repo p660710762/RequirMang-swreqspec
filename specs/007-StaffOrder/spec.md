@@ -1,6 +1,6 @@
 # Feature: ดูรายการ Order สำหรับพนักงาน (Staff Order List)
 Spec ID: SPEC-STAFF-ORDER-001 | Source: SRS v0.1 ข้อ 3.7 (FR-STAFF-ORDER) | Use case: UC-07  
-Owner: <ทีม/คน> | Status: Draft v2 | Updated: 2569-09-18  
+Owner: <660710722> | Status: Draft v2 | Updated: 2569-09-18  
 Depends on: SPEC-ORDER-001, SPEC-ORDER-STATUS-001 | Reviewed by: -
 
 ## Goal

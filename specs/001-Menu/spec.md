@@ -1,7 +1,7 @@
   # UC-01 — Feature: ดูเมนูและโปรโมชั่น (Menu & Promotion)
 
   Spec ID: SPEC-MENU-001 | Source: SRS v0.1 ข้อ 3.1 (FR-MENU) | Use case: UC-01  
-  Owner: \<ทีม/คน> | Status: Draft v12 | Updated: 2569-10-28
+  Owner: <660710746> | Status: Draft v12 | Updated: 2569-10-28
   Depends on: SPEC-ACCOUNT-001, SPEC-ORDER-001 | Reviewed by: -
 
   ## Goal
